@@ -8,7 +8,7 @@ Typer CLI is a terminal-based keyboard typing training tool. It provides an inte
 
 ## Features (MVP - Phase 1)
 
-- ✅ **Home Row Mode**: Training on the home row (f, j)
+- ✅ **Home Row Mode**: Training on the AZERTY home row (Level 1: f, j)
 - ✅ **Real-time Feedback**: Green/red coloring for each character
 - ✅ **Live Metrics**: WPM (words per minute) and accuracy
 - ✅ **Persistence**: Automatic session saving
@@ -90,16 +90,16 @@ src/
 ├── main.rs           # Entry point + terminal init
 ├── app.rs            # App state + event loop
 ├── ui/
-│   └── render.rs     # Rendu TUI avec ratatui
+│   └── render.rs     # TUI rendering with ratatui
 ├── engine/
 │   ├── types.rs      # TypingSession, CharInput, SessionResult
-│   └── scoring.rs    # Calcul WPM et accuracy
+│   └── scoring.rs    # WPM and accuracy calculation
 ├── content/
-│   ├── lesson.rs     # Définition des leçons
-│   └── generator.rs  # Génération de contenu
+│   ├── lesson.rs     # Lesson definitions
+│   └── generator.rs  # Content generation
 ├── data/
-│   ├── stats.rs      # Structures de stats
-│   └── storage.rs    # Persistence JSON
+│   ├── stats.rs      # Stats structures
+│   └── storage.rs    # JSON persistence
 └── keyboard/
     └── azerty.rs     # Layout AZERTY
 ```
@@ -138,7 +138,7 @@ cargo test
 cargo test -- --nocapture
 ```
 
-29 unit tests cover:
+32 unit tests cover:
 - Engine (WPM calculation, accuracy, session)
 - Content (lesson generation)
 - Data (stats, persistence)

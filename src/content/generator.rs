@@ -50,9 +50,8 @@ fn generate_all_keys_drills(_keys: &[char], length: usize) -> String {
 
     // Patterns de 2-3 caractères avec les touches home row
     let patterns = vec![
-        "ff", "jj", "dd", "kk", "ss", "ll", "qq", "mm",
-        "fj", "dk", "sl", "qm", "fd", "jk", "ds", "kl",
-        "fds", "jkl", "qsd", "mlk",
+        "ff", "jj", "dd", "kk", "ss", "ll", "qq", "mm", "fj", "dk", "sl", "qm", "fd", "jk", "ds",
+        "kl", "fds", "jkl", "qsd", "mlk",
     ];
 
     let mut idx = 0;
@@ -73,8 +72,7 @@ fn generate_words(_keys: &[char], length: usize) -> String {
     // Mots courts français possibles avec home row AZERTY
     // Note: très limité, principalement pour démonstration
     let words = vec![
-        "la", "le", "de", "se", "me", "je",
-        "mal", "sel", "les", "des", "mes",
+        "la", "le", "de", "se", "me", "je", "mal", "sel", "les", "des", "mes",
     ];
 
     let mut result = String::new();

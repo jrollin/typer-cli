@@ -16,7 +16,12 @@ pub struct Lesson {
 }
 
 impl Lesson {
-    pub fn new(lesson_type: LessonType, title: String, description: String, keys: Vec<char>) -> Self {
+    pub fn new(
+        lesson_type: LessonType,
+        title: String,
+        description: String,
+        keys: Vec<char>,
+    ) -> Self {
         Self {
             lesson_type,
             title,

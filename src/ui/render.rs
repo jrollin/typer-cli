@@ -13,9 +13,9 @@ pub fn render(f: &mut Frame, session: &TypingSession, wpm: f64, accuracy: f64) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(3),  // Header
-            Constraint::Min(8),     // Content
-            Constraint::Length(3),  // Stats
+            Constraint::Length(3), // Header
+            Constraint::Min(8),    // Content
+            Constraint::Length(3), // Stats
         ])
         .split(f.area());
 
@@ -27,7 +27,11 @@ pub fn render(f: &mut Frame, session: &TypingSession, wpm: f64, accuracy: f64) {
 /// Rendu du header
 fn render_header(f: &mut Frame, area: Rect) {
     let title = Paragraph::new("TYPER CLI - Home Row Practice")
-        .style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
+        .style(
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        )
         .alignment(Alignment::Center)
         .block(Block::default().borders(Borders::ALL));
 
@@ -40,8 +44,8 @@ fn render_typing_area(f: &mut Frame, area: Rect, session: &TypingSession) {
         .direction(Direction::Vertical)
         .margin(2)
         .constraints([
-            Constraint::Length(3),  // Expected text
-            Constraint::Length(3),  // User input
+            Constraint::Length(3), // Expected text
+            Constraint::Length(3), // User input
         ])
         .split(area);
 
@@ -73,7 +77,7 @@ fn create_colored_input(session: &TypingSession) -> Line<'static> {
 
         // Render typed character with color - use visible symbol for spaces
         let display_char = if input.typed == ' ' {
-            '·'  // Use middle dot to make spaces visible
+            '·' // Use middle dot to make spaces visible
         } else {
             input.typed
         };
@@ -127,15 +131,19 @@ pub fn render_results(
         .direction(Direction::Vertical)
         .margin(4)
         .constraints([
-            Constraint::Length(3),  // Title
-            Constraint::Length(8),  // Results
-            Constraint::Length(2),  // Instructions
+            Constraint::Length(3), // Title
+            Constraint::Length(8), // Results
+            Constraint::Length(2), // Instructions
         ])
         .split(f.area());
 
     // Titre
     let title = Paragraph::new("Session Complete!")
-        .style(Style::default().fg(Color::Green).add_modifier(Modifier::BOLD))
+        .style(
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD),
+        )
         .alignment(Alignment::Center)
         .block(Block::default().borders(Borders::ALL));
 
@@ -146,7 +154,9 @@ pub fn render_results(
         Line::from(""),
         Line::from(Span::styled(
             format!("WPM: {:.1}", wpm),
-            Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
         )),
         Line::from(Span::styled(
             format!("Accuracy: {:.1}%", accuracy),
@@ -157,7 +167,11 @@ pub fn render_results(
             Style::default().fg(Color::Red),
         )),
         Line::from(Span::styled(
-            format!("Time: {:02}:{:02}", duration.as_secs() / 60, duration.as_secs() % 60),
+            format!(
+                "Time: {:02}:{:02}",
+                duration.as_secs() / 60,
+                duration.as_secs() % 60
+            ),
             Style::default().fg(Color::Yellow),
         )),
     ];

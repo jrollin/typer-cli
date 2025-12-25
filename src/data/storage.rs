@@ -67,8 +67,8 @@ impl Storage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::Duration;
     use crate::data::stats::SessionRecord;
+    use std::time::Duration;
 
     #[test]
     fn test_storage_new() {

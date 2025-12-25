@@ -102,9 +102,14 @@ mod tests {
         assert_eq!(result.char_count, 5);
         assert_eq!(result.error_count, 1);
         assert_eq!(result.accuracy, 80.0); // 4/5 = 80%
-        // La durée devrait être au moins 100ms
+                                           // La durée devrait être au moins 100ms
         assert!(result.duration.as_millis() >= 100);
         // Avec au moins 100ms et 5 caractères, WPM devrait être > 0
-        assert!(result.wpm > 0.0, "WPM was {} for duration {:?}", result.wpm, result.duration);
+        assert!(
+            result.wpm > 0.0,
+            "WPM was {} for duration {:?}",
+            result.wpm,
+            result.duration
+        );
     }
 }

@@ -55,7 +55,10 @@ impl TypingSession {
         }
 
         let expected = self.content.chars().nth(self.current_index).unwrap_or('\0');
-        let elapsed = self.start_time.map(|start| start.elapsed()).unwrap_or_default();
+        let elapsed = self
+            .start_time
+            .map(|start| start.elapsed())
+            .unwrap_or_default();
 
         let input = CharInput::new(expected, typed, elapsed);
         let is_correct = input.is_correct;

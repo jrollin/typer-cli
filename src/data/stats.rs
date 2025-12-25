@@ -4,7 +4,7 @@ use std::time::Duration;
 /// Enregistrement d'une session sauvegardée
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SessionRecord {
-    pub timestamp: String,         // Format ISO 8601
+    pub timestamp: String, // Format ISO 8601
     pub lesson_type: String,
     pub wpm: f64,
     pub accuracy: f64,
@@ -107,12 +107,8 @@ mod tests {
     #[test]
     fn test_stats_add_session() {
         let mut stats = Stats::new();
-        let record = SessionRecord::new(
-            "HomeRow-1".to_string(),
-            45.0,
-            95.0,
-            Duration::from_secs(60),
-        );
+        let record =
+            SessionRecord::new("HomeRow-1".to_string(), 45.0, 95.0, Duration::from_secs(60));
         stats.add_session(record);
         assert_eq!(stats.session_count(), 1);
     }

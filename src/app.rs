@@ -55,7 +55,13 @@ impl App {
             terminal.draw(|f| match self.state {
                 AppState::Running | AppState::Completed => {
                     if self.session.is_complete() {
-                        ui::render_results(f, result.wpm, result.accuracy, result.duration, result.error_count);
+                        ui::render_results(
+                            f,
+                            result.wpm,
+                            result.accuracy,
+                            result.duration,
+                            result.error_count,
+                        );
                     } else {
                         ui::render(f, &self.session, result.wpm, result.accuracy);
                     }
@@ -93,20 +99,18 @@ impl App {
         }
 
         match self.state {
-            AppState::Running => {
-                match key.code {
-                    KeyCode::Esc => {
-                        self.state = AppState::Quit;
-                    }
-                    KeyCode::Char(c) => {
-                        self.session.add_input(c);
-                    }
-                    KeyCode::Backspace => {
-                        self.session.remove_last_input();
-                    }
-                    _ => {}
+            AppState::Running => match key.code {
+                KeyCode::Esc => {
+                    self.state = AppState::Quit;
                 }
-            }
+                KeyCode::Char(c) => {
+                    self.session.add_input(c);
+                }
+                KeyCode::Backspace => {
+                    self.session.remove_last_input();
+                }
+                _ => {}
+            },
             AppState::Completed => {
                 match key.code {
                     KeyCode::Char('q') | KeyCode::Esc => {
