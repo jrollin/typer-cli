@@ -15,9 +15,6 @@ jobs:
   create-release:
     name: Create Release
     runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-      version: ${{ steps.get_version.outputs.version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -33,15 +30,9 @@ jobs:
       - name: Generate changelog
         run: git-cliff --latest --strip header -o CHANGELOG.md
 
-      - name: Get version from tag
-        id: get_version
-        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-
       - name: Create Release
-        id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          name: Release ${{ steps.get_version.outputs.version }}
           body_path: CHANGELOG.md
           draft: false
           prerelease: false
@@ -88,41 +79,26 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: strip target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
 
-      - name: Generate checksum
+      - name: Prepare release assets
         run: |
           cd target/${{ matrix.target }}/release
-          shasum -a 256 ${{ matrix.artifact_name }} > ${{ matrix.asset_name }}.sha256
+
+          # Rename binary to asset name
+          cp ${{ matrix.artifact_name }} ${{ matrix.asset_name }}
+
+          # Generate checksum
+          shasum -a 256 ${{ matrix.asset_name }} > ${{ matrix.asset_name }}.sha256
+
+          echo "Binary size:"
+          ls -lh ${{ matrix.asset_name }}
+          echo "Checksum:"
           cat ${{ matrix.asset_name }}.sha256
 
-      - name: Upload binary
+      - name: Upload Release Assets
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+            target/${{ matrix.target }}/release/${{ matrix.asset_name }}
             target/${{ matrix.target }}/release/${{ matrix.asset_name }}.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Rename binary for upload
-        run: |
-          cp target/${{ matrix.target }}/release/${{ matrix.artifact_name }} ${{ matrix.asset_name }}
-
-      - name: Upload Release Asset - Binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./${{ matrix.asset_name }}
-          asset_name: ${{ matrix.asset_name }}
-          asset_content_type: application/octet-stream
-
-      - name: Upload Release Asset - Checksum
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./target/${{ matrix.target }}/release/${{ matrix.asset_name }}.sha256
-          asset_name: ${{ matrix.asset_name }}.sha256
-          asset_content_type: text/plain
