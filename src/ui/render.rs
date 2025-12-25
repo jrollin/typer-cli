@@ -2,10 +2,11 @@ use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph},
+    widgets::{Block, Borders, List, ListItem, Paragraph},
     Frame,
 };
 
+use crate::content::Lesson;
 use crate::engine::TypingSession;
 
 /// Rendu de l'interface principale
@@ -119,6 +120,71 @@ fn render_stats(f: &mut Frame, area: Rect, wpm: f64, accuracy: f64, duration: st
     f.render_widget(stats, area);
 }
 
+/// Rendu du menu de sélection de leçon
+pub fn render_menu(f: &mut Frame, lessons: &[Lesson], selected: usize) {
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .margin(2)
+        .constraints([
+            Constraint::Length(3), // Header
+            Constraint::Min(10),   // Menu
+            Constraint::Length(3), // Instructions
+        ])
+        .split(f.area());
+
+    // Header
+    let header = Paragraph::new("TYPER CLI - Select a Lesson")
+        .style(
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        )
+        .alignment(Alignment::Center)
+        .block(Block::default().borders(Borders::ALL));
+    f.render_widget(header, chunks[0]);
+
+    // Menu items
+    let items: Vec<ListItem> = lessons
+        .iter()
+        .enumerate()
+        .map(|(i, lesson)| {
+            let style = if i == selected {
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::White)
+            };
+
+            let prefix = if i == selected { "▶ " } else { "  " };
+            let content = format!("{}{}. {}", prefix, i + 1, lesson.title);
+
+            ListItem::new(Line::from(Span::styled(content, style)))
+        })
+        .collect();
+
+    let list = List::new(items).block(
+        Block::default()
+            .title("Home Row Lessons")
+            .borders(Borders::ALL),
+    );
+
+    f.render_widget(list, chunks[1]);
+
+    // Instructions
+    let instructions = vec![
+        Line::from(""),
+        Line::from(Span::styled(
+            "Use ↑/↓ or j/k to navigate  •  Press Enter/Space or 1-6 to start  •  ESC to quit",
+            Style::default().fg(Color::Gray),
+        )),
+    ];
+
+    let instructions_widget = Paragraph::new(instructions).alignment(Alignment::Center);
+
+    f.render_widget(instructions_widget, chunks[2]);
+}
+
 /// Rendu de l'écran de fin
 pub fn render_results(
     f: &mut Frame,
@@ -183,7 +249,7 @@ pub fn render_results(
     f.render_widget(results, chunks[1]);
 
     // Instructions
-    let instructions = Paragraph::new("Press 'q' to quit, 'r' to restart")
+    let instructions = Paragraph::new("Press ESC to return to menu  •  Press 'r' to restart")
         .style(Style::default().fg(Color::Gray))
         .alignment(Alignment::Center);
 

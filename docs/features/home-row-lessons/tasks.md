@@ -26,25 +26,28 @@
 - [x] Deterministic generation test
 - [x] Space-separated format verification
 
-## Phase 2: Progressive Levels
+## Phase 2: Progressive Levels ✓ COMPLETED
 
-### Additional Home Row Levels
-- [ ] Level 2: Middle fingers (d, k) + existing
-- [ ] Level 3: Ring fingers (s, l) + existing
-- [ ] Level 4: Pinkies (q, m) + existing
-- [ ] Level 5: All home row keys combined
-- [ ] Level 6: Simple French words using home row
+### Additional Home Row Levels ✓
+- [x] Level 2: Middle fingers (f, j, d, k) - cumulative
+- [x] Level 3: Ring fingers (f, j, d, k, s, l) - cumulative
+- [x] Level 4: Pinkies (f, j, d, k, s, l, q, m) - cumulative
+- [x] Level 5: All home row keys combined (q, s, d, f, g, h, j, k, l, m)
+- [x] Level 6: Simple French words using home row
 
-### Lesson Selection UI
-- [ ] Menu to select lesson level
-- [ ] Progress tracking (which levels completed)
-- [ ] Recommendation system (suggest next level)
+### Lesson Selection UI ✓
+- [x] Menu to select lesson level (1-6)
+- [x] Keyboard navigation (↑/↓, j/k)
+- [x] Direct selection with number keys (1-6)
+- [x] Visual feedback for selected lesson
+- [ ] Progress tracking (which levels completed) - Phase 3
+- [ ] Recommendation system (suggest next level) - Phase 3
 
-### Content Refinement
-- [ ] Balanced key distribution per level
-- [ ] Varied patterns (not just alternating)
-- [ ] Progressive complexity within each level
-- [ ] French word validation (common words only)
+### Content Refinement ✓
+- [x] Balanced key distribution per level
+- [x] Varied patterns: repetitions, alternations, triplets
+- [x] Progressive complexity within each level
+- [x] French words for Level 6 (la, le, de, se, me, je, mal, sel, etc.)
 
 ## Phase 3: Extended Training Modes
 
@@ -67,17 +70,31 @@
 
 ## Implementation Notes
 
-### Completed Features
+### Completed Features (Phase 1)
 - Home row level 1 (f and j)
 - Deterministic generation (same level = same content)
 - AZERTY layout integration
 - Appropriate content length (~50-100 chars)
+
+### Completed Features (Phase 2)
+- All 6 home row levels with progressive cumulative key addition
+- Lesson selection menu with keyboard navigation
+- Direct lesson selection with number keys (1-6)
+- Improved content generation with varied patterns:
+  - Phase 1: Repetitions (ff, jj, dd, kk)
+  - Phase 2: Alternations (fj, dk, sl, qm)
+  - Phase 3: Triplets (fjd, jdk, dks, ksl)
+- French words for Level 6
+- Session stats saved with lesson title
 
 ### Technical Decisions
 - Deterministic for reproducible testing
 - Space-separated for accurate WPM calculation
 - ContentGenerator trait for extensibility
 - Lesson enum supports future lesson types
+- **Cumulative progression**: Each level includes all previous keys plus new ones
+- **Option<TypingSession>**: App state supports menu mode without active session
+- **ESC returns to menu**: Better navigation flow than quitting
 
 ### Test Coverage
 - 7 unit tests in `src/content/`
@@ -85,3 +102,16 @@
 - Length validation
 - Deterministic generation
 - Integration with keyboard layout module
+- All 32 tests passing
+
+### Code Changes (Phase 2)
+- **src/content/lesson.rs**: Updated lesson definitions to be cumulative (Level 2: f,j,d,k instead of just d,k)
+- **src/content/generator.rs**: Added `generate_progressive_drills()` for levels 2-5 with varied patterns
+- **src/app.rs**:
+  - Added `AppState::Menu` state
+  - Changed `session` to `Option<TypingSession>`
+  - Added `selected_lesson` and `lessons` fields
+  - Added menu navigation (↑/↓, j/k, Enter, Space, 1-6)
+  - ESC returns to menu instead of quitting
+- **src/ui/render.rs**: Added `render_menu()` function with lesson list and navigation instructions
+- **src/ui/mod.rs**: Exported `render_menu`

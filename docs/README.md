@@ -65,7 +65,8 @@ Content generation for AZERTY home row practice.
 - Progressive difficulty (Level 1: f,j → Level 6: French words)
 - Deterministic content generation
 - Integration with keyboard layout
-- Phase 1: Level 1 complete, Levels 2-6 planned for Phase 2
+- Lesson selection menu with keyboard navigation
+- All 6 levels with cumulative progression ✓ Completed
 
 #### [session-storage/](features/session-storage/)
 Statistics persistence for cross-session tracking.
@@ -97,16 +98,55 @@ AZERTY layout definitions and finger mappings.
 - Progressive key groups
 - Extensible for future layouts (BÉPO, Dvorak)
 
-### Future Features (Phase 2+)
+### Planned Features (Phase 2+)
 
-Planned enhancements documented in each feature's `tasks.md`:
+Comprehensive requirements and design documented in feature folders:
 
-- **Bigram training** - Common French (qu, ou, en) and English (th, er, on) patterns
-- **Code mode** - Programming symbols: `{}`, `[]`, `()`, `->`, `::`, `=>`
-- **Adaptive mode** - Automatically focus on weak keys based on error rates
-- **Analytics** - Historical graphs, per-key statistics, progress tracking
+#### [bigram-training/](features/bigram-training/) ✅ COMPLETED
+Practice common two-letter combinations for increased fluency.
+
+**Module**: `src/content/bigram.rs`, `src/content/bigram_generator.rs`
+
+- **3 languages**: French, English, Code
+- **3 levels per language**: Drill → Word context → Realistic text
+- **9 total lessons** (3 languages × 3 levels)
+- French bigrams: qu, ou, en, on, an, es, ai, er, re, de
+- English bigrams: th, he, in, er, an, re, on, at, en, ed
+- Code bigrams: ->, ::, =>, !=, ==, <=, >=, &&, ||, //
+- Frequency-ordered (most common first)
+- Deterministic generation for consistent practice
+
+#### [code-symbols/](features/code-symbols/) ⏳ PLANNED
+Master programming symbols across different languages.
+
+**Module**: `src/content/` (extension)
+
+- TypeScript, Rust, Python, Generic language modes
+- 6 progressive levels: brackets → operators → arrows → compound → realistic
+- AZERTY symbol mapping and difficulty ratings
+- 24 total lessons (4 languages × 6 levels)
+- Syntactically valid code snippets
+
+#### [adaptive-mode/](features/adaptive-mode/) ⏳ PLANNED
+Personalized training based on individual weaknesses.
+
+**Modules**: `src/engine/analytics.rs`, `src/content/adaptive.rs`
+
+- Per-key and per-bigram statistics tracking
+- Weakness detection (accuracy and speed analysis)
+- Spaced repetition algorithm
+- Adaptive content generation (60% weak, 30% moderate, 10% mastered)
+- Recommendation engine for next practice
+- Mastery level progression (Beginner → Learning → Proficient → Mastered)
+- Local data storage with privacy focus
+
+### Future Features (Phase 3+)
+
+- **Analytics visualization** - Heat maps, trend graphs, progress charts
 - **Themes** - Multiple color schemes, high contrast options
 - **Multi-layout** - BÉPO, Dvorak, custom keyboard layouts
+- **Gamification** - Achievements, streaks, challenges, badges
+- **Advanced adaptive** - Machine learning, optimal schedules, fatigue detection
 
 ## Quick Navigation
 
@@ -167,15 +207,22 @@ Module locations are documented in each feature's design.md:
 
 ## Project Status
 
-**Current Phase**: Phase 1 MVP Complete ✓
+**Current Phase**: Phase 2+ In Progress
 
-**Total Tests**: 29 passing (as of completion)
+**Total Tests**: 44 passing
 - 13 tests: typing-session
 - 7 tests: home-row-lessons
+- 12 tests: bigram-training (NEW)
 - 7 tests: session-storage
 - 2 tests: keyboard-layout
+- 3 tests: content generation (progressive drills)
 
-**Next Phase**: Polish (clippy, formatting, documentation) and Phase 2 planning
+**Completed Features**:
+- Phase 1: Home row Level 1 ✓
+- Phase 2: Home row Levels 2-6 ✓
+- Phase 2+: Bigram training (French, English, Code) ✓
+
+**Next Phase**: Code symbols, Adaptive mode
 
 ## Additional Resources
 

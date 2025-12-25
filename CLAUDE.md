@@ -5,7 +5,8 @@ Quick reference for AI assistants working on this project.
 ## Current Phase
 
 **Phase 1: MVP** - ✅ Completed
-**Current Focus**: Polish (clippy, formatting, documentation)
+**Phase 2: Home Row Levels 2-6** - ✅ Completed
+**Current Focus**: Phase 2+ (Bigrams, code symbols)
 
 ## Project Overview
 
@@ -33,10 +34,17 @@ Located in `docs/steering/`:
 
 **Phase 1 (Completed):**
 - **typing-session/** (`src/engine/`) - Core typing engine, scoring, session management
-- **home-row-lessons/** (`src/content/`) - Content generation for AZERTY home row
 - **session-storage/** (`src/data/`) - Stats persistence to JSON
 - **tui-interface/** (`src/ui/`) - Terminal UI with ratatui
 - **keyboard-layout/** (`src/keyboard/`) - AZERTY layout definitions
+
+**Phase 2 (Completed):**
+- **home-row-lessons/** (`src/content/`) - All 6 progressive home row levels with menu selection
+- **bigram-training/** (`src/content/`) - French, English, and Code bigram practice ✅ NEW
+
+**Phase 2+ (Planned):**
+- **code-symbols/** (`src/content/`) - Programming symbols for TypeScript, Rust, Python
+- **adaptive-mode/** (`src/engine/`, `src/content/`) - Personalized training with analytics
 
 **Complete documentation index**: See `docs/README.md` for navigation guide and feature details.
 
@@ -48,7 +56,7 @@ Located in `docs/steering/`:
 ```bash
 # Development
 cargo run              # Launch application
-cargo test             # Run test suite (29 tests)
+cargo test             # Run test suite (44 tests)
 cargo check            # Fast compilation check
 
 # Quality
@@ -81,9 +89,9 @@ src/
 
 ## Key Constraints
 
-- AZERTY keyboard only (Phase 1)
-- French language only (Phase 1)
-- No backspace support (Phase 1)
+- AZERTY keyboard only (Phase 1-2)
+- French language only (Phase 1-2)
+- Backspace support enabled (Phase 1+)
 - No sound effects (all phases)
 - Terminal-only (no GUI)
 
@@ -93,6 +101,13 @@ Stats saved to: `~/.config/typer-cli/stats.json`
 
 ## Roadmap
 
-- **Phase 1**: Home row practice ✅
-- **Phase 2**: Bigrams, code symbols, all home row levels
-- **Phase 3**: Adaptive mode, analytics, themes
+- **Phase 1**: Home row practice (Level 1) ✅
+- **Phase 2**: All home row levels (Levels 1-6) with lesson selection menu ✅
+- **Phase 2**: Bigram training (French, English, Code patterns) ✅
+- **Phase 2+**: ⏳ PLANNED
+  - Code symbols (TypeScript, Rust, Python)
+  - Adaptive mode (personalized weak-key training)
+- **Phase 3**: ⏳ FUTURE
+  - Analytics visualization (heat maps, graphs)
+  - Gamification (achievements, streaks)
+  - Themes and customization

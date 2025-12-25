@@ -3,7 +3,7 @@ use ratatui::DefaultTerminal;
 use std::io;
 use std::time::Duration;
 
-use crate::content::{ContentGenerator, Lesson};
+use crate::content::{BigramType, ContentGenerator, Language, Lesson};
 use crate::data::{SessionRecord, Stats, Storage};
 use crate::engine::{calculate_results, TypingSession};
 use crate::ui;
@@ -11,6 +11,7 @@ use crate::ui;
 /// Application state
 #[derive(Debug, PartialEq)]
 enum AppState {
+    Menu,
     Running,
     Completed,
     Quit,
@@ -18,52 +19,84 @@ enum AppState {
 
 /// Main application
 pub struct App {
-    session: TypingSession,
+    session: Option<TypingSession>,
     state: AppState,
     storage: Storage,
     stats: Stats,
+    selected_lesson: usize,
+    lessons: Vec<Lesson>,
 }
 
 impl App {
     pub fn new() -> io::Result<Self> {
-        // Load first home row lesson
-        let lessons = Lesson::home_row_lessons();
-        let first_lesson = &lessons[0];
-        let content = first_lesson.generate(50); // 50 chars for MVP
-
         let storage = Storage::new()?;
         let stats = storage.load()?;
+
+        // Build complete lesson list
+        let mut lessons = Vec::new();
+
+        // Home Row lessons (6 lessons)
+        lessons.extend(Lesson::home_row_lessons());
+
+        // French Bigram lessons (3 lessons)
+        lessons.extend(Lesson::bigram_lessons(
+            BigramType::Natural,
+            Some(Language::French),
+        ));
+
+        // English Bigram lessons (3 lessons)
+        lessons.extend(Lesson::bigram_lessons(
+            BigramType::Natural,
+            Some(Language::English),
+        ));
+
+        // Code Bigram lessons (3 lessons)
+        lessons.extend(Lesson::bigram_lessons(BigramType::Code, None));
+
+        Ok(Self {
+            session: None,
+            state: AppState::Menu,
+            storage,
+            stats,
+            selected_lesson: 0,
+            lessons,
+        })
+    }
+
+    fn start_lesson(&mut self, lesson_index: usize) {
+        let lesson = &self.lessons[lesson_index];
+        let content = lesson.generate(80); // Generate 80 chars for practice
 
         let mut session = TypingSession::new(content);
         session.start();
 
-        Ok(Self {
-            session,
-            state: AppState::Running,
-            storage,
-            stats,
-        })
+        self.session = Some(session);
+        self.state = AppState::Running;
     }
 
     /// Main app entry point
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
         loop {
-            // Calculate current stats
-            let result = calculate_results(&self.session);
-
             // Render
             terminal.draw(|f| match self.state {
+                AppState::Menu => {
+                    ui::render_menu(f, &self.lessons, self.selected_lesson);
+                }
                 AppState::Running | AppState::Completed => {
-                    if self.session.is_complete() {
-                        ui::render_results(
-                            f,
-                            result.wpm,
-                            result.accuracy,
-                            result.duration,
-                            result.error_count,
-                        );
-                    } else {
-                        ui::render(f, &self.session, result.wpm, result.accuracy);
+                    if let Some(session) = &self.session {
+                        let result = calculate_results(session);
+
+                        if session.is_complete() {
+                            ui::render_results(
+                                f,
+                                result.wpm,
+                                result.accuracy,
+                                result.duration,
+                                result.error_count,
+                            );
+                        } else {
+                            ui::render(f, session, result.wpm, result.accuracy);
+                        }
                     }
                 }
                 AppState::Quit => {}
@@ -77,9 +110,11 @@ impl App {
             }
 
             // Check session completion
-            if self.session.is_complete() && self.state == AppState::Running {
-                self.state = AppState::Completed;
-                self.save_session()?;
+            if let Some(session) = &self.session {
+                if session.is_complete() && self.state == AppState::Running {
+                    self.state = AppState::Completed;
+                    self.save_session()?;
+                }
             }
 
             // Quit
@@ -99,26 +134,61 @@ impl App {
         }
 
         match self.state {
-            AppState::Running => match key.code {
-                KeyCode::Esc => {
+            AppState::Menu => match key.code {
+                KeyCode::Esc | KeyCode::Char('q') => {
                     self.state = AppState::Quit;
                 }
+                KeyCode::Up | KeyCode::Char('k') => {
+                    if self.selected_lesson > 0 {
+                        self.selected_lesson -= 1;
+                    }
+                }
+                KeyCode::Down | KeyCode::Char('j') => {
+                    if self.selected_lesson < self.lessons.len() - 1 {
+                        self.selected_lesson += 1;
+                    }
+                }
+                KeyCode::Enter | KeyCode::Char(' ') => {
+                    self.start_lesson(self.selected_lesson);
+                }
+                KeyCode::Char(c) if c.is_ascii_digit() => {
+                    // Allow direct selection with numbers 1-6
+                    if let Some(digit) = c.to_digit(10) {
+                        let index = (digit as usize).saturating_sub(1);
+                        if index < self.lessons.len() {
+                            self.selected_lesson = index;
+                            self.start_lesson(index);
+                        }
+                    }
+                }
+                _ => {}
+            },
+            AppState::Running => match key.code {
+                KeyCode::Esc => {
+                    self.state = AppState::Menu;
+                    self.session = None;
+                }
                 KeyCode::Char(c) => {
-                    self.session.add_input(c);
+                    if let Some(session) = &mut self.session {
+                        session.add_input(c);
+                    }
                 }
                 KeyCode::Backspace => {
-                    self.session.remove_last_input();
+                    if let Some(session) = &mut self.session {
+                        session.remove_last_input();
+                    }
                 }
                 _ => {}
             },
             AppState::Completed => {
                 match key.code {
                     KeyCode::Char('q') | KeyCode::Esc => {
-                        self.state = AppState::Quit;
+                        self.state = AppState::Menu;
+                        self.session = None;
                     }
                     KeyCode::Char('r') => {
-                        // Restart
-                        self.restart()?;
+                        // Restart same lesson
+                        self.start_lesson(self.selected_lesson);
                     }
                     _ => {}
                 }
@@ -131,32 +201,20 @@ impl App {
 
     /// Save session
     fn save_session(&mut self) -> io::Result<()> {
-        let result = calculate_results(&self.session);
+        if let Some(session) = &self.session {
+            let result = calculate_results(session);
+            let lesson = &self.lessons[self.selected_lesson];
 
-        let record = SessionRecord::new(
-            "HomeRow-1".to_string(),
-            result.wpm,
-            result.accuracy,
-            result.duration,
-        );
+            let record = SessionRecord::new(
+                lesson.title.clone(),
+                result.wpm,
+                result.accuracy,
+                result.duration,
+            );
 
-        self.stats.add_session(record);
-        self.storage.save(&self.stats)?;
-
-        Ok(())
-    }
-
-    /// Restart new session
-    fn restart(&mut self) -> io::Result<()> {
-        let lessons = Lesson::home_row_lessons();
-        let first_lesson = &lessons[0];
-        let content = first_lesson.generate(50);
-
-        let mut session = TypingSession::new(content);
-        session.start();
-
-        self.session = session;
-        self.state = AppState::Running;
+            self.stats.add_session(record);
+            self.storage.save(&self.stats)?;
+        }
 
         Ok(())
     }

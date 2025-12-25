@@ -1,3 +1,4 @@
+use super::bigram_generator::BigramGenerator;
 use super::lesson::{Lesson, LessonType};
 
 /// Trait pour générer du contenu de leçon
@@ -9,11 +10,19 @@ impl ContentGenerator for Lesson {
     fn generate(&self, length: usize) -> String {
         match &self.lesson_type {
             LessonType::HomeRow { level } => match level {
-                1..=4 => generate_two_key_drills(&self.keys, length),
-                5 => generate_all_keys_drills(&self.keys, length),
+                1 => generate_two_key_drills(&self.keys, length),
+                2..=5 => generate_progressive_drills(&self.keys, length),
                 6 => generate_words(&self.keys, length),
                 _ => String::new(),
             },
+            LessonType::Bigram {
+                bigram_type,
+                language,
+                level,
+            } => {
+                let generator = BigramGenerator::new(*bigram_type, *language);
+                generator.generate(*level, length)
+            }
         }
     }
 }
@@ -43,23 +52,46 @@ fn generate_two_key_drills(keys: &[char], length: usize) -> String {
     result.chars().take(length).collect()
 }
 
-/// Générer des drills avec toutes les touches home row
-/// Pattern: mélange de toutes les touches
-fn generate_all_keys_drills(_keys: &[char], length: usize) -> String {
+/// Générer des drills progressifs avec les touches disponibles
+/// Crée des patterns variés: répétitions, alternances, combinaisons
+fn generate_progressive_drills(keys: &[char], length: usize) -> String {
+    if keys.is_empty() {
+        return String::new();
+    }
+
     let mut result = String::new();
+    let mut patterns = Vec::new();
 
-    // Patterns de 2-3 caractères avec les touches home row
-    let patterns = vec![
-        "ff", "jj", "dd", "kk", "ss", "ll", "qq", "mm", "fj", "dk", "sl", "qm", "fd", "jk", "ds",
-        "kl", "fds", "jkl", "qsd", "mlk",
-    ];
+    // Phase 1: Répétitions de chaque touche
+    for &key in keys {
+        patterns.push(format!("{}{}", key, key));
+    }
 
+    // Phase 2: Alternances entre touches adjacentes
+    for i in 0..keys.len() {
+        for j in (i + 1)..keys.len() {
+            patterns.push(format!("{}{}", keys[i], keys[j]));
+        }
+    }
+
+    // Phase 3: Triplets pour plus de variété
+    if keys.len() >= 3 {
+        for i in 0..keys.len().min(3) {
+            for j in (i + 1)..keys.len().min(4) {
+                for k in (j + 1)..keys.len().min(5) {
+                    patterns.push(format!("{}{}{}", keys[i], keys[j], keys[k]));
+                }
+            }
+        }
+    }
+
+    // Générer le contenu en utilisant les patterns
     let mut idx = 0;
     while result.len() < length {
         if !result.is_empty() {
             result.push(' ');
         }
-        result.push_str(patterns[idx % patterns.len()]);
+        result.push_str(&patterns[idx % patterns.len()]);
         idx += 1;
     }
 
@@ -101,11 +133,18 @@ mod tests {
     }
 
     #[test]
-    fn test_generate_all_keys_drills() {
-        let keys = vec!['q', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm'];
-        let result = generate_all_keys_drills(&keys, 30);
+    fn test_generate_progressive_drills() {
+        let keys = vec!['f', 'j', 'd', 'k'];
+        let result = generate_progressive_drills(&keys, 30);
         assert!(!result.is_empty());
         assert!(result.len() <= 30);
+        // Should contain patterns with the provided keys
+        assert!(
+            result.contains('f')
+                || result.contains('j')
+                || result.contains('d')
+                || result.contains('k')
+        );
     }
 
     #[test]
@@ -120,11 +159,16 @@ mod tests {
     fn test_lesson_content_generator() {
         let lessons = Lesson::home_row_lessons();
 
-        // Test niveau 1 (ff jj)
+        // Test niveau 1 (f, j only)
         let content1 = lessons[0].generate(20);
         assert!(!content1.is_empty());
         assert!(content1.contains('f'));
         assert!(content1.contains('j'));
+
+        // Test niveau 2 (f, j, d, k - progressive)
+        let content2 = lessons[1].generate(30);
+        assert!(!content2.is_empty());
+        assert!(content2.len() <= 30);
 
         // Test niveau 5 (all keys)
         let content5 = lessons[4].generate(30);

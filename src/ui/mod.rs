@@ -1,3 +1,3 @@
 pub mod render;
 
-pub use render::{render, render_results};
+pub use render::{render, render_menu, render_results};
