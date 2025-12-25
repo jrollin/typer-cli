@@ -1,11 +1,11 @@
+use chrono::Utc;
+use serde::{Deserialize, Serialize};
 /// Generate test statistics for testing adaptive mode
 /// Run with: cargo run --example create_test_stats
 use std::collections::HashMap;
-use std::time::SystemTime;
-use chrono::Utc;
-use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
+use std::time::SystemTime;
 
 #[derive(Serialize, Deserialize)]
 struct SessionRecord {
@@ -180,16 +180,22 @@ fn main() {
     println!("✓ Created test stats at: {:?}", stats_path);
     println!("\n📊 Statistics Summary:");
     println!("  - 15 sessions completed");
-    println!("  - {} keys tracked", stats.adaptive_analytics.as_ref().unwrap().key_stats.len());
+    println!(
+        "  - {} keys tracked",
+        stats.adaptive_analytics.as_ref().unwrap().key_stats.len()
+    );
     println!("  - Total keystrokes: {}", total_keystrokes);
     println!("\n🎯 Weak Keys (should be targeted by adaptive mode):");
 
     if let Some(analytics) = &stats.adaptive_analytics {
         for (key, key_stat) in &analytics.key_stats {
-            let accuracy = (key_stat.correct_attempts as f64 / key_stat.total_attempts as f64) * 100.0;
+            let accuracy =
+                (key_stat.correct_attempts as f64 / key_stat.total_attempts as f64) * 100.0;
             if accuracy < 75.0 {
-                println!("  - '{}': {:.1}% accuracy ({}/{} correct)",
-                    key, accuracy, key_stat.correct_attempts, key_stat.total_attempts);
+                println!(
+                    "  - '{}': {:.1}% accuracy ({}/{} correct)",
+                    key, accuracy, key_stat.correct_attempts, key_stat.total_attempts
+                );
             }
         }
     }

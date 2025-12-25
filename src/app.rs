@@ -90,8 +90,7 @@ impl App {
                     let generator = AdaptiveLessonGenerator::new(analytics);
                     generator.generate(80)
                 } else {
-                    "Insufficient data for adaptive mode. Complete more sessions first."
-                        .to_string()
+                    "Insufficient data for adaptive mode. Complete more sessions first.".to_string()
                 }
             }
             _ => lesson.generate(80), // Standard content generation

@@ -89,11 +89,7 @@ impl Stats {
             key_stats.error_count += perf.errors.len();
 
             // Update timing (sum all timings)
-            let total_time_ms: u64 = perf
-                .timings
-                .iter()
-                .map(|d| d.as_millis() as u64)
-                .sum();
+            let total_time_ms: u64 = perf.timings.iter().map(|d| d.as_millis() as u64).sum();
             key_stats.total_time_ms += total_time_ms;
 
             // Update mistype map
@@ -115,11 +111,7 @@ impl Stats {
             bigram_stats.total_attempts += perf.total_attempts;
             bigram_stats.correct_attempts += perf.correct_attempts;
 
-            let total_time_ms: u64 = perf
-                .timings
-                .iter()
-                .map(|d| d.as_millis() as u64)
-                .sum();
+            let total_time_ms: u64 = perf.timings.iter().map(|d| d.as_millis() as u64).sum();
             bigram_stats.total_time_ms += total_time_ms;
 
             bigram_stats.last_practiced = Some(SystemTime::now());

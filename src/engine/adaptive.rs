@@ -5,6 +5,7 @@ use std::time::{Duration, SystemTime};
 use super::analytics::{AdaptiveAnalytics, KeyStats, MasteryLevel};
 
 /// Weakness detector for identifying problem areas
+#[allow(dead_code)]
 pub struct WeaknessDetector;
 
 impl WeaknessDetector {
@@ -16,7 +17,7 @@ impl WeaknessDetector {
             .iter()
             .filter(|(_, stats)| {
                 stats.total_attempts >= 10 && // Minimum data threshold
-                stats.accuracy() < threshold   // Below threshold
+                stats.accuracy() < threshold // Below threshold
             })
             .map(|(key, stats)| (*key, stats.error_rate()))
             .collect();
@@ -61,13 +62,12 @@ impl WeaknessDetector {
 
     /// Identify weak bigrams based on accuracy
     /// Returns up to 5 weakest bigrams with minimum attempts threshold
+    #[allow(dead_code)]
     pub fn identify_weak_bigrams(analytics: &AdaptiveAnalytics) -> Vec<String> {
         let mut weak_bigrams: Vec<_> = analytics
             .bigram_stats
             .iter()
-            .filter(|(_, stats)| {
-                stats.total_attempts >= 5 && stats.accuracy() < 85.0
-            })
+            .filter(|(_, stats)| stats.total_attempts >= 5 && stats.accuracy() < 85.0)
             .map(|(bigram, stats)| (bigram.clone(), stats.accuracy()))
             .collect();
 
@@ -82,10 +82,12 @@ impl WeaknessDetector {
 }
 
 /// Spaced repetition algorithm for optimal practice scheduling
+#[allow(dead_code)]
 pub struct SpacedRepetition;
 
 impl SpacedRepetition {
     /// Calculate next practice interval based on mastery level and performance
+    #[allow(dead_code)]
     pub fn next_interval(mastery_level: MasteryLevel, accuracy: f64) -> Duration {
         match mastery_level {
             MasteryLevel::Beginner => Duration::from_secs(0), // Practice immediately
@@ -102,6 +104,7 @@ impl SpacedRepetition {
     }
 
     /// Check if a key needs practice based on last practiced time
+    #[allow(dead_code)]
     pub fn needs_practice(stats: &KeyStats) -> bool {
         let Some(last_practiced) = stats.last_practiced else {
             return true; // Never practiced
@@ -118,6 +121,7 @@ impl SpacedRepetition {
 }
 
 /// Recommendation for next practice session
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Recommendation {
     pub lesson_type: String,
@@ -126,10 +130,12 @@ pub struct Recommendation {
 }
 
 /// Recommendation engine for suggesting next lesson
+#[allow(dead_code)]
 pub struct RecommendationEngine;
 
 impl RecommendationEngine {
     /// Recommend next lesson based on user analytics
+    #[allow(dead_code)]
     pub fn recommend_next_lesson(analytics: &AdaptiveAnalytics) -> Recommendation {
         // Insufficient data - recommend foundation building
         if analytics.total_sessions < 10 {
@@ -147,7 +153,10 @@ impl RecommendationEngine {
         if !weak_keys.is_empty() {
             return Recommendation {
                 lesson_type: "Adaptive - Weak Keys".to_string(),
-                reason: format!("Focus on weak keys: {}", weak_keys.iter().collect::<String>()),
+                reason: format!(
+                    "Focus on weak keys: {}",
+                    weak_keys.iter().collect::<String>()
+                ),
                 confidence: 0.85,
             };
         }

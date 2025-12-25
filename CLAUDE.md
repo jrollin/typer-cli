@@ -76,6 +76,79 @@ cargo fmt              # Code formatting
 
 # Release
 cargo build --release  # Optimized build
+
+# CI/CD
+git cliff --latest     # Preview changelog for next release
+git tag v0.2.0         # Create version tag (triggers release workflow)
+git push origin v0.2.0 # Push tag to trigger automated release
+```
+
+## CI/CD Workflows
+
+### Continuous Integration (`.github/workflows/ci.yml`)
+
+Runs automatically on every push to `main` and all pull requests.
+
+**Jobs:**
+- **Quality Checks**: Formatting (cargo fmt), linting (cargo clippy -D warnings), compilation (cargo check)
+- **Test Suite**: Runs 81 tests on Ubuntu and macOS
+- **Security Audit**: Scans dependencies for known vulnerabilities (non-blocking)
+
+**Status**: [![CI](https://github.com/jrollin/typer-cli/workflows/CI/badge.svg)](https://github.com/jrollin/typer-cli/actions/workflows/ci.yml)
+
+### Release Automation (`.github/workflows/release.yml`)
+
+Triggers on git tag push matching `v*.*.*` pattern.
+
+**Process:**
+1. Generate changelog using git-cliff (conventional commits)
+2. Create GitHub Release with changelog as release notes
+3. Build cross-platform binaries:
+   - Linux x86_64 (`typer-cli-linux-x86_64`)
+   - macOS Intel (`typer-cli-macos-x86_64`)
+   - macOS ARM64 (`typer-cli-macos-arm64`)
+4. Generate SHA256 checksums for all binaries
+5. Upload binaries and checksums as release assets
+
+**Creating a Release:**
+```bash
+# 1. Ensure all changes are committed and CI passes
+git add . && git commit -m "feat: your feature description"
+
+# 2. Create and push version tag
+git tag v0.2.0
+git push origin v0.2.0
+
+# 3. Monitor release workflow at:
+# https://github.com/jrollin/typer-cli/actions
+
+# 4. Release will be available at:
+# https://github.com/jrollin/typer-cli/releases
+```
+
+### Changelog Generation (`cliff.toml`)
+
+Uses [git-cliff](https://git-cliff.org) to generate conventional commit-based changelogs.
+
+**Commit Types:**
+- `feat:` → Features section
+- `fix:` → Bug Fixes section
+- `docs:` → Documentation section
+- `perf:` → Performance section
+- `refactor:` → Refactoring section
+- `test:` → Testing section
+- `chore:`, `ci:` → Miscellaneous Tasks section
+
+**Preview changelog locally:**
+```bash
+# Install git-cliff
+cargo install git-cliff
+
+# Preview next release
+git cliff --latest --strip header
+
+# Generate full changelog
+git cliff -o CHANGELOG.md
 ```
 
 ## Project Structure

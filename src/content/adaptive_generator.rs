@@ -134,7 +134,7 @@ impl<'a> AdaptiveLessonGenerator<'a> {
             .iter()
             .filter(|(_, stats)| {
                 let acc = stats.accuracy();
-                stats.total_attempts >= 10 && acc >= 80.0 && acc < 90.0
+                stats.total_attempts >= 10 && (80.0..90.0).contains(&acc)
             })
             .map(|(key, _)| *key)
             .collect()

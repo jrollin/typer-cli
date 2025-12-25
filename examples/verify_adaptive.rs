@@ -1,8 +1,8 @@
+use serde_json::Value;
+use std::fs;
 /// Verify that adaptive mode would be available in the menu
 /// Run with: cargo run --example verify_adaptive
 use std::path::PathBuf;
-use std::fs;
-use serde_json::Value;
 
 fn main() {
     println!("🔍 Verifying Adaptive Mode Configuration\n");
@@ -53,7 +53,11 @@ fn main() {
             for (key, stats) in key_stats {
                 let total = stats["total_attempts"].as_u64().unwrap_or(0) as f64;
                 let correct = stats["correct_attempts"].as_u64().unwrap_or(0) as f64;
-                let accuracy = if total > 0.0 { (correct / total) * 100.0 } else { 0.0 };
+                let accuracy = if total > 0.0 {
+                    (correct / total) * 100.0
+                } else {
+                    0.0
+                };
 
                 if accuracy < 80.0 && total >= 10.0 {
                     weak_keys.push((key, accuracy));
@@ -89,7 +93,10 @@ fn main() {
             // Predict content distribution
             if should_show && !weak_keys.is_empty() {
                 println!("\n📝 Predicted Adaptive Content:");
-                println!("   - 60% practice on: {:?}", weak_keys.iter().map(|(k, _)| k).collect::<Vec<_>>());
+                println!(
+                    "   - 60% practice on: {:?}",
+                    weak_keys.iter().map(|(k, _)| k).collect::<Vec<_>>()
+                );
                 println!("   - 30% practice on moderate keys");
                 println!("   - 10% practice on strong keys (retention)");
             }

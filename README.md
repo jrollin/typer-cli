@@ -1,5 +1,9 @@
 # Typer CLI
 
+[![CI](https://github.com/jrollin/typer-cli/workflows/CI/badge.svg)](https://github.com/jrollin/typer-cli/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/jrollin/typer-cli)](https://github.com/jrollin/typer-cli/releases)
+[![License](https://img.shields.io/badge/license-Personal-blue.svg)](LICENSE)
+
 A Rust CLI application for learning and improving touch typing on AZERTY keyboards.
 
 ## Description
@@ -30,20 +34,51 @@ Typer CLI is a terminal-based keyboard typing training tool. It provides an inte
 
 ## Installation
 
-### Prerequisites
+### Download Pre-built Binary (Recommended)
 
-- Rust 1.70+ (install via [rustup](https://rustup.rs/))
-
-### Build
+Download the latest release for your platform from [GitHub Releases](https://github.com/jrollin/typer-cli/releases):
 
 ```bash
-# Clone the repo (if applicable)
+# Linux (x86_64)
+wget https://github.com/jrollin/typer-cli/releases/latest/download/typer-cli-linux-x86_64
+chmod +x typer-cli-linux-x86_64
+./typer-cli-linux-x86_64
+
+# macOS (Intel)
+wget https://github.com/jrollin/typer-cli/releases/latest/download/typer-cli-macos-x86_64
+chmod +x typer-cli-macos-x86_64
+./typer-cli-macos-x86_64
+
+# macOS (Apple Silicon M1/M2/M3)
+wget https://github.com/jrollin/typer-cli/releases/latest/download/typer-cli-macos-arm64
+chmod +x typer-cli-macos-arm64
+./typer-cli-macos-arm64
+```
+
+**Verify Checksum** (optional but recommended):
+```bash
+# Download checksum file
+wget https://github.com/jrollin/typer-cli/releases/latest/download/typer-cli-linux-x86_64.sha256
+
+# Verify
+shasum -a 256 -c typer-cli-linux-x86_64.sha256
+```
+
+### Build from Source
+
+Prerequisites:
+- Rust 1.70+ (install via [rustup](https://rustup.rs/))
+
+```bash
+# Clone the repository
+git clone https://github.com/jrollin/typer-cli.git
 cd typer-cli
 
 # Build in release mode
 cargo build --release
 
-# Executable will be in target/release/typer-cli
+# Run
+./target/release/typer-cli
 ```
 
 ## Usage

@@ -4,7 +4,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::{Duration, SystemTime};
 
-use super::types::{CharInput, TypingSession};
+#[cfg(test)]
+use super::types::CharInput;
+use super::types::TypingSession;
 
 /// Mastery level classification for keys and bigrams
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -37,6 +39,7 @@ impl MasteryLevel {
 
     /// Get practice weight for adaptive content generation
     /// Returns fraction of practice time this mastery level should receive
+    #[allow(dead_code)]
     pub fn practice_weight(&self) -> f32 {
         match self {
             MasteryLevel::Beginner => 0.6,   // 60% of practice
@@ -126,6 +129,7 @@ impl BigramStats {
     }
 
     /// Calculate accuracy percentage
+    #[allow(dead_code)]
     pub fn accuracy(&self) -> f64 {
         if self.total_attempts == 0 {
             return 0.0;
@@ -134,6 +138,7 @@ impl BigramStats {
     }
 
     /// Calculate average time per bigram in milliseconds
+    #[allow(dead_code)]
     pub fn average_time_ms(&self) -> f64 {
         if self.total_attempts == 0 {
             return 0.0;
@@ -155,7 +160,7 @@ pub struct SessionAnalytics {
 }
 
 /// Complete adaptive analytics data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AdaptiveAnalytics {
     pub key_stats: HashMap<char, KeyStats>,
     pub bigram_stats: HashMap<String, BigramStats>,
@@ -164,36 +169,13 @@ pub struct AdaptiveAnalytics {
     pub total_keystrokes: usize,
 }
 
-impl Default for AdaptiveAnalytics {
-    fn default() -> Self {
-        Self {
-            key_stats: HashMap::new(),
-            bigram_stats: HashMap::new(),
-            session_history: Vec::new(),
-            total_sessions: 0,
-            total_keystrokes: 0,
-        }
-    }
-}
-
 /// Per-key performance analysis for a single session
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct KeyPerformance {
     pub total_attempts: usize,
     pub correct_attempts: usize,
     pub errors: Vec<char>,
     pub timings: Vec<Duration>,
-}
-
-impl Default for KeyPerformance {
-    fn default() -> Self {
-        Self {
-            total_attempts: 0,
-            correct_attempts: 0,
-            errors: Vec::new(),
-            timings: Vec::new(),
-        }
-    }
 }
 
 /// Session analysis result
@@ -222,9 +204,7 @@ impl SessionAnalyzer {
             let typed = input.typed;
 
             // Update per-key statistics
-            let perf = key_performance
-                .entry(expected)
-                .or_insert_with(KeyPerformance::default);
+            let perf = key_performance.entry(expected).or_default();
 
             perf.total_attempts += 1;
 
@@ -242,15 +222,14 @@ impl SessionAnalyzer {
                     // Only count bigrams where both keys were typed correctly
                     let bigram = format!("{}{}", prev_input.expected, expected);
 
-                    let bigram_perf = bigram_performance
-                        .entry(bigram)
-                        .or_insert_with(KeyPerformance::default);
+                    let bigram_perf = bigram_performance.entry(bigram).or_default();
 
                     bigram_perf.total_attempts += 1;
                     bigram_perf.correct_attempts += 1;
 
                     // Bigram timing is the difference between the two keystrokes
-                    if let Some(prev_time) = prev_input.timestamp.checked_sub(Duration::from_secs(0))
+                    if let Some(prev_time) =
+                        prev_input.timestamp.checked_sub(Duration::from_secs(0))
                     {
                         if let Some(time_diff) = input.timestamp.checked_sub(prev_time) {
                             bigram_perf.timings.push(time_diff);
@@ -295,10 +274,7 @@ mod tests {
         let mut stats = KeyStats::new('f');
         stats.total_attempts = 50;
         stats.correct_attempts = 45; // 90% accuracy
-        assert_eq!(
-            MasteryLevel::from_stats(&stats),
-            MasteryLevel::Proficient
-        );
+        assert_eq!(MasteryLevel::from_stats(&stats), MasteryLevel::Proficient);
     }
 
     #[test]
