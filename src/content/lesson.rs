@@ -16,6 +16,7 @@ pub enum LessonType {
         language: ProgrammingLanguage,
         level: usize,
     },
+    Adaptive,
 }
 
 /// Représente une leçon de typing
@@ -135,6 +136,16 @@ impl Lesson {
                 vec![],
             ),
         ]
+    }
+
+    /// Create adaptive lesson (personalized training)
+    pub fn adaptive_lesson() -> Self {
+        Lesson::new(
+            LessonType::Adaptive,
+            "Adaptive Mode".to_string(),
+            "Personalized practice based on your weak areas".to_string(),
+            vec![],
+        )
     }
 
     /// Créer les leçons home row pour AZERTY

@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
+
+use crate::engine::analytics::{AdaptiveAnalytics, KeyStats, SessionAnalysis};
+use crate::engine::TypingSession;
 
 /// Enregistrement d'une session sauvegardée
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -28,12 +31,15 @@ impl SessionRecord {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Stats {
     pub sessions: Vec<SessionRecord>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub adaptive_analytics: Option<AdaptiveAnalytics>,
 }
 
 impl Stats {
     pub fn new() -> Self {
         Self {
             sessions: Vec::new(),
+            adaptive_analytics: None,
         }
     }
 
@@ -62,6 +68,66 @@ impl Stats {
         }
         let total: f64 = self.sessions.iter().map(|s| s.accuracy).sum();
         total / self.sessions.len() as f64
+    }
+
+    /// Update adaptive analytics with session data
+    pub fn update_analytics(&mut self, session: &TypingSession, analysis: SessionAnalysis) {
+        // Get or create adaptive analytics
+        let analytics = self
+            .adaptive_analytics
+            .get_or_insert_with(AdaptiveAnalytics::default);
+
+        // Update per-key statistics
+        for (key, perf) in analysis.key_performance {
+            let key_stats = analytics
+                .key_stats
+                .entry(key)
+                .or_insert_with(|| KeyStats::new(key));
+
+            key_stats.total_attempts += perf.total_attempts;
+            key_stats.correct_attempts += perf.correct_attempts;
+            key_stats.error_count += perf.errors.len();
+
+            // Update timing (sum all timings)
+            let total_time_ms: u64 = perf
+                .timings
+                .iter()
+                .map(|d| d.as_millis() as u64)
+                .sum();
+            key_stats.total_time_ms += total_time_ms;
+
+            // Update mistype map
+            for error_char in perf.errors {
+                *key_stats.mistype_map.entry(error_char).or_insert(0) += 1;
+            }
+
+            key_stats.last_practiced = Some(SystemTime::now());
+            key_stats.update_mastery_level();
+        }
+
+        // Update per-bigram statistics
+        for (bigram, perf) in analysis.bigram_performance {
+            let bigram_stats = analytics
+                .bigram_stats
+                .entry(bigram.clone())
+                .or_insert_with(|| crate::engine::analytics::BigramStats::new(bigram));
+
+            bigram_stats.total_attempts += perf.total_attempts;
+            bigram_stats.correct_attempts += perf.correct_attempts;
+
+            let total_time_ms: u64 = perf
+                .timings
+                .iter()
+                .map(|d| d.as_millis() as u64)
+                .sum();
+            bigram_stats.total_time_ms += total_time_ms;
+
+            bigram_stats.last_practiced = Some(SystemTime::now());
+        }
+
+        // Update global counters
+        analytics.total_sessions += 1;
+        analytics.total_keystrokes += session.inputs.len();
     }
 }
 

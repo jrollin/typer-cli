@@ -3,9 +3,11 @@ use ratatui::DefaultTerminal;
 use std::io;
 use std::time::Duration;
 
-use crate::content::{BigramType, ContentGenerator, Language, Lesson, ProgrammingLanguage};
+use crate::content::{
+    AdaptiveLessonGenerator, BigramType, ContentGenerator, Language, Lesson, ProgrammingLanguage,
+};
 use crate::data::{SessionRecord, Stats, Storage};
-use crate::engine::{calculate_results, TypingSession};
+use crate::engine::{calculate_results, SessionAnalyzer, TypingSession};
 use crate::ui;
 
 /// Application state
@@ -34,6 +36,11 @@ impl App {
 
         // Build complete lesson list
         let mut lessons = Vec::new();
+
+        // Adaptive Mode (if sufficient data)
+        if should_show_adaptive_mode(&stats) {
+            lessons.push(Lesson::adaptive_lesson());
+        }
 
         // Home Row lessons (6 lessons)
         lessons.extend(Lesson::home_row_lessons());
@@ -74,7 +81,21 @@ impl App {
 
     fn start_lesson(&mut self, lesson_index: usize) {
         let lesson = &self.lessons[lesson_index];
-        let content = lesson.generate(80); // Generate 80 chars for practice
+
+        // Generate content based on lesson type
+        let content = match &lesson.lesson_type {
+            crate::content::lesson::LessonType::Adaptive => {
+                // Generate adaptive content if analytics available
+                if let Some(analytics) = &self.stats.adaptive_analytics {
+                    let generator = AdaptiveLessonGenerator::new(analytics);
+                    generator.generate(80)
+                } else {
+                    "Insufficient data for adaptive mode. Complete more sessions first."
+                        .to_string()
+                }
+            }
+            _ => lesson.generate(80), // Standard content generation
+        };
 
         let mut session = TypingSession::new(content);
         session.start();
@@ -214,17 +235,33 @@ impl App {
             let result = calculate_results(session);
             let lesson = &self.lessons[self.selected_lesson];
 
+            // Save session record
             let record = SessionRecord::new(
                 lesson.title.clone(),
                 result.wpm,
                 result.accuracy,
                 result.duration,
             );
-
             self.stats.add_session(record);
+
+            // Update adaptive analytics
+            let analyzer = SessionAnalyzer::new();
+            let analysis = analyzer.analyze_session(session);
+            self.stats.update_analytics(session, analysis);
+
+            // Save everything to JSON
             self.storage.save(&self.stats)?;
         }
 
         Ok(())
+    }
+}
+
+/// Check if adaptive mode should be shown in the menu
+fn should_show_adaptive_mode(stats: &Stats) -> bool {
+    if let Some(analytics) = &stats.adaptive_analytics {
+        analytics.total_sessions >= 10 && analytics.total_keystrokes >= 100
+    } else {
+        false
     }
 }
