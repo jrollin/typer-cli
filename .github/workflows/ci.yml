@@ -62,6 +62,10 @@ jobs:
     name: Security Audit
     runs-on: ubuntu-latest
     continue-on-error: true
+    permissions:
+      contents: read
+      issues: write
+      checks: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
