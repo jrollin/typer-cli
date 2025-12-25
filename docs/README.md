@@ -116,16 +116,19 @@ Practice common two-letter combinations for increased fluency.
 - Frequency-ordered (most common first)
 - Deterministic generation for consistent practice
 
-#### [code-symbols/](features/code-symbols/) ⏳ PLANNED
+#### [code-symbols/](features/code-symbols/) ✅ COMPLETED
 Master programming symbols across different languages.
 
-**Module**: `src/content/` (extension)
+**Module**: `src/content/code_symbols.rs`, `src/content/code_generator.rs`
 
-- TypeScript, Rust, Python, Generic language modes
-- 6 progressive levels: brackets → operators → arrows → compound → realistic
-- AZERTY symbol mapping and difficulty ratings
-- 24 total lessons (4 languages × 6 levels)
-- Syntactically valid code snippets
+- **3 programming languages**: TypeScript, Rust, Python
+- **6 levels per language**: Brackets → Operators → Comparisons → Arrows → Compound → Realistic
+- **18 total lessons** (3 languages × 6 levels)
+- TypeScript: Arrow functions (=>), type annotations (:), const/let
+- Rust: Function arrows (->), match arms (=>), path separator (::), closures
+- Python: List/dict comprehensions, f-strings, decorators (@), type hints
+- Syntactically valid code snippets for each language
+- Progressive difficulty from simple brackets to complex code
 
 #### [adaptive-mode/](features/adaptive-mode/) ⏳ PLANNED
 Personalized training based on individual weaknesses.
@@ -207,12 +210,13 @@ Module locations are documented in each feature's design.md:
 
 ## Project Status
 
-**Current Phase**: Phase 2+ In Progress
+**Current Phase**: Phase 2 Complete ✓
 
-**Total Tests**: 44 passing
+**Total Tests**: 56 passing
 - 13 tests: typing-session
 - 7 tests: home-row-lessons
-- 12 tests: bigram-training (NEW)
+- 12 tests: bigram-training
+- 12 tests: code-symbols (NEW)
 - 7 tests: session-storage
 - 2 tests: keyboard-layout
 - 3 tests: content generation (progressive drills)
@@ -220,9 +224,12 @@ Module locations are documented in each feature's design.md:
 **Completed Features**:
 - Phase 1: Home row Level 1 ✓
 - Phase 2: Home row Levels 2-6 ✓
-- Phase 2+: Bigram training (French, English, Code) ✓
+- Phase 2: Bigram training (French, English, Code) ✓
+- Phase 2: Code symbols (TypeScript, Rust, Python) ✓
 
-**Next Phase**: Code symbols, Adaptive mode
+**Total Lessons**: 33 (6 home row + 9 bigrams + 18 code symbols)
+
+**Next Phase**: Adaptive mode (Phase 2+)
 
 ## Additional Resources
 

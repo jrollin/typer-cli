@@ -40,10 +40,10 @@ Located in `docs/steering/`:
 
 **Phase 2 (Completed):**
 - **home-row-lessons/** (`src/content/`) - All 6 progressive home row levels with menu selection
-- **bigram-training/** (`src/content/`) - French, English, and Code bigram practice ✅ NEW
+- **bigram-training/** (`src/content/`) - French, English, and Code bigram practice
+- **code-symbols/** (`src/content/`) - Programming symbols for TypeScript, Rust, Python ✅ NEW
 
 **Phase 2+ (Planned):**
-- **code-symbols/** (`src/content/`) - Programming symbols for TypeScript, Rust, Python
 - **adaptive-mode/** (`src/engine/`, `src/content/`) - Personalized training with analytics
 
 **Complete documentation index**: See `docs/README.md` for navigation guide and feature details.
@@ -56,7 +56,7 @@ Located in `docs/steering/`:
 ```bash
 # Development
 cargo run              # Launch application
-cargo test             # Run test suite (44 tests)
+cargo test             # Run test suite (56 tests)
 cargo check            # Fast compilation check
 
 # Quality
@@ -104,8 +104,8 @@ Stats saved to: `~/.config/typer-cli/stats.json`
 - **Phase 1**: Home row practice (Level 1) ✅
 - **Phase 2**: All home row levels (Levels 1-6) with lesson selection menu ✅
 - **Phase 2**: Bigram training (French, English, Code patterns) ✅
+- **Phase 2**: Code symbols (TypeScript, Rust, Python) ✅
 - **Phase 2+**: ⏳ PLANNED
-  - Code symbols (TypeScript, Rust, Python)
   - Adaptive mode (personalized weak-key training)
 - **Phase 3**: ⏳ FUTURE
   - Analytics visualization (heat maps, graphs)

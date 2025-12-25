@@ -1,4 +1,5 @@
 use super::bigram_generator::BigramGenerator;
+use super::code_generator::CodeSymbolGenerator;
 use super::lesson::{Lesson, LessonType};
 
 /// Trait pour générer du contenu de leçon
@@ -21,6 +22,10 @@ impl ContentGenerator for Lesson {
                 level,
             } => {
                 let generator = BigramGenerator::new(*bigram_type, *language);
+                generator.generate(*level, length)
+            }
+            LessonType::CodeSymbols { language, level } => {
+                let generator = CodeSymbolGenerator::new(*language);
                 generator.generate(*level, length)
             }
         }

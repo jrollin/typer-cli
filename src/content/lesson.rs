@@ -1,4 +1,5 @@
 use super::bigram::{BigramType, Language};
+use super::code_symbols::ProgrammingLanguage;
 
 /// Types de leçons disponibles
 #[derive(Debug, Clone, PartialEq)]
@@ -9,6 +10,10 @@ pub enum LessonType {
     Bigram {
         bigram_type: BigramType,
         language: Option<Language>,
+        level: usize,
+    },
+    CodeSymbols {
+        language: ProgrammingLanguage,
         level: usize,
     },
 }
@@ -37,6 +42,54 @@ impl Lesson {
             description,
             keys,
         }
+    }
+
+    /// Create code symbol lessons for a programming language
+    pub fn code_symbol_lessons(language: ProgrammingLanguage) -> Vec<Lesson> {
+        let lang_name = match language {
+            ProgrammingLanguage::TypeScript => "TypeScript",
+            ProgrammingLanguage::Rust => "Rust",
+            ProgrammingLanguage::Python => "Python",
+        };
+
+        vec![
+            Lesson::new(
+                LessonType::CodeSymbols { language, level: 1 },
+                format!("{} - Level 1", lang_name),
+                "Basic brackets: () [] {}".to_string(),
+                vec![],
+            ),
+            Lesson::new(
+                LessonType::CodeSymbols { language, level: 2 },
+                format!("{} - Level 2", lang_name),
+                "Basic operators: + - * / =".to_string(),
+                vec![],
+            ),
+            Lesson::new(
+                LessonType::CodeSymbols { language, level: 3 },
+                format!("{} - Level 3", lang_name),
+                "Comparisons: == != < >".to_string(),
+                vec![],
+            ),
+            Lesson::new(
+                LessonType::CodeSymbols { language, level: 4 },
+                format!("{} - Level 4", lang_name),
+                "Arrows & special: -> => ::".to_string(),
+                vec![],
+            ),
+            Lesson::new(
+                LessonType::CodeSymbols { language, level: 5 },
+                format!("{} - Level 5", lang_name),
+                "Compound operators: && ||".to_string(),
+                vec![],
+            ),
+            Lesson::new(
+                LessonType::CodeSymbols { language, level: 6 },
+                format!("{} - Level 6", lang_name),
+                "Realistic code snippets".to_string(),
+                vec![],
+            ),
+        ]
     }
 
     /// Create bigram lessons for a specific language or code

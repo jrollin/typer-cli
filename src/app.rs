@@ -3,7 +3,7 @@ use ratatui::DefaultTerminal;
 use std::io;
 use std::time::Duration;
 
-use crate::content::{BigramType, ContentGenerator, Language, Lesson};
+use crate::content::{BigramType, ContentGenerator, Language, Lesson, ProgrammingLanguage};
 use crate::data::{SessionRecord, Stats, Storage};
 use crate::engine::{calculate_results, TypingSession};
 use crate::ui;
@@ -52,6 +52,15 @@ impl App {
 
         // Code Bigram lessons (3 lessons)
         lessons.extend(Lesson::bigram_lessons(BigramType::Code, None));
+
+        // TypeScript Code Symbols (6 lessons)
+        lessons.extend(Lesson::code_symbol_lessons(ProgrammingLanguage::TypeScript));
+
+        // Rust Code Symbols (6 lessons)
+        lessons.extend(Lesson::code_symbol_lessons(ProgrammingLanguage::Rust));
+
+        // Python Code Symbols (6 lessons)
+        lessons.extend(Lesson::code_symbol_lessons(ProgrammingLanguage::Python));
 
         Ok(Self {
             session: None,
