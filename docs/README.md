@@ -130,18 +130,20 @@ Master programming symbols across different languages.
 - Syntactically valid code snippets for each language
 - Progressive difficulty from simple brackets to complex code
 
-#### [adaptive-mode/](features/adaptive-mode/) ⏳ PLANNED
+#### [adaptive-mode/](features/adaptive-mode/) ✅ COMPLETED (MVP)
 Personalized training based on individual weaknesses.
 
-**Modules**: `src/engine/analytics.rs`, `src/content/adaptive.rs`
+**Modules**: `src/engine/analytics.rs`, `src/engine/adaptive.rs`, `src/content/adaptive_generator.rs`
 
-- Per-key and per-bigram statistics tracking
-- Weakness detection (accuracy and speed analysis)
-- Spaced repetition algorithm
-- Adaptive content generation (60% weak, 30% moderate, 10% mastered)
-- Recommendation engine for next practice
-- Mastery level progression (Beginner → Learning → Proficient → Mastered)
-- Local data storage with privacy focus
+- Per-key and per-bigram statistics tracking ✓
+- Weakness detection (accuracy < 80%, speed > 75th percentile) ✓
+- Spaced repetition algorithm (intervals by mastery level) ✓
+- Adaptive content generation (60% weak, 30% moderate, 10% mastered) ✓
+- Recommendation engine for next practice ✓
+- Mastery level progression (Beginner → Learning → Proficient → Mastered) ✓
+- Local data storage with backward compatibility ✓
+- Automatic analytics tracking after each session ✓
+- Conditional menu appearance (>= 10 sessions, >= 100 keystrokes) ✓
 
 ### Future Features (Phase 3+)
 
@@ -210,26 +212,31 @@ Module locations are documented in each feature's design.md:
 
 ## Project Status
 
-**Current Phase**: Phase 2 Complete ✓
+**Current Phase**: Adaptive Mode MVP Complete ✓
 
-**Total Tests**: 56 passing
+**Total Tests**: 81 passing
 - 13 tests: typing-session
 - 7 tests: home-row-lessons
 - 12 tests: bigram-training
-- 12 tests: code-symbols (NEW)
+- 12 tests: code-symbols
+- 9 tests: analytics (NEW)
+- 9 tests: adaptive algorithms (NEW)
+- 6 tests: adaptive generator (NEW)
 - 7 tests: session-storage
 - 2 tests: keyboard-layout
-- 3 tests: content generation (progressive drills)
+- 3 tests: content generation
+- 1 test: data structures
 
 **Completed Features**:
 - Phase 1: Home row Level 1 ✓
 - Phase 2: Home row Levels 2-6 ✓
 - Phase 2: Bigram training (French, English, Code) ✓
 - Phase 2: Code symbols (TypeScript, Rust, Python) ✓
+- Phase 2+: Adaptive Mode MVP ✓
 
-**Total Lessons**: 33 (6 home row + 9 bigrams + 18 code symbols)
+**Total Lessons**: 33 standard + 1 adaptive (appears when >= 10 sessions completed)
 
-**Next Phase**: Adaptive mode (Phase 2+)
+**Next Phase**: Adaptive mode UI enhancements (Phase 3)
 
 ## Additional Resources
 
