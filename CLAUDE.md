@@ -6,7 +6,8 @@ Quick reference for AI assistants working on this project.
 
 **Phase 1: MVP** - ✅ Completed
 **Phase 2: Home Row Levels 2-6** - ✅ Completed
-**Current Focus**: Phase 2+ (Bigrams, code symbols)
+**Phase 2+: Adaptive Mode** - ✅ Completed
+**Current Focus**: Phase 3 (UI enhancements, analytics visualization)
 
 ## Project Overview
 
@@ -41,10 +42,16 @@ Located in `docs/steering/`:
 **Phase 2 (Completed):**
 - **home-row-lessons/** (`src/content/`) - All 6 progressive home row levels with menu selection
 - **bigram-training/** (`src/content/`) - French, English, and Code bigram practice
-- **code-symbols/** (`src/content/`) - Programming symbols for TypeScript, Rust, Python ✅ NEW
+- **code-symbols/** (`src/content/`) - Programming symbols for TypeScript, Rust, Python
 
-**Phase 2+ (Planned):**
-- **adaptive-mode/** (`src/engine/`, `src/content/`) - Personalized training with analytics
+**Phase 2+ (Completed):**
+- **adaptive-mode/** (`src/engine/analytics.rs`, `src/engine/adaptive.rs`, `src/content/adaptive_generator.rs`) - Personalized training with analytics ✅ NEW
+  - Per-key and per-bigram statistics tracking
+  - Weakness detection (accuracy < 80%, speed > 75th percentile)
+  - Spaced repetition algorithm
+  - Adaptive content generation (60% weak, 30% moderate, 10% strong)
+  - Automatic analytics tracking after each session
+  - Appears in menu when ≥ 10 sessions completed
 
 **Complete documentation index**: See `docs/README.md` for navigation guide and feature details.
 
@@ -56,8 +63,12 @@ Located in `docs/steering/`:
 ```bash
 # Development
 cargo run              # Launch application
-cargo test             # Run test suite (56 tests)
+cargo test             # Run test suite (81 tests)
 cargo check            # Fast compilation check
+
+# Testing Adaptive Mode
+cargo run --example create_test_stats  # Generate test data
+cargo run --example verify_adaptive     # Verify adaptive configuration
 
 # Quality
 cargo clippy           # Linting
@@ -74,9 +85,17 @@ src/
 ├── main.rs          # Entry point
 ├── app.rs           # App state, event loop
 ├── ui/render.rs     # TUI rendering
-├── engine/          # Session logic, scoring
+├── engine/          # Session logic, scoring, analytics
+│   ├── analytics.rs # Per-key/bigram statistics tracking
+│   ├── adaptive.rs  # Weakness detection, spaced repetition
+│   ├── scoring.rs   # WPM and accuracy calculations
+│   └── types.rs     # TypingSession and CharInput
 ├── content/         # Lesson generation
-├── data/            # Stats persistence
+│   ├── adaptive_generator.rs  # Personalized content
+│   ├── bigram_generator.rs    # Bigram practice
+│   ├── code_generator.rs      # Code symbols
+│   └── generator.rs           # Home row drills
+├── data/            # Stats persistence (with adaptive analytics)
 └── keyboard/        # AZERTY layout
 ```
 
@@ -85,7 +104,8 @@ src/
 - **Language**: Rust 2021
 - **TUI**: ratatui + crossterm
 - **Persistence**: serde + serde_json
-- **CLI**: clap (prepared for Phase 2)
+- **Randomization**: rand (for adaptive content variety)
+- **CLI**: clap (prepared for future phases)
 
 ## Key Constraints
 
@@ -99,15 +119,30 @@ src/
 
 Stats saved to: `~/.config/typer-cli/stats.json`
 
+**Stats Structure:**
+- `sessions`: Array of completed session records
+- `adaptive_analytics`: Optional analytics data (appears after first session)
+  - `key_stats`: Per-key performance (accuracy, speed, mistypes, mastery level)
+  - `bigram_stats`: Per-bigram performance
+  - `total_sessions`: Session counter
+  - `total_keystrokes`: Total keystrokes tracked
+
 ## Roadmap
 
 - **Phase 1**: Home row practice (Level 1) ✅
 - **Phase 2**: All home row levels (Levels 1-6) with lesson selection menu ✅
 - **Phase 2**: Bigram training (French, English, Code patterns) ✅
 - **Phase 2**: Code symbols (TypeScript, Rust, Python) ✅
-- **Phase 2+**: ⏳ PLANNED
-  - Adaptive mode (personalized weak-key training)
+- **Phase 2+**: Adaptive mode (personalized weak-key training) ✅
+  - Analytics engine (per-key and per-bigram tracking)
+  - Weakness detection (accuracy < 80%, speed > 75th percentile)
+  - Spaced repetition algorithm (practice intervals by mastery level)
+  - Adaptive content generation (60/30/10 distribution)
+  - Automatic tracking after each session
+  - Conditional menu appearance (≥ 10 sessions, ≥ 100 keystrokes)
 - **Phase 3**: ⏳ FUTURE
-  - Analytics visualization (heat maps, graphs)
+  - Enhanced adaptive UI (pre/post-session feedback, progress indicators)
+  - Analytics visualization (heat maps, trend graphs)
+  - Data export (JSON/CSV)
   - Gamification (achievements, streaks)
   - Themes and customization

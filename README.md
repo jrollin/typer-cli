@@ -6,14 +6,27 @@ A Rust CLI application for learning and improving touch typing on AZERTY keyboar
 
 Typer CLI is a terminal-based keyboard typing training tool. It provides an interactive TUI (Terminal User Interface) for practicing touch typing with immediate visual feedback and real-time statistics.
 
-## Features (MVP - Phase 1)
+## Features
 
-- ✅ **Home Row Mode**: Training on the AZERTY home row (Level 1: f, j)
+### Core Features (Phase 1-2) ✅
+- ✅ **Home Row Lessons**: 6 progressive levels for AZERTY home row
+- ✅ **Bigram Training**: French, English, and Code patterns (9 lessons)
+- ✅ **Code Symbols**: TypeScript, Rust, Python practice (18 lessons)
 - ✅ **Real-time Feedback**: Green/red coloring for each character
 - ✅ **Live Metrics**: WPM (words per minute) and accuracy
-- ✅ **Persistence**: Automatic session saving
-- ✅ **Minimal Interface**: Clean TUI with ratatui
+- ✅ **Session Persistence**: Automatic saving to JSON
+- ✅ **Minimal TUI**: Clean interface with ratatui
 - ✅ **AZERTY Keyboard**: Optimized for French layout
+
+### Adaptive Mode (Phase 2+) ✅ NEW
+- ✅ **Analytics Tracking**: Automatic per-key and per-bigram statistics
+- ✅ **Weakness Detection**: Identifies keys < 80% accuracy or slow speed
+- ✅ **Personalized Content**: 60% weak, 30% moderate, 10% strong key distribution
+- ✅ **Spaced Repetition**: Practice intervals based on mastery level
+- ✅ **Smart Appearance**: Shows in menu after 10+ sessions
+- ✅ **Privacy-Focused**: All data stored locally
+
+**Total Lessons**: 34 (33 standard + 1 adaptive)
 
 ## Installation
 
@@ -47,10 +60,20 @@ cargo run
 
 ### Controls
 
+**In Menu:**
+- **↑/↓ or j/k**: Navigate lessons
+- **Enter or Space**: Start selected lesson
+- **1-9**: Quick select lesson by number
+- **ESC or q**: Quit
+
+**During Practice:**
 - **Typing**: Simply type the displayed characters
-- **ESC**: Quit at any time
-- **q**: Quit after a completed session
-- **r**: Restart a new session after completion
+- **Backspace**: Correct mistakes
+- **ESC**: Return to menu
+
+**After Completion:**
+- **q or ESC**: Return to menu
+- **r**: Restart same lesson
 
 ### Interface
 
@@ -81,6 +104,7 @@ cargo run
 - **TUI**: [ratatui](https://github.com/ratatui-org/ratatui) + [crossterm](https://github.com/crossterm-rs/crossterm)
 - **Serialization**: [serde](https://serde.rs/) + serde_json
 - **Timestamps**: [chrono](https://github.com/chronotope/chrono)
+- **Randomization**: [rand](https://github.com/rust-random/rand) (for adaptive content)
 - **CLI args**: [clap](https://github.com/clap-rs/clap) (prepared for future)
 
 ## Architecture
@@ -92,13 +116,18 @@ src/
 ├── ui/
 │   └── render.rs     # TUI rendering with ratatui
 ├── engine/
-│   ├── types.rs      # TypingSession, CharInput, SessionResult
-│   └── scoring.rs    # WPM and accuracy calculation
+│   ├── types.rs      # TypingSession, CharInput
+│   ├── scoring.rs    # WPM and accuracy calculation
+│   ├── analytics.rs  # Per-key/bigram statistics tracking (NEW)
+│   └── adaptive.rs   # Weakness detection, spaced repetition (NEW)
 ├── content/
-│   ├── lesson.rs     # Lesson definitions
-│   └── generator.rs  # Content generation
+│   ├── lesson.rs            # Lesson definitions
+│   ├── generator.rs         # Home row content generation
+│   ├── bigram_generator.rs  # Bigram practice content
+│   ├── code_generator.rs    # Code symbols content
+│   └── adaptive_generator.rs # Personalized content (NEW)
 ├── data/
-│   ├── stats.rs      # Stats structures
+│   ├── stats.rs      # Stats structures (with adaptive analytics)
 │   └── storage.rs    # JSON persistence
 └── keyboard/
     └── azerty.rs     # Layout AZERTY
@@ -117,14 +146,34 @@ JSON format:
   "sessions": [
     {
       "timestamp": "2024-01-01T12:00:00Z",
-      "lesson_type": "HomeRow-1",
+      "lesson_type": "Home Row - Level 1",
       "wpm": 45.0,
       "accuracy": 95.5,
-      "duration": 60
+      "duration": 60000
     }
-  ]
+  ],
+  "adaptive_analytics": {
+    "key_stats": {
+      "f": {
+        "key": "f",
+        "total_attempts": 100,
+        "correct_attempts": 97,
+        "error_count": 3,
+        "total_time_ms": 10000,
+        "mistype_map": {},
+        "last_practiced": "2024-01-01T12:00:00Z",
+        "mastery_level": "Mastered"
+      }
+    },
+    "bigram_stats": {},
+    "session_history": [],
+    "total_sessions": 15,
+    "total_keystrokes": 850
+  }
 }
 ```
+
+**Note**: `adaptive_analytics` appears after your first session and enables personalized training after 10+ sessions.
 
 ## Development
 
@@ -136,13 +185,28 @@ cargo test
 
 # With output
 cargo test -- --nocapture
+
+# Test adaptive mode
+cargo run --example create_test_stats  # Generate test data
+cargo run --example verify_adaptive     # Verify configuration
 ```
 
-32 unit tests cover:
-- Engine (WPM calculation, accuracy, session)
-- Content (lesson generation)
-- Data (stats, persistence)
+**81 unit tests** cover:
+- Engine (typing session, scoring, analytics, adaptive algorithms)
+- Content (lesson generation, bigrams, code symbols, adaptive content)
+- Data (stats persistence with analytics)
 - Keyboard (AZERTY layout)
+
+**Test Categories:**
+- 13 tests: typing session logic
+- 9 tests: analytics tracking
+- 9 tests: adaptive algorithms (weakness detection, spaced repetition)
+- 6 tests: adaptive content generation
+- 12 tests: bigram training
+- 12 tests: code symbols
+- 7 tests: home row lessons
+- 7 tests: session storage
+- 6 tests: additional coverage
 
 ### Code Quality
 
@@ -163,25 +227,35 @@ See `tasks.md` for detailed tracking of implemented tasks.
 
 ## Roadmap
 
-### Phase 1: MVP ✅ (Completed)
-- [x] Home row basics
-- [x] WPM + Accuracy
-- [x] Minimal UI
-- [x] Persistence
+### Phase 1: MVP ✅ Completed
+- [x] Home row basics (Level 1: f, j)
+- [x] WPM + Accuracy calculations
+- [x] Minimal TUI interface
+- [x] Session persistence
 
-### Phase 2: Extension (Future)
-- [ ] All home row lessons (levels 2-6)
-- [ ] Bigrams mode (FR/EN)
-- [ ] Code mode (programming symbols)
+### Phase 2: Content Expansion ✅ Completed
+- [x] All home row lessons (Levels 1-6)
+- [x] Bigram training (French, English, Code)
+- [x] Code symbols (TypeScript, Rust, Python)
+- [x] Lesson selection menu
+- [x] Backspace support
+
+### Phase 2+: Adaptive Mode ✅ Completed
+- [x] Analytics engine (per-key/bigram tracking)
+- [x] Weakness detection (accuracy & speed)
+- [x] Spaced repetition algorithm
+- [x] Adaptive content generation (60/30/10 distribution)
+- [x] Automatic analytics after each session
+- [x] Conditional menu appearance (≥10 sessions)
+
+### Phase 3: Enhancements (Future)
+- [ ] Enhanced adaptive UI (pre/post-session feedback)
+- [ ] Progress visualization (heat maps, graphs)
+- [ ] Data export (JSON/CSV)
 - [ ] Keyboard visualization
-- [ ] English support
-
-### Phase 3: Advanced (Future)
-- [ ] Adaptive mode (focus on errors)
-- [ ] Progress graphs
-- [ ] Detailed history
-- [ ] Backspace support
-- [ ] CLI args for lesson selection
+- [ ] Gamification (achievements, streaks)
+- [ ] Theme customization
+- [ ] Multi-layout support (BÉPO, Dvorak)
 
 ## Documentation
 
