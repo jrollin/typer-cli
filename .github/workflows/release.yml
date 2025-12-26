@@ -88,17 +88,18 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: strip target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
 
-      - name: Generate checksum
+      - name: Rename and generate checksum
         run: |
           cd target/${{ matrix.target }}/release
-          shasum -a 256 ${{ matrix.artifact_name }} > ${{ matrix.asset_name }}.sha256
+          cp ${{ matrix.artifact_name }} ${{ matrix.asset_name }}
+          shasum -a 256 ${{ matrix.asset_name }} > ${{ matrix.asset_name }}.sha256
           cat ${{ matrix.asset_name }}.sha256
 
       - name: Upload binary
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+            target/${{ matrix.target }}/release/${{ matrix.asset_name }}
             target/${{ matrix.target }}/release/${{ matrix.asset_name }}.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
