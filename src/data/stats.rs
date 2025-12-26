@@ -13,7 +13,11 @@ pub struct SessionRecord {
     pub accuracy: f64,
     #[serde(with = "duration_serde")]
     pub duration: Duration,
-    #[serde(skip_serializing_if = "Option::is_none", with = "opt_duration_serde", default)]
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        with = "opt_duration_serde",
+        default
+    )]
     pub duration_limit: Option<Duration>,
 }
 
@@ -42,7 +46,13 @@ mod opt_duration_serde {
 }
 
 impl SessionRecord {
-    pub fn new(lesson_type: String, wpm: f64, accuracy: f64, duration: Duration, duration_limit: Duration) -> Self {
+    pub fn new(
+        lesson_type: String,
+        wpm: f64,
+        accuracy: f64,
+        duration: Duration,
+        duration_limit: Duration,
+    ) -> Self {
         Self {
             timestamp: chrono::Utc::now().to_rfc3339(),
             lesson_type,
@@ -192,8 +202,13 @@ mod tests {
     #[test]
     fn test_stats_add_session() {
         let mut stats = Stats::new();
-        let record =
-            SessionRecord::new("HomeRow-1".to_string(), 45.0, 95.0, Duration::from_secs(60), Duration::from_secs(300));
+        let record = SessionRecord::new(
+            "HomeRow-1".to_string(),
+            45.0,
+            95.0,
+            Duration::from_secs(60),
+            Duration::from_secs(300),
+        );
         stats.add_session(record);
         assert_eq!(stats.session_count(), 1);
     }

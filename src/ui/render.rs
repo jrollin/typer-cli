@@ -130,7 +130,11 @@ fn create_colored_input_multiline(session: &TypingSession, width: usize) -> Vec<
         } else {
             Color::Red
         };
-        let display_char = if input.typed == ' ' { '·' } else { input.typed };
+        let display_char = if input.typed == ' ' {
+            '·'
+        } else {
+            input.typed
+        };
 
         // Check if adding this character would exceed line width
         if current_line_width >= effective_width {
@@ -215,7 +219,13 @@ fn render_typing_area(f: &mut Frame, area: Rect, session: &TypingSession) {
 }
 
 /// Rendu des statistiques
-fn render_stats(f: &mut Frame, area: Rect, wpm: f64, accuracy: f64, remaining: std::time::Duration) {
+fn render_stats(
+    f: &mut Frame,
+    area: Rect,
+    wpm: f64,
+    accuracy: f64,
+    remaining: std::time::Duration,
+) {
     let stats_text = format!(
         " WPM: {:.0}  │  Accuracy: {:.1}%  │  Time Remaining: {:02}:{:02}",
         wpm,
@@ -255,29 +265,63 @@ pub fn render_menu(f: &mut Frame, lessons: &[Lesson], selected: usize) {
         .block(Block::default().borders(Borders::ALL));
     f.render_widget(header, chunks[0]);
 
-    // Menu items
-    let items: Vec<ListItem> = lessons
-        .iter()
-        .enumerate()
-        .map(|(i, lesson)| {
-            let style = if i == selected {
+    // Menu items with category separators
+    let mut items: Vec<ListItem> = Vec::new();
+
+    // PRIMARY section header
+    items.push(ListItem::new(Line::from(Span::styled(
+        "━━━ PRIMARY - Key Training ━━━",
+        Style::default()
+            .fg(Color::Cyan)
+            .add_modifier(Modifier::BOLD),
+    ))));
+
+    // Add all lessons with category separators
+    for (i, lesson) in lessons.iter().enumerate() {
+        // Add SECONDARY separator before lesson 25 (0-indexed: 24)
+        if i == 25 {
+            items.push(ListItem::new(Line::from("")));
+            items.push(ListItem::new(Line::from(Span::styled(
+                "━━━ SECONDARY - Programming & Languages ━━━",
                 Style::default()
-                    .fg(Color::Yellow)
-                    .add_modifier(Modifier::BOLD)
-            } else {
-                Style::default().fg(Color::White)
-            };
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ))));
+        }
 
-            let prefix = if i == selected { "▶ " } else { "  " };
-            let content = format!("{}{}. {}", prefix, i + 1, lesson.title);
+        // Add ADAPTIVE separator before the last lesson (if it exists and is adaptive)
+        if i == lessons.len() - 1
+            && matches!(
+                lesson.lesson_type,
+                crate::content::lesson::LessonType::Adaptive
+            )
+        {
+            items.push(ListItem::new(Line::from("")));
+            items.push(ListItem::new(Line::from(Span::styled(
+                "━━━ ADAPTIVE ━━━",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ))));
+        }
 
-            ListItem::new(Line::from(Span::styled(content, style)))
-        })
-        .collect();
+        let style = if i == selected {
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::White)
+        };
+
+        let prefix = if i == selected { "▶ " } else { "  " };
+        let content = format!("{}{}. {}", prefix, i + 1, lesson.title);
+
+        items.push(ListItem::new(Line::from(Span::styled(content, style))));
+    }
 
     let list = List::new(items).block(
         Block::default()
-            .title("Home Row Lessons")
+            .title("Typing Lessons")
             .borders(Borders::ALL),
     );
 
@@ -344,11 +388,7 @@ pub fn render_duration_menu(f: &mut Frame, selected: usize) {
         })
         .collect();
 
-    let list = List::new(items).block(
-        Block::default()
-            .title("Duration")
-            .borders(Borders::ALL),
-    );
+    let list = List::new(items).block(Block::default().title("Duration").borders(Borders::ALL));
 
     f.render_widget(list, chunks[1]);
 

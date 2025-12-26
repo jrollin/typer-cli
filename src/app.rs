@@ -37,16 +37,79 @@ impl App {
         let storage = Storage::new()?;
         let stats = storage.load()?;
 
-        // Build complete lesson list
+        // Build complete lesson list with grouped organization
         let mut lessons = Vec::new();
 
-        // Adaptive Mode (if sufficient data)
-        if should_show_adaptive_mode(&stats) {
-            lessons.push(Lesson::adaptive_lesson());
-        }
+        // PRIMARY SECTION: Key Training (25 lessons)
+        // Organized: individual lessons → group → shift variant
 
-        // Home Row lessons (6 lessons)
-        lessons.extend(Lesson::home_row_lessons());
+        // Group 1: Lessons 1-4 (basic home row pairs)
+        let key_pairs_1_4: Vec<_> = Lesson::key_pair_lessons().into_iter().take(4).collect();
+        lessons.extend(key_pairs_1_4);
+        lessons.extend(Lesson::key_pair_group_lessons(false).into_iter().take(1)); // Group 1-4
+        lessons.extend(Lesson::key_pair_group_lessons(true).into_iter().take(1)); // Group 1-4 + Shift
+
+        // Group 2: Lessons 5-8 (extended reaches)
+        let key_pairs_5_8: Vec<_> = Lesson::key_pair_lessons()
+            .into_iter()
+            .skip(4)
+            .take(4)
+            .collect();
+        lessons.extend(key_pairs_5_8);
+        lessons.extend(
+            Lesson::key_pair_group_lessons(false)
+                .into_iter()
+                .skip(1)
+                .take(1),
+        ); // Group 5-8
+        lessons.extend(
+            Lesson::key_pair_group_lessons(true)
+                .into_iter()
+                .skip(1)
+                .take(1),
+        ); // Group 5-8 + Shift
+
+        // Group 3: Lessons 9-12 (bottom row)
+        let key_pairs_9_12: Vec<_> = Lesson::key_pair_lessons()
+            .into_iter()
+            .skip(8)
+            .take(4)
+            .collect();
+        lessons.extend(key_pairs_9_12);
+        lessons.extend(
+            Lesson::key_pair_group_lessons(false)
+                .into_iter()
+                .skip(2)
+                .take(1),
+        ); // Group 9-12
+        lessons.extend(
+            Lesson::key_pair_group_lessons(true)
+                .into_iter()
+                .skip(2)
+                .take(1),
+        ); // Group 9-12 + Shift
+
+        // Group 4: Lessons 13-17 (numbers and symbols)
+        let key_pairs_13_17: Vec<_> = Lesson::key_pair_lessons()
+            .into_iter()
+            .skip(12)
+            .take(5)
+            .collect();
+        lessons.extend(key_pairs_13_17);
+        lessons.extend(
+            Lesson::key_pair_group_lessons(false)
+                .into_iter()
+                .skip(3)
+                .take(1),
+        ); // Group 13-17
+        lessons.extend(
+            Lesson::key_pair_group_lessons(true)
+                .into_iter()
+                .skip(3)
+                .take(1),
+        ); // Group 13-17 + Shift
+
+        // SECONDARY SECTION: Programming & Languages (27 lessons)
 
         // French Bigram lessons (3 lessons)
         lessons.extend(Lesson::bigram_lessons(
@@ -71,6 +134,11 @@ impl App {
 
         // Python Code Symbols (6 lessons)
         lessons.extend(Lesson::code_symbol_lessons(ProgrammingLanguage::Python));
+
+        // ADAPTIVE SECTION (if sufficient data)
+        if should_show_adaptive_mode(&stats) {
+            lessons.push(Lesson::adaptive_lesson());
+        }
 
         Ok(Self {
             session: None,

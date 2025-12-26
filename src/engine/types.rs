@@ -2,6 +2,7 @@ use std::time::{Duration, Instant};
 
 /// Session duration presets
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[allow(clippy::enum_variant_names)]
 pub enum SessionDuration {
     TwoMinutes,
     ThreeMinutes,

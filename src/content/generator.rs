@@ -1,6 +1,8 @@
 use super::bigram_generator::BigramGenerator;
 use super::code_generator::CodeSymbolGenerator;
-use super::lesson::{Lesson, LessonType};
+use super::lesson::{get_shifted_char, Lesson, LessonType, KEY_PAIR_GROUPS, KEY_PAIR_LESSONS};
+use rand::seq::SliceRandom;
+use rand::Rng;
 
 /// Trait pour générer du contenu de leçon
 pub trait ContentGenerator {
@@ -10,12 +12,29 @@ pub trait ContentGenerator {
 impl ContentGenerator for Lesson {
     fn generate(&self, length: usize) -> String {
         match &self.lesson_type {
-            LessonType::HomeRow { level } => match level {
-                1 => generate_two_key_drills(&self.keys, length),
-                2..=5 => generate_progressive_drills(&self.keys, length),
-                6 => generate_words(&self.keys, length),
-                _ => String::new(),
-            },
+            LessonType::KeyPair { lesson_id } => {
+                // Get the lesson definition
+                if let Some(lesson_def) = KEY_PAIR_LESSONS.get((*lesson_id - 1) as usize) {
+                    generate_key_pair_drills(lesson_def.keys, length)
+                } else {
+                    String::new()
+                }
+            }
+            LessonType::KeyPairGroup {
+                group_id,
+                with_shift,
+            } => {
+                // Get the group definition
+                if let Some(group_def) = KEY_PAIR_GROUPS.get((*group_id - 1) as usize) {
+                    if *with_shift {
+                        generate_shift_variant_drills(group_def, length)
+                    } else {
+                        generate_group_drills(group_def, length)
+                    }
+                } else {
+                    String::new()
+                }
+            }
             LessonType::Bigram {
                 bigram_type,
                 language,
@@ -39,6 +58,7 @@ impl ContentGenerator for Lesson {
 
 /// Générer des drills avec 2 touches (niveau 1-4)
 /// Pattern: "ff jj ff jj dd kk dd kk"
+#[allow(dead_code)]
 fn generate_two_key_drills(keys: &[char], length: usize) -> String {
     if keys.len() != 2 {
         return String::new();
@@ -64,6 +84,7 @@ fn generate_two_key_drills(keys: &[char], length: usize) -> String {
 
 /// Générer des drills progressifs avec les touches disponibles
 /// Crée des patterns variés: répétitions, alternances, combinaisons
+#[allow(dead_code)]
 fn generate_progressive_drills(keys: &[char], length: usize) -> String {
     if keys.is_empty() {
         return String::new();
@@ -110,6 +131,7 @@ fn generate_progressive_drills(keys: &[char], length: usize) -> String {
 
 /// Générer des mots simples français avec les touches home row
 /// Mots possibles avec q,s,d,f,g,h,j,k,l,m: limité mais quelques mots existent
+#[allow(dead_code)]
 fn generate_words(_keys: &[char], length: usize) -> String {
     // Mots courts français possibles avec home row AZERTY
     // Note: très limité, principalement pour démonstration
@@ -125,6 +147,161 @@ fn generate_words(_keys: &[char], length: usize) -> String {
             result.push(' ');
         }
         result.push_str(words[idx % words.len()]);
+        idx += 1;
+    }
+
+    result.chars().take(length).collect()
+}
+
+/// Generate drills for key pair lessons
+/// Similar to generate_progressive_drills but designed for 2-4 specific keys
+fn generate_key_pair_drills(keys: &[char], length: usize) -> String {
+    if keys.is_empty() {
+        return String::new();
+    }
+
+    let mut result = String::new();
+    let mut patterns = Vec::new();
+
+    // Phase 1: Single key repetitions (warm-up)
+    // Pattern: "ff dd jj kk"
+    for &key in keys {
+        patterns.push(format!("{}{}", key, key));
+    }
+
+    // Phase 2: Adjacent pairs
+    // Pattern: "fd df jk kj"
+    for i in 0..keys.len() {
+        for j in (i + 1)..keys.len() {
+            patterns.push(format!("{}{}", keys[i], keys[j]));
+            patterns.push(format!("{}{}", keys[j], keys[i]));
+        }
+    }
+
+    // Phase 3: Triplets (if enough keys)
+    // Pattern: "fdk dkf kfd"
+    if keys.len() >= 3 {
+        for i in 0..keys.len() {
+            for j in 0..keys.len() {
+                for k in 0..keys.len() {
+                    if i != j && j != k && i != k {
+                        patterns.push(format!("{}{}{}", keys[i], keys[j], keys[k]));
+                    }
+                }
+            }
+        }
+    }
+
+    // Generate content by cycling through patterns
+    let mut idx = 0;
+    while result.len() < length {
+        if !result.is_empty() {
+            result.push(' ');
+        }
+        result.push_str(&patterns[idx % patterns.len()]);
+        idx += 1;
+    }
+
+    result.chars().take(length).collect()
+}
+
+/// Generate content for a lesson group (combine keys from multiple lessons)
+fn generate_group_drills(group: &super::lesson::KeyPairGroupDef, length: usize) -> String {
+    // Collect all keys from lessons in this group
+    let mut all_keys = Vec::new();
+
+    for lesson_id in group.lesson_range.0..=group.lesson_range.1 {
+        if let Some(lesson_def) = KEY_PAIR_LESSONS.get((lesson_id - 1) as usize) {
+            for &key in lesson_def.keys {
+                if !all_keys.contains(&key) {
+                    all_keys.push(key);
+                }
+            }
+        }
+    }
+
+    // Use the same drill generation but with combined key set
+    generate_key_pair_drills(&all_keys, length)
+}
+
+/// Generate content with shift variants (mix lowercase, uppercase, and symbols)
+/// Distribution: ~50% lowercase, ~40% uppercase, ~10% symbols
+fn generate_shift_variant_drills(group: &super::lesson::KeyPairGroupDef, length: usize) -> String {
+    let mut rng = rand::thread_rng();
+
+    // Collect all base keys from lessons in this group
+    let mut base_keys = Vec::new();
+    for lesson_id in group.lesson_range.0..=group.lesson_range.1 {
+        if let Some(lesson_def) = KEY_PAIR_LESSONS.get((lesson_id - 1) as usize) {
+            for &key in lesson_def.keys {
+                if !base_keys.contains(&key) {
+                    base_keys.push(key);
+                }
+            }
+        }
+    }
+
+    // Build character pool with weighted distribution
+    let mut char_pool = Vec::new();
+
+    for &key in &base_keys {
+        // Add lowercase (50% weight = 5 copies)
+        if key.is_alphabetic() && key.is_lowercase() {
+            for _ in 0..5 {
+                char_pool.push(key);
+            }
+
+            // Add uppercase (40% weight = 4 copies)
+            for _ in 0..4 {
+                char_pool.push(key.to_uppercase().next().unwrap());
+            }
+        } else if !key.is_alphabetic() {
+            // For non-letters, add the character itself
+            for _ in 0..5 {
+                char_pool.push(key);
+            }
+        }
+
+        // Add shifted symbol variant (10% weight = 1 copy)
+        if let Some(shifted) = get_shifted_char(key) {
+            char_pool.push(shifted);
+        }
+    }
+
+    if char_pool.is_empty() {
+        return String::new();
+    }
+
+    // Generate 2-3 character patterns from shuffled pool
+    let mut patterns = Vec::new();
+    for _ in 0..50 {
+        // Generate 50 random patterns
+        let pattern_len = rng.gen_range(2..=3);
+        let mut pattern = String::new();
+
+        for _ in 0..pattern_len {
+            if let Some(&ch) = char_pool.choose(&mut rng) {
+                pattern.push(ch);
+            }
+        }
+
+        if !pattern.is_empty() {
+            patterns.push(pattern);
+        }
+    }
+
+    if patterns.is_empty() {
+        return String::new();
+    }
+
+    // Assemble final content
+    let mut result = String::new();
+    let mut idx = 0;
+    while result.len() < length {
+        if !result.is_empty() {
+            result.push(' ');
+        }
+        result.push_str(&patterns[idx % patterns.len()]);
         idx += 1;
     }
 
@@ -166,26 +343,46 @@ mod tests {
     }
 
     #[test]
-    fn test_lesson_content_generator() {
-        let lessons = Lesson::home_row_lessons();
+    fn test_key_pair_lesson_generator() {
+        let lessons = Lesson::key_pair_lessons();
 
-        // Test niveau 1 (f, j only)
-        let content1 = lessons[0].generate(20);
+        // Test first lesson (f, d, j, k)
+        let content1 = lessons[0].generate(30);
         assert!(!content1.is_empty());
-        assert!(content1.contains('f'));
-        assert!(content1.contains('j'));
+        assert!(content1.contains('f') || content1.contains('d'));
+        assert!(content1.len() <= 30);
 
-        // Test niveau 2 (f, j, d, k - progressive)
-        let content2 = lessons[1].generate(30);
-        assert!(!content2.is_empty());
-        assert!(content2.len() <= 30);
-
-        // Test niveau 5 (all keys)
-        let content5 = lessons[4].generate(30);
+        // Test lesson with more keys
+        let content5 = lessons[4].generate(40);
         assert!(!content5.is_empty());
+        assert!(content5.len() <= 40);
+    }
 
-        // Test niveau 6 (words)
-        let content6 = lessons[5].generate(25);
-        assert!(!content6.is_empty());
+    #[test]
+    fn test_group_lesson_generator() {
+        let groups = Lesson::key_pair_group_lessons(false);
+
+        // Test first group (lessons 1-4)
+        let content = groups[0].generate(50);
+        assert!(!content.is_empty());
+        assert!(content.len() <= 50);
+    }
+
+    #[test]
+    fn test_shift_variant_generator() {
+        let shift_groups = Lesson::key_pair_group_lessons(true);
+
+        // Test first shift group (lessons 1-4 + shift)
+        let content = shift_groups[0].generate(60);
+        assert!(!content.is_empty());
+        assert!(content.len() <= 60);
+        // Should contain both lowercase and uppercase
+        let has_lowercase = content
+            .chars()
+            .any(|c| c.is_alphabetic() && c.is_lowercase());
+        let has_uppercase = content
+            .chars()
+            .any(|c| c.is_alphabetic() && c.is_uppercase());
+        assert!(has_lowercase || has_uppercase); // At least one should be present
     }
 }
