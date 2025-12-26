@@ -332,6 +332,8 @@ mod tests {
         let session = TypingSession {
             content: "test".to_string(),
             current_index: 4,
+            duration_limit: Duration::from_secs(300),
+            content_buffer_size: 4,
             inputs: vec![
                 CharInput {
                     expected: 't',

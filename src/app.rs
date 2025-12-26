@@ -13,7 +13,8 @@ use crate::ui;
 /// Application state
 #[derive(Debug, PartialEq)]
 enum AppState {
-    Menu,
+    DurationMenu,
+    LessonMenu,
     Running,
     Completed,
     Quit,
@@ -27,6 +28,8 @@ pub struct App {
     stats: Stats,
     selected_lesson: usize,
     lessons: Vec<Lesson>,
+    selected_duration: usize,
+    selected_duration_value: crate::engine::SessionDuration,
 }
 
 impl App {
@@ -71,36 +74,61 @@ impl App {
 
         Ok(Self {
             session: None,
-            state: AppState::Menu,
+            state: AppState::DurationMenu,
             storage,
             stats,
             selected_lesson: 0,
             lessons,
+            selected_duration: 2, // Default to 5 minutes (index 2)
+            selected_duration_value: crate::engine::SessionDuration::FiveMinutes,
         })
     }
 
     fn start_lesson(&mut self, lesson_index: usize) {
         let lesson = &self.lessons[lesson_index];
 
-        // Generate content based on lesson type
+        // Generate initial content (500 chars)
         let content = match &lesson.lesson_type {
             crate::content::lesson::LessonType::Adaptive => {
                 // Generate adaptive content if analytics available
                 if let Some(analytics) = &self.stats.adaptive_analytics {
                     let generator = AdaptiveLessonGenerator::new(analytics);
-                    generator.generate(80)
+                    generator.generate(500)
                 } else {
                     "Insufficient data for adaptive mode. Complete more sessions first.".to_string()
                 }
             }
-            _ => lesson.generate(80), // Standard content generation
+            _ => lesson.generate(500), // Standard content generation
         };
 
-        let mut session = TypingSession::new(content);
-        session.start();
+        let session = TypingSession::new(content, self.selected_duration_value.as_duration());
+        // Don't call session.start() - timer starts on first keystroke
 
         self.session = Some(session);
         self.state = AppState::Running;
+    }
+
+    fn generate_more_content(&mut self) {
+        if let Some(session) = &mut self.session {
+            let lesson = &self.lessons[self.selected_lesson];
+
+            // Generate another 300-char chunk
+            let more_content = match &lesson.lesson_type {
+                crate::content::lesson::LessonType::Adaptive => {
+                    if let Some(analytics) = &self.stats.adaptive_analytics {
+                        let generator = AdaptiveLessonGenerator::new(analytics);
+                        generator.generate(300)
+                    } else {
+                        String::new()
+                    }
+                }
+                _ => lesson.generate(300),
+            };
+
+            if !more_content.is_empty() {
+                session.append_content(more_content);
+            }
+        }
     }
 
     /// Main app entry point
@@ -108,7 +136,10 @@ impl App {
         loop {
             // Render
             terminal.draw(|f| match self.state {
-                AppState::Menu => {
+                AppState::DurationMenu => {
+                    ui::render_duration_menu(f, self.selected_duration);
+                }
+                AppState::LessonMenu => {
                     ui::render_menu(f, &self.lessons, self.selected_lesson);
                 }
                 AppState::Running | AppState::Completed => {
@@ -138,9 +169,22 @@ impl App {
                 }
             }
 
+            // Check if we need to generate more content during active session
+            if self.state == AppState::Running {
+                if let Some(session) = &self.session {
+                    if session.needs_more_content() && !session.is_complete() {
+                        self.generate_more_content();
+                    }
+                }
+            }
+
             // Check session completion
-            if let Some(session) = &self.session {
+            if let Some(session) = &mut self.session {
                 if session.is_complete() && self.state == AppState::Running {
+                    // Set end_time if not already set (e.g., time expired)
+                    if session.end_time.is_none() {
+                        session.end_time = Some(std::time::Instant::now());
+                    }
                     self.state = AppState::Completed;
                     self.save_session()?;
                 }
@@ -163,9 +207,33 @@ impl App {
         }
 
         match self.state {
-            AppState::Menu => match key.code {
+            AppState::DurationMenu => match key.code {
                 KeyCode::Esc | KeyCode::Char('q') => {
                     self.state = AppState::Quit;
+                }
+                KeyCode::Up | KeyCode::Char('k') => {
+                    if self.selected_duration > 0 {
+                        self.selected_duration -= 1;
+                    }
+                }
+                KeyCode::Down | KeyCode::Char('j') => {
+                    let max_idx = crate::engine::SessionDuration::all().len() - 1;
+                    if self.selected_duration < max_idx {
+                        self.selected_duration += 1;
+                    }
+                }
+                KeyCode::Enter | KeyCode::Char(' ') => {
+                    // Save selected duration and move to lesson menu
+                    self.selected_duration_value =
+                        crate::engine::SessionDuration::all()[self.selected_duration];
+                    self.state = AppState::LessonMenu;
+                }
+                _ => {}
+            },
+            AppState::LessonMenu => match key.code {
+                KeyCode::Esc | KeyCode::Char('q') => {
+                    // Go back to duration menu
+                    self.state = AppState::DurationMenu;
                 }
                 KeyCode::Up | KeyCode::Char('k') => {
                     if self.selected_lesson > 0 {
@@ -194,7 +262,8 @@ impl App {
             },
             AppState::Running => match key.code {
                 KeyCode::Esc => {
-                    self.state = AppState::Menu;
+                    // Return to duration menu (discard session)
+                    self.state = AppState::DurationMenu;
                     self.session = None;
                 }
                 KeyCode::Char(c) => {
@@ -212,11 +281,12 @@ impl App {
             AppState::Completed => {
                 match key.code {
                     KeyCode::Char('q') | KeyCode::Esc => {
-                        self.state = AppState::Menu;
+                        // Return to duration menu
+                        self.state = AppState::DurationMenu;
                         self.session = None;
                     }
                     KeyCode::Char('r') => {
-                        // Restart same lesson
+                        // Restart same lesson with same duration
                         self.start_lesson(self.selected_lesson);
                     }
                     _ => {}
@@ -240,6 +310,7 @@ impl App {
                 result.wpm,
                 result.accuracy,
                 result.duration,
+                self.selected_duration_value.as_duration(),
             );
             self.stats.add_session(record);
 

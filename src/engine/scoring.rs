@@ -84,7 +84,7 @@ mod tests {
 
     #[test]
     fn test_calculate_results() {
-        let mut session = TypingSession::new("hello".to_string());
+        let mut session = TypingSession::new("hello".to_string(), Duration::from_secs(60));
         session.start();
 
         session.add_input('h'); // correct

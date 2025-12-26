@@ -95,6 +95,7 @@ mod tests {
             45.0,
             95.0,
             Duration::from_secs(60),
+            Duration::from_secs(300),
         ));
 
         // Sauvegarder

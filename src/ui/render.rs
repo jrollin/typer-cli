@@ -9,6 +9,84 @@ use ratatui::{
 use crate::content::Lesson;
 use crate::engine::TypingSession;
 
+/// Structure for visible text window
+struct VisibleWindow {
+    lines: Vec<String>,
+    #[allow(dead_code)]
+    cursor_line: usize,
+    #[allow(dead_code)]
+    cursor_offset: usize,
+}
+
+/// Wrap text to fit terminal width using word boundaries
+fn wrap_text(content: &str, width: usize) -> Vec<String> {
+    let mut lines = Vec::new();
+    let mut current_line = String::new();
+
+    for word in content.split_whitespace() {
+        if current_line.is_empty() {
+            current_line = word.to_string();
+        } else if current_line.len() + 1 + word.len() <= width {
+            current_line.push(' ');
+            current_line.push_str(word);
+        } else {
+            lines.push(current_line);
+            current_line = word.to_string();
+        }
+    }
+
+    if !current_line.is_empty() {
+        lines.push(current_line);
+    }
+
+    lines
+}
+
+/// Find which wrapped line contains a given character position
+fn find_cursor_line(lines: &[String], char_pos: usize) -> (usize, usize) {
+    let mut char_count = 0;
+
+    for (line_idx, line) in lines.iter().enumerate() {
+        let line_len = line.chars().count();
+        if char_pos < char_count + line_len {
+            return (line_idx, char_pos - char_count);
+        }
+        char_count += line_len + 1; // +1 for space between words
+    }
+
+    // If not found, return last line
+    (lines.len().saturating_sub(1), 0)
+}
+
+/// Extract 3-line visible window starting from cursor position
+fn extract_visible_window(session: &TypingSession, width: usize) -> VisibleWindow {
+    let content = &session.content;
+    let cursor_pos = session.current_index;
+
+    // Calculate effective width (subtract borders and padding)
+    let effective_width = width.saturating_sub(4);
+
+    // Wrap text to terminal width
+    let lines = wrap_text(content, effective_width);
+
+    // Find which line contains the cursor
+    let (cursor_line_idx, cursor_offset_in_line) = find_cursor_line(&lines, cursor_pos);
+
+    // Extract 3 lines starting from cursor line
+    let visible_lines: Vec<String> = lines
+        .iter()
+        .skip(cursor_line_idx)
+        .take(3)
+        .cloned()
+        .collect();
+
+    VisibleWindow {
+        lines: visible_lines,
+        cursor_line: 0, // Cursor is always on first visible line
+        cursor_offset: cursor_offset_in_line,
+    }
+}
+
 /// Rendu de l'interface principale
 pub fn render(f: &mut Frame, session: &TypingSession, wpm: f64, accuracy: f64) {
     let chunks = Layout::default()
@@ -22,7 +100,7 @@ pub fn render(f: &mut Frame, session: &TypingSession, wpm: f64, accuracy: f64) {
 
     render_header(f, chunks[0]);
     render_typing_area(f, chunks[1], session);
-    render_stats(f, chunks[2], wpm, accuracy, session.duration());
+    render_stats(f, chunks[2], wpm, accuracy, session.remaining_time());
 }
 
 /// Rendu du header
@@ -39,35 +117,12 @@ fn render_header(f: &mut Frame, area: Rect) {
     f.render_widget(title, area);
 }
 
-/// Rendu de la zone de typing
-fn render_typing_area(f: &mut Frame, area: Rect, session: &TypingSession) {
-    let chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .margin(2)
-        .constraints([
-            Constraint::Length(3), // Expected text
-            Constraint::Length(3), // User input
-        ])
-        .split(area);
-
-    // Texte attendu
-    let expected_text = Paragraph::new(session.content.as_str())
-        .style(Style::default().fg(Color::Gray))
-        .block(Block::default().title("Text to type").borders(Borders::ALL));
-
-    f.render_widget(expected_text, chunks[0]);
-
-    // Saisie utilisateur avec coloration
-    let user_input = create_colored_input(session);
-    let input_widget = Paragraph::new(user_input)
-        .block(Block::default().title("Your input").borders(Borders::ALL));
-
-    f.render_widget(input_widget, chunks[1]);
-}
-
-/// Créer le texte coloré de l'input utilisateur
-fn create_colored_input(session: &TypingSession) -> Line<'static> {
-    let mut spans = Vec::new();
+/// Create multiline colored input display
+fn create_colored_input_multiline(session: &TypingSession, width: usize) -> Vec<Line<'static>> {
+    let effective_width = width.saturating_sub(4);
+    let mut lines = Vec::new();
+    let mut current_line_spans = Vec::new();
+    let mut current_line_width = 0;
 
     for input in session.inputs.iter() {
         let color = if input.is_correct {
@@ -75,23 +130,25 @@ fn create_colored_input(session: &TypingSession) -> Line<'static> {
         } else {
             Color::Red
         };
+        let display_char = if input.typed == ' ' { '·' } else { input.typed };
 
-        // Render typed character with color - use visible symbol for spaces
-        let display_char = if input.typed == ' ' {
-            '·' // Use middle dot to make spaces visible
-        } else {
-            input.typed
-        };
+        // Check if adding this character would exceed line width
+        if current_line_width >= effective_width {
+            lines.push(Line::from(current_line_spans.clone()));
+            current_line_spans.clear();
+            current_line_width = 0;
+        }
 
-        spans.push(Span::styled(
+        current_line_spans.push(Span::styled(
             display_char.to_string(),
             Style::default().fg(color),
         ));
+        current_line_width += 1;
     }
 
-    // Ajouter le curseur
+    // Add cursor to current line
     if !session.is_complete() {
-        spans.push(Span::styled(
+        current_line_spans.push(Span::styled(
             "█",
             Style::default()
                 .fg(Color::White)
@@ -99,17 +156,72 @@ fn create_colored_input(session: &TypingSession) -> Line<'static> {
         ));
     }
 
-    Line::from(spans)
+    // Push final line
+    if !current_line_spans.is_empty() {
+        lines.push(Line::from(current_line_spans));
+    }
+
+    // Return only the first 3 lines (sliding window)
+    lines.into_iter().take(3).collect()
+}
+
+/// Rendu de la zone de typing (multiline with sliding window)
+fn render_typing_area(f: &mut Frame, area: Rect, session: &TypingSession) {
+    let terminal_width = area.width as usize;
+
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .margin(2)
+        .constraints([
+            Constraint::Length(5), // Expected text (3 lines + borders)
+            Constraint::Length(5), // User input (3 lines + borders)
+        ])
+        .split(area);
+
+    // Expected text - 3-line sliding window
+    let window = extract_visible_window(session, terminal_width);
+    let expected_lines: Vec<Line> = window
+        .lines
+        .iter()
+        .enumerate()
+        .map(|(i, line)| {
+            if i == 0 {
+                // Highlight current line (where cursor is)
+                Line::from(Span::styled(
+                    line.to_string(),
+                    Style::default().fg(Color::White),
+                ))
+            } else {
+                // Preview lines in dark gray
+                Line::from(Span::styled(
+                    line.to_string(),
+                    Style::default().fg(Color::DarkGray),
+                ))
+            }
+        })
+        .collect();
+
+    let expected_text = Paragraph::new(expected_lines)
+        .block(Block::default().title("Text to type").borders(Borders::ALL));
+
+    f.render_widget(expected_text, chunks[0]);
+
+    // User input - multiline colored display
+    let user_input_lines = create_colored_input_multiline(session, terminal_width);
+    let input_widget = Paragraph::new(user_input_lines)
+        .block(Block::default().title("Your input").borders(Borders::ALL));
+
+    f.render_widget(input_widget, chunks[1]);
 }
 
 /// Rendu des statistiques
-fn render_stats(f: &mut Frame, area: Rect, wpm: f64, accuracy: f64, duration: std::time::Duration) {
+fn render_stats(f: &mut Frame, area: Rect, wpm: f64, accuracy: f64, remaining: std::time::Duration) {
     let stats_text = format!(
-        " WPM: {:.0}  │  Accuracy: {:.1}%  │  Time: {:02}:{:02}",
+        " WPM: {:.0}  │  Accuracy: {:.1}%  │  Time Remaining: {:02}:{:02}",
         wpm,
         accuracy,
-        duration.as_secs() / 60,
-        duration.as_secs() % 60
+        remaining.as_secs() / 60,
+        remaining.as_secs() % 60
     );
 
     let stats = Paragraph::new(stats_text)
@@ -176,6 +288,75 @@ pub fn render_menu(f: &mut Frame, lessons: &[Lesson], selected: usize) {
         Line::from(""),
         Line::from(Span::styled(
             "Use ↑/↓ or j/k to navigate  •  Press Enter/Space or 1-6 to start  •  ESC to quit",
+            Style::default().fg(Color::Gray),
+        )),
+    ];
+
+    let instructions_widget = Paragraph::new(instructions).alignment(Alignment::Center);
+
+    f.render_widget(instructions_widget, chunks[2]);
+}
+
+/// Rendu du menu de sélection de durée
+pub fn render_duration_menu(f: &mut Frame, selected: usize) {
+    use crate::engine::SessionDuration;
+
+    let durations = SessionDuration::all();
+
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .margin(2)
+        .constraints([
+            Constraint::Length(3), // Header
+            Constraint::Min(10),   // Duration list
+            Constraint::Length(3), // Instructions
+        ])
+        .split(f.area());
+
+    // Header
+    let header = Paragraph::new("TYPER CLI - Select Session Duration")
+        .style(
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        )
+        .alignment(Alignment::Center)
+        .block(Block::default().borders(Borders::ALL));
+    f.render_widget(header, chunks[0]);
+
+    // Duration list
+    let items: Vec<ListItem> = durations
+        .iter()
+        .enumerate()
+        .map(|(i, duration): (usize, &SessionDuration)| {
+            let style = if i == selected {
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::White)
+            };
+
+            let prefix = if i == selected { "▶ " } else { "  " };
+            let content = format!("{}{}", prefix, duration.label());
+
+            ListItem::new(Line::from(Span::styled(content, style)))
+        })
+        .collect();
+
+    let list = List::new(items).block(
+        Block::default()
+            .title("Duration")
+            .borders(Borders::ALL),
+    );
+
+    f.render_widget(list, chunks[1]);
+
+    // Instructions
+    let instructions = vec![
+        Line::from(""),
+        Line::from(Span::styled(
+            "Use ↑/↓ or j/k to navigate  •  Press Enter/Space to continue  •  ESC to quit",
             Style::default().fg(Color::Gray),
         )),
     ];

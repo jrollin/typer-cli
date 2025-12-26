@@ -13,16 +13,43 @@ pub struct SessionRecord {
     pub accuracy: f64,
     #[serde(with = "duration_serde")]
     pub duration: Duration,
+    #[serde(skip_serializing_if = "Option::is_none", with = "opt_duration_serde", default)]
+    pub duration_limit: Option<Duration>,
+}
+
+// Module pour sérialiser/désérialiser Option<Duration>
+mod opt_duration_serde {
+    use serde::{Deserialize, Deserializer, Serializer};
+    use std::time::Duration;
+
+    pub fn serialize<S>(duration: &Option<Duration>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match duration {
+            Some(d) => serializer.serialize_some(&d.as_millis()),
+            None => serializer.serialize_none(),
+        }
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<Duration>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let millis = Option::<u128>::deserialize(deserializer)?;
+        Ok(millis.map(|m| Duration::from_millis(m as u64)))
+    }
 }
 
 impl SessionRecord {
-    pub fn new(lesson_type: String, wpm: f64, accuracy: f64, duration: Duration) -> Self {
+    pub fn new(lesson_type: String, wpm: f64, accuracy: f64, duration: Duration, duration_limit: Duration) -> Self {
         Self {
             timestamp: chrono::Utc::now().to_rfc3339(),
             lesson_type,
             wpm,
             accuracy,
             duration,
+            duration_limit: Some(duration_limit),
         }
     }
 }
@@ -166,7 +193,7 @@ mod tests {
     fn test_stats_add_session() {
         let mut stats = Stats::new();
         let record =
-            SessionRecord::new("HomeRow-1".to_string(), 45.0, 95.0, Duration::from_secs(60));
+            SessionRecord::new("HomeRow-1".to_string(), 45.0, 95.0, Duration::from_secs(60), Duration::from_secs(300));
         stats.add_session(record);
         assert_eq!(stats.session_count(), 1);
     }
@@ -179,12 +206,14 @@ mod tests {
             40.0,
             90.0,
             Duration::from_secs(60),
+            Duration::from_secs(300),
         ));
         stats.add_session(SessionRecord::new(
             "HomeRow-2".to_string(),
             60.0,
             100.0,
             Duration::from_secs(60),
+            Duration::from_secs(300),
         ));
 
         assert_eq!(stats.average_wpm(), 50.0);
@@ -198,6 +227,7 @@ mod tests {
             45.5,
             97.3,
             Duration::from_secs(120),
+            Duration::from_secs(300),
         );
 
         let json = serde_json::to_string(&record).unwrap();
@@ -206,5 +236,6 @@ mod tests {
         assert_eq!(deserialized.lesson_type, "HomeRow-1");
         assert!((deserialized.wpm - 45.5).abs() < 0.01);
         assert_eq!(deserialized.duration, Duration::from_secs(120));
+        assert_eq!(deserialized.duration_limit, Some(Duration::from_secs(300)));
     }
 }
