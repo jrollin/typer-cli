@@ -18,6 +18,15 @@ impl Storage {
         Ok(Self { file_path })
     }
 
+    /// Create a Storage instance with a custom file path (used for testing)
+    #[cfg(test)]
+    fn with_path(file_path: PathBuf) -> io::Result<Self> {
+        if let Some(parent) = file_path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        Ok(Self { file_path })
+    }
+
     /// Récupérer le dossier de configuration
     fn get_config_dir() -> io::Result<PathBuf> {
         let home = std::env::var("HOME").map_err(|_| {
@@ -71,6 +80,14 @@ mod tests {
     use crate::data::stats::SessionRecord;
     use std::time::Duration;
 
+    /// Helper to create a temporary test storage path
+    fn create_test_storage() -> (Storage, tempfile::TempDir) {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let file_path = temp_dir.path().join("test_stats.json");
+        let storage = Storage::with_path(file_path).unwrap();
+        (storage, temp_dir)
+    }
+
     #[test]
     fn test_storage_new() {
         let storage = Storage::new();
@@ -79,16 +96,16 @@ mod tests {
 
     #[test]
     fn test_load_empty_stats() {
-        let storage = Storage::new().unwrap();
-        // Si le fichier n'existe pas, on devrait obtenir des stats vides
-        // Note: ce test pourrait échouer si des stats existent déjà
+        let (storage, _temp_dir) = create_test_storage();
+        // When stats file doesn't exist, load should return empty stats
         let stats = storage.load();
         assert!(stats.is_ok());
+        assert_eq!(stats.unwrap().session_count(), 0);
     }
 
     #[test]
     fn test_save_and_load() {
-        let storage = Storage::new().unwrap();
+        let (storage, _temp_dir) = create_test_storage();
 
         let mut stats = Stats::new();
         stats.add_session(SessionRecord::new(
@@ -105,6 +122,6 @@ mod tests {
 
         // Charger
         let loaded_stats = storage.load().unwrap();
-        assert!(loaded_stats.session_count() >= 1);
+        assert_eq!(loaded_stats.session_count(), 1);
     }
 }
