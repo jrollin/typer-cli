@@ -58,6 +58,7 @@ impl ContentGenerator for Lesson {
 
 /// Générer des drills avec 2 touches (niveau 1-4)
 /// Pattern: "ff jj ff jj dd kk dd kk"
+/// Testing utility: Alternative drill pattern generation tested in test suite (line 316)
 #[allow(dead_code)]
 fn generate_two_key_drills(keys: &[char], length: usize) -> String {
     if keys.len() != 2 {
@@ -84,6 +85,7 @@ fn generate_two_key_drills(keys: &[char], length: usize) -> String {
 
 /// Générer des drills progressifs avec les touches disponibles
 /// Crée des patterns variés: répétitions, alternances, combinaisons
+/// Testing utility: Progressive complexity levels tested in test suite (line 327)
 #[allow(dead_code)]
 fn generate_progressive_drills(keys: &[char], length: usize) -> String {
     if keys.is_empty() {
@@ -131,6 +133,7 @@ fn generate_progressive_drills(keys: &[char], length: usize) -> String {
 
 /// Générer des mots simples français avec les touches home row
 /// Mots possibles avec q,s,d,f,g,h,j,k,l,m: limité mais quelques mots existent
+/// Testing utility: French word-based practice tested in test suite (line 335)
 #[allow(dead_code)]
 fn generate_words(_keys: &[char], length: usize) -> String {
     // Mots courts français possibles avec home row AZERTY

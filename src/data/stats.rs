@@ -84,11 +84,13 @@ impl Stats {
         self.sessions.push(record);
     }
 
+    /// Public API: Session statistics used in tests (line 198) and future UI analytics display
     #[allow(dead_code)]
     pub fn session_count(&self) -> usize {
         self.sessions.len()
     }
 
+    /// Public API: Session statistics used in tests (line 213) and future UI analytics display
     #[allow(dead_code)]
     pub fn average_wpm(&self) -> f64 {
         if self.sessions.is_empty() {
@@ -98,6 +100,7 @@ impl Stats {
         total / self.sessions.len() as f64
     }
 
+    /// Public API: Session statistics used in tests (line 234-235) and future UI analytics display
     #[allow(dead_code)]
     pub fn average_accuracy(&self) -> f64 {
         if self.sessions.is_empty() {

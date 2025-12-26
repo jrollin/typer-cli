@@ -358,10 +358,13 @@ pub enum LessonType {
 #[derive(Debug, Clone)]
 pub struct Lesson {
     pub lesson_type: LessonType,
+    /// Public API: Lesson metadata for future UI tooltips and analytics export
     #[allow(dead_code)]
     pub title: String,
+    /// Public API: Lesson metadata for future UI tooltips and analytics export
     #[allow(dead_code)]
     pub description: String,
+    /// Public API: Lesson metadata for future UI tooltips and analytics export
     #[allow(dead_code)]
     pub keys: Vec<char>,
 }

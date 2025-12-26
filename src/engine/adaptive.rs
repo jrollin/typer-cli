@@ -5,6 +5,8 @@ use std::time::{Duration, SystemTime};
 use super::analytics::{AdaptiveAnalytics, KeyStats, MasteryLevel};
 
 /// Weakness detector for identifying problem areas
+/// Phase 3: Adaptive learning framework for analytics visualization and session feedback
+/// Fully tested (lines 214-380) but currently only used in examples
 #[allow(dead_code)]
 pub struct WeaknessDetector;
 
@@ -62,6 +64,7 @@ impl WeaknessDetector {
 
     /// Identify weak bigrams based on accuracy
     /// Returns up to 5 weakest bigrams with minimum attempts threshold
+    /// Phase 3: Bigram weakness detection for future UI session feedback
     #[allow(dead_code)]
     pub fn identify_weak_bigrams(analytics: &AdaptiveAnalytics) -> Vec<String> {
         let mut weak_bigrams: Vec<_> = analytics
@@ -82,11 +85,13 @@ impl WeaknessDetector {
 }
 
 /// Spaced repetition algorithm for optimal practice scheduling
+/// Phase 3: Spaced repetition engine for personalized practice scheduling
 #[allow(dead_code)]
 pub struct SpacedRepetition;
 
 impl SpacedRepetition {
     /// Calculate next practice interval based on mastery level and performance
+    /// Phase 3: Calculate next practice interval based on mastery level
     #[allow(dead_code)]
     pub fn next_interval(mastery_level: MasteryLevel, accuracy: f64) -> Duration {
         match mastery_level {
@@ -104,6 +109,7 @@ impl SpacedRepetition {
     }
 
     /// Check if a key needs practice based on last practiced time
+    /// Phase 3: Determine if key/bigram needs practice based on last practice time
     #[allow(dead_code)]
     pub fn needs_practice(stats: &KeyStats) -> bool {
         let Some(last_practiced) = stats.last_practiced else {
@@ -121,6 +127,7 @@ impl SpacedRepetition {
 }
 
 /// Recommendation for next practice session
+/// Phase 3: Practice recommendations for future pre-session UI
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Recommendation {
@@ -130,11 +137,13 @@ pub struct Recommendation {
 }
 
 /// Recommendation engine for suggesting next lesson
+/// Phase 3: Recommendation engine for personalized lesson suggestions
 #[allow(dead_code)]
 pub struct RecommendationEngine;
 
 impl RecommendationEngine {
     /// Recommend next lesson based on user analytics
+    /// Phase 3: Generate next lesson recommendation based on analytics
     #[allow(dead_code)]
     pub fn recommend_next_lesson(analytics: &AdaptiveAnalytics) -> Recommendation {
         // Insufficient data - recommend foundation building

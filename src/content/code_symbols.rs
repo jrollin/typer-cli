@@ -9,6 +9,7 @@ pub enum ProgrammingLanguage {
 }
 
 /// Symbol category for progressive learning
+/// Phase 3: Symbol categorization for future UI filtering and analytics by symbol type
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[allow(dead_code)]
 pub enum SymbolCategory {
@@ -23,6 +24,7 @@ pub enum SymbolCategory {
 /// Code snippet template with difficulty
 #[derive(Debug, Clone)]
 pub struct CodeSnippet {
+    /// Phase 3: Symbol categorization for future UI filtering and analytics by symbol type
     #[allow(dead_code)]
     pub category: SymbolCategory,
     pub template: &'static str,

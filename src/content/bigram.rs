@@ -18,6 +18,7 @@ pub enum BigramType {
 #[derive(Debug, Clone)]
 pub struct Bigram {
     pub pattern: String,
+    /// Phase 3: Natural language frequency weighting for future spaced repetition algorithms
     #[allow(dead_code)]
     pub frequency: f32, // 0.0 to 1.0, higher = more common (for future use)
     pub examples: Vec<String>,

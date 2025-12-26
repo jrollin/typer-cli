@@ -32,6 +32,9 @@ pub fn calculate_wpm(char_count: usize, duration: Duration) -> f64 {
 }
 
 /// Calculer l'accuracy en pourcentage
+/// Public API: Canonical accuracy calculation utility tested in line 68-83
+/// Note: Main code uses inline calculation in calculate_results() but this function
+/// serves as the reference implementation and reusable utility
 #[allow(dead_code)]
 pub fn calculate_accuracy(correct: usize, total: usize) -> f64 {
     if total == 0 {

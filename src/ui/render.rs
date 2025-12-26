@@ -12,8 +12,10 @@ use crate::engine::TypingSession;
 /// Structure for visible text window
 struct VisibleWindow {
     lines: Vec<String>,
+    /// Phase 3: Cursor position for future cursor visualization and navigation features
     #[allow(dead_code)]
     cursor_line: usize,
+    /// Phase 3: Cursor offset for future cursor visualization and navigation features
     #[allow(dead_code)]
     cursor_offset: usize,
 }

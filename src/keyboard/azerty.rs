@@ -1,10 +1,12 @@
 /// Layout clavier AZERTY
+/// Phase 3+: Keyboard layout abstraction for future QWERTY/other layout support
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct AzertyLayout {
     pub home_row: Vec<char>,
 }
 
+/// Phase 3+: Keyboard layout abstraction for future QWERTY/other layout support
 #[allow(dead_code)]
 impl AzertyLayout {
     pub fn new() -> Self {

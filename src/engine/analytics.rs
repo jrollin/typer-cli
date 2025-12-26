@@ -39,6 +39,8 @@ impl MasteryLevel {
 
     /// Get practice weight for adaptive content generation
     /// Returns fraction of practice time this mastery level should receive
+    /// Phase 3: Practice time distribution for adaptive content (60%, 30%, 10%, 5%)
+    /// TODO: Refactor adaptive generator to use this method instead of hardcoded values
     #[allow(dead_code)]
     pub fn practice_weight(&self) -> f32 {
         match self {
@@ -129,6 +131,7 @@ impl BigramStats {
     }
 
     /// Calculate accuracy percentage
+    /// Public API: Bigram performance analytics for future bigram-specific reports
     #[allow(dead_code)]
     pub fn accuracy(&self) -> f64 {
         if self.total_attempts == 0 {
@@ -138,6 +141,7 @@ impl BigramStats {
     }
 
     /// Calculate average time per bigram in milliseconds
+    /// Public API: Bigram performance analytics for future bigram-specific reports
     #[allow(dead_code)]
     pub fn average_time_ms(&self) -> f64 {
         if self.total_attempts == 0 {
