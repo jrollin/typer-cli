@@ -101,6 +101,7 @@ pub fn render(
     keyboard_visible: bool,
     keyboard_layout: &AzertyLayout,
     analytics: &Option<AdaptiveAnalytics>,
+    keyboard_config: &KeyboardConfig,
 ) {
     let terminal_height = f.area().height;
 
@@ -158,11 +159,6 @@ pub fn render(
     // Keyboard (if visible)
     if keyboard_visible {
         let next_char = session.content.chars().nth(session.current_index);
-        let config = KeyboardConfig {
-            show_heatmap: analytics.is_some(),
-            _show_shift_indicators: terminal_height >= 28,
-            _compact_mode: terminal_height < 20,
-        };
 
         if terminal_height < 20 {
             render_keyboard_compact(f, chunks[chunk_idx], keyboard_layout, next_char);
@@ -173,7 +169,7 @@ pub fn render(
                 keyboard_layout,
                 next_char,
                 analytics,
-                &config,
+                keyboard_config,
             );
         }
         chunk_idx += 1;

@@ -1,4 +1,57 @@
+use ratatui::style::Color;
 use std::collections::HashMap;
+
+/// Finger assignment for touch typing
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Finger {
+    LeftPinky,
+    LeftRing,
+    LeftMiddle,
+    LeftIndex,  // Covers 2 columns (e.g., f and g on AZERTY home row)
+    RightIndex, // Covers 2 columns (e.g., h and j on AZERTY home row)
+    RightMiddle,
+    RightRing,
+    RightPinky,
+    Thumb, // Spacebar
+}
+
+/// Hand classification for shift key selection
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Hand {
+    Left,
+    Right,
+    Either, // For spacebar - either shift works
+}
+
+impl Finger {
+    /// Get the terminal color for this finger
+    pub fn color(&self) -> Color {
+        match self {
+            Finger::LeftPinky => Color::Magenta,
+            Finger::LeftRing => Color::LightBlue,
+            Finger::LeftMiddle => Color::Blue,
+            Finger::LeftIndex => Color::Cyan,
+            Finger::RightIndex => Color::Green,
+            Finger::RightMiddle => Color::Yellow,
+            Finger::RightRing => Color::LightRed,
+            Finger::RightPinky => Color::Red,
+            Finger::Thumb => Color::Gray,
+        }
+    }
+
+    /// Determine which hand uses this finger (for smart shift highlighting)
+    pub fn hand(&self) -> Hand {
+        match self {
+            Finger::LeftPinky | Finger::LeftRing | Finger::LeftMiddle | Finger::LeftIndex => {
+                Hand::Left
+            }
+            Finger::RightPinky | Finger::RightRing | Finger::RightMiddle | Finger::RightIndex => {
+                Hand::Right
+            }
+            Finger::Thumb => Hand::Either,
+        }
+    }
+}
 
 /// Row type classification for keyboard layout
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -18,14 +71,16 @@ pub struct Key {
     pub shift_variant: Option<char>,
     #[allow(dead_code)]
     pub display_width: u8,
+    pub finger: Finger,
 }
 
 impl Key {
-    pub fn new(base: char, shift_variant: Option<char>) -> Self {
+    pub fn new(base: char, shift_variant: Option<char>, finger: Finger) -> Self {
         Self {
             base,
             shift_variant,
             display_width: 1,
+            finger,
         }
     }
 }
@@ -79,19 +134,19 @@ impl AzertyLayout {
         KeyboardRow {
             row_type: RowType::Number,
             keys: vec![
-                Key::new('²', Some('³')), // Superscript 2/3 (first key)
-                Key::new('1', Some('&')),
-                Key::new('2', Some('é')),
-                Key::new('3', Some('"')),
-                Key::new('4', Some('\'')),
-                Key::new('5', Some('(')),
-                Key::new('6', Some('-')),
-                Key::new('7', Some('è')),
-                Key::new('8', Some('_')),
-                Key::new('9', Some('ç')),
-                Key::new('0', Some('à')),
-                Key::new('°', Some(')')),
-                Key::new('=', Some('+')),
+                Key::new('²', Some('³'), Finger::LeftPinky), // Superscript 2/3 (first key)
+                Key::new('1', Some('&'), Finger::LeftRing),
+                Key::new('2', Some('é'), Finger::LeftMiddle),
+                Key::new('3', Some('"'), Finger::LeftIndex),
+                Key::new('4', Some('\''), Finger::LeftIndex),
+                Key::new('5', Some('('), Finger::RightIndex),
+                Key::new('6', Some('-'), Finger::RightIndex),
+                Key::new('7', Some('è'), Finger::RightMiddle),
+                Key::new('8', Some('_'), Finger::RightRing),
+                Key::new('9', Some('ç'), Finger::RightPinky),
+                Key::new('0', Some('à'), Finger::RightPinky),
+                Key::new('°', Some(')'), Finger::RightPinky),
+                Key::new('=', Some('+'), Finger::RightPinky),
             ],
         }
     }
@@ -101,19 +156,19 @@ impl AzertyLayout {
         KeyboardRow {
             row_type: RowType::Top,
             keys: vec![
-                Key::new('a', Some('A')),
-                Key::new('z', Some('Z')),
-                Key::new('e', Some('E')),
-                Key::new('r', Some('R')),
-                Key::new('t', Some('T')),
-                Key::new('y', Some('Y')),
-                Key::new('u', Some('U')),
-                Key::new('i', Some('I')),
-                Key::new('o', Some('O')),
-                Key::new('p', Some('P')),
-                Key::new('^', Some('¨')),
-                Key::new('$', Some('£')),
-                Key::new('\n', None), // Enter key (newline character)
+                Key::new('a', Some('A'), Finger::LeftPinky),
+                Key::new('z', Some('Z'), Finger::LeftRing),
+                Key::new('e', Some('E'), Finger::LeftMiddle),
+                Key::new('r', Some('R'), Finger::LeftIndex),
+                Key::new('t', Some('T'), Finger::LeftIndex),
+                Key::new('y', Some('Y'), Finger::RightIndex),
+                Key::new('u', Some('U'), Finger::RightIndex),
+                Key::new('i', Some('I'), Finger::RightMiddle),
+                Key::new('o', Some('O'), Finger::RightRing),
+                Key::new('p', Some('P'), Finger::RightPinky),
+                Key::new('^', Some('¨'), Finger::RightPinky),
+                Key::new('$', Some('£'), Finger::RightPinky),
+                Key::new('\n', None, Finger::RightPinky), // Enter key (newline character)
             ],
         }
     }
@@ -123,19 +178,19 @@ impl AzertyLayout {
         KeyboardRow {
             row_type: RowType::Home,
             keys: vec![
-                Key::new('q', Some('Q')),
-                Key::new('s', Some('S')),
-                Key::new('d', Some('D')),
-                Key::new('f', Some('F')),
-                Key::new('g', Some('G')),
-                Key::new('h', Some('H')),
-                Key::new('j', Some('J')),
-                Key::new('k', Some('K')),
-                Key::new('l', Some('L')),
-                Key::new('m', Some('M')),
-                Key::new('ù', Some('%')),
-                Key::new('*', Some('µ')),
-                Key::new('\n', None), // Enter key continuation (same as top row Enter)
+                Key::new('q', Some('Q'), Finger::LeftPinky),
+                Key::new('s', Some('S'), Finger::LeftRing),
+                Key::new('d', Some('D'), Finger::LeftMiddle),
+                Key::new('f', Some('F'), Finger::LeftIndex),
+                Key::new('g', Some('G'), Finger::LeftIndex),
+                Key::new('h', Some('H'), Finger::RightIndex),
+                Key::new('j', Some('J'), Finger::RightIndex),
+                Key::new('k', Some('K'), Finger::RightMiddle),
+                Key::new('l', Some('L'), Finger::RightRing),
+                Key::new('m', Some('M'), Finger::RightPinky),
+                Key::new('ù', Some('%'), Finger::RightPinky),
+                Key::new('*', Some('µ'), Finger::RightPinky),
+                Key::new('\n', None, Finger::RightPinky), // Enter key continuation (same as top row Enter)
             ],
         }
     }
@@ -145,18 +200,18 @@ impl AzertyLayout {
         KeyboardRow {
             row_type: RowType::Bottom,
             keys: vec![
-                Key::new('<', Some('>')),
-                Key::new('w', Some('W')),
-                Key::new('x', Some('X')),
-                Key::new('c', Some('C')),
-                Key::new('v', Some('V')),
-                Key::new('b', Some('B')),
-                Key::new('n', Some('N')),
-                Key::new(',', Some('?')),
-                Key::new(';', Some('.')),
-                Key::new(':', Some('/')),
-                Key::new('!', Some('§')),
-                Key::new('\0', None), // Right Shift placeholder (null character)
+                Key::new('<', Some('>'), Finger::LeftPinky),
+                Key::new('w', Some('W'), Finger::LeftRing),
+                Key::new('x', Some('X'), Finger::LeftMiddle),
+                Key::new('c', Some('C'), Finger::LeftIndex),
+                Key::new('v', Some('V'), Finger::LeftIndex),
+                Key::new('b', Some('B'), Finger::RightIndex),
+                Key::new('n', Some('N'), Finger::RightIndex),
+                Key::new(',', Some('?'), Finger::RightMiddle),
+                Key::new(';', Some('.'), Finger::RightRing),
+                Key::new(':', Some('/'), Finger::RightPinky),
+                Key::new('!', Some('§'), Finger::RightPinky),
+                Key::new('\0', None, Finger::RightPinky), // Right Shift placeholder (null character)
             ],
         }
     }
@@ -166,7 +221,7 @@ impl AzertyLayout {
         KeyboardRow {
             row_type: RowType::Space,
             keys: vec![
-                Key::new(' ', None), // Space bar - no shift variant
+                Key::new(' ', None, Finger::Thumb), // Space bar - no shift variant
             ],
         }
     }
@@ -176,13 +231,13 @@ impl AzertyLayout {
         KeyboardRow {
             row_type: RowType::Modifier,
             keys: vec![
-                Key::new('\0', None), // Ctrl placeholder
-                Key::new('⌘', None),  // Cmd
-                Key::new('⌥', None),  // Option
-                Key::new(' ', None),  // Space
-                Key::new('\0', None), // Alt placeholder
-                Key::new('\0', None), // Fn1 placeholder
-                Key::new('\0', None), // Fn2 placeholder
+                Key::new('\0', None, Finger::LeftPinky),  // Ctrl placeholder
+                Key::new('⌘', None, Finger::RightPinky),  // Cmd
+                Key::new('⌥', None, Finger::RightPinky),  // Option
+                Key::new(' ', None, Finger::Thumb),       // Space
+                Key::new('\0', None, Finger::RightPinky), // Alt placeholder
+                Key::new('\0', None, Finger::RightPinky), // Fn1 placeholder
+                Key::new('\0', None, Finger::RightPinky), // Fn2 placeholder
             ],
         }
     }
@@ -246,6 +301,18 @@ impl AzertyLayout {
     /// Check if character requires shift
     pub fn requires_shift(&self, c: char) -> bool {
         self.shift_mappings.values().any(|&v| v == c)
+    }
+
+    /// Find the Key object for a given base character (for smart shift highlighting)
+    pub fn find_key(&self, base_char: char) -> Option<&Key> {
+        for row in &self.rows {
+            for key in &row.keys {
+                if key.base == base_char {
+                    return Some(key);
+                }
+            }
+        }
+        None
     }
 }
 
@@ -377,5 +444,70 @@ mod tests {
         assert!(!layout.requires_shift('ù'));
         assert!(!layout.requires_shift('*'));
         assert!(!layout.requires_shift('°'));
+    }
+
+    #[test]
+    fn test_finger_hand_detection() {
+        // Test left hand fingers
+        assert_eq!(Finger::LeftPinky.hand(), Hand::Left);
+        assert_eq!(Finger::LeftRing.hand(), Hand::Left);
+        assert_eq!(Finger::LeftMiddle.hand(), Hand::Left);
+        assert_eq!(Finger::LeftIndex.hand(), Hand::Left);
+        // Test right hand fingers
+        assert_eq!(Finger::RightPinky.hand(), Hand::Right);
+        assert_eq!(Finger::RightRing.hand(), Hand::Right);
+        assert_eq!(Finger::RightMiddle.hand(), Hand::Right);
+        assert_eq!(Finger::RightIndex.hand(), Hand::Right);
+        // Test thumb (either hand)
+        assert_eq!(Finger::Thumb.hand(), Hand::Either);
+    }
+
+    #[test]
+    fn test_find_key() {
+        let layout = AzertyLayout::new();
+
+        // Test finding left hand keys
+        let key_q = layout.find_key('q');
+        assert!(key_q.is_some());
+        assert_eq!(key_q.unwrap().base, 'q');
+        assert_eq!(key_q.unwrap().finger, Finger::LeftPinky);
+
+        let key_s = layout.find_key('s');
+        assert!(key_s.is_some());
+        assert_eq!(key_s.unwrap().finger, Finger::LeftRing);
+
+        let key_d = layout.find_key('d');
+        assert!(key_d.is_some());
+        assert_eq!(key_d.unwrap().finger, Finger::LeftMiddle);
+
+        let key_f = layout.find_key('f');
+        assert!(key_f.is_some());
+        assert_eq!(key_f.unwrap().finger, Finger::LeftIndex);
+
+        // Test finding right hand keys
+        let key_j = layout.find_key('j');
+        assert!(key_j.is_some());
+        assert_eq!(key_j.unwrap().finger, Finger::RightIndex);
+
+        let key_k = layout.find_key('k');
+        assert!(key_k.is_some());
+        assert_eq!(key_k.unwrap().finger, Finger::RightMiddle);
+
+        let key_l = layout.find_key('l');
+        assert!(key_l.is_some());
+        assert_eq!(key_l.unwrap().finger, Finger::RightRing);
+
+        let key_m = layout.find_key('m');
+        assert!(key_m.is_some());
+        assert_eq!(key_m.unwrap().finger, Finger::RightPinky);
+
+        // Test finding spacebar (thumb)
+        let key_space = layout.find_key(' ');
+        assert!(key_space.is_some());
+        assert_eq!(key_space.unwrap().finger, Finger::Thumb);
+
+        // Test non-existent key
+        let key_none = layout.find_key('€');
+        assert!(key_none.is_none());
     }
 }

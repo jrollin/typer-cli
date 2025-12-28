@@ -7,12 +7,13 @@ use ratatui::{
 };
 
 use crate::engine::analytics::AdaptiveAnalytics;
-use crate::keyboard::{AzertyLayout, Key, RowType};
+use crate::keyboard::{AzertyLayout, Hand, Key, RowType};
 
 /// Keyboard display configuration
 pub struct KeyboardConfig {
     pub _show_shift_indicators: bool,
     pub show_heatmap: bool,
+    pub show_finger_colors: bool,
     pub _compact_mode: bool,
 }
 
@@ -21,6 +22,7 @@ impl Default for KeyboardConfig {
         Self {
             _show_shift_indicators: true,
             show_heatmap: true,
+            show_finger_colors: true,
             _compact_mode: false,
         }
     }
@@ -46,6 +48,33 @@ fn get_key_accuracy(key: char, analytics: &Option<AdaptiveAnalytics>) -> Option<
         .key_stats
         .get(&key)
         .map(|stats| stats.accuracy())
+}
+
+/// Determine if a shift key should be highlighted based on which hand presses the next key
+/// Smart shift highlighting: use opposite hand for shift (ergonomic typing technique)
+fn should_highlight_shift(
+    next_char: Option<char>,
+    requires_shift: bool,
+    layout: &AzertyLayout,
+    is_left_shift: bool,
+) -> bool {
+    if !requires_shift {
+        return false;
+    }
+
+    if let Some(c) = next_char {
+        if let Some(base_key) = layout.get_base_key(c) {
+            if let Some(key) = layout.find_key(base_key) {
+                match key.finger.hand() {
+                    Hand::Right => return is_left_shift, // Right hand → use left shift
+                    Hand::Left => return !is_left_shift, // Left hand → use right shift
+                    Hand::Either => return true,         // Spacebar → both shifts valid
+                }
+            }
+        }
+    }
+
+    false
 }
 
 /// Render a single key with styling
@@ -74,20 +103,26 @@ fn render_key(
     // Always show base character (e.g., [1] [2] [3], NOT [&] [é] ["])
     let display_char = key.base;
 
-    // Build style
+    // Build style with priority system
     let style = if is_highlighted {
-        // Next key to press: reverse video (black on cyan)
+        // Priority 1: Next key to press: reverse video (black on cyan)
         Style::default()
             .fg(Color::Black)
             .bg(Color::Cyan)
             .add_modifier(Modifier::BOLD)
     } else if config.show_heatmap {
-        // Apply accuracy-based heatmap
+        // Priority 2: Heatmap overlay
         if let Some(accuracy) = get_key_accuracy(key.base, analytics) {
             Style::default().fg(get_accuracy_color(accuracy))
+        } else if config.show_finger_colors {
+            // Fallback to finger color if no analytics data
+            Style::default().fg(key.finger.color())
         } else {
             Style::default().fg(Color::White) // No data
         }
+    } else if config.show_finger_colors {
+        // Priority 3: Finger color baseline
+        Style::default().fg(key.finger.color())
     } else {
         Style::default().fg(Color::White)
     };
@@ -105,6 +140,7 @@ fn render_keyboard_row<'a>(
     requires_shift: bool,
     analytics: &Option<AdaptiveAnalytics>,
     config: &KeyboardConfig,
+    layout: &AzertyLayout,
 ) -> Line<'a> {
     let mut spans = Vec::new();
 
@@ -123,8 +159,9 @@ fn render_keyboard_row<'a>(
             ));
         }
         RowType::Bottom => {
-            // Left Shift - highlight if shift is required
-            let shift_style = if requires_shift {
+            // Left Shift - highlight only for right-hand keys (smart shift highlighting)
+            let highlight_left = should_highlight_shift(next_char, requires_shift, layout, true);
+            let shift_style = if highlight_left {
                 Style::default()
                     .fg(Color::Black)
                     .bg(Color::Cyan)
@@ -232,8 +269,9 @@ fn render_keyboard_row<'a>(
 
     // Add Right Shift key at end of bottom row
     if row.row_type == RowType::Bottom {
-        // Right Shift - highlight if shift is required
-        let shift_style = if requires_shift {
+        // Right Shift - highlight only for left-hand keys (smart shift highlighting)
+        let highlight_right = should_highlight_shift(next_char, requires_shift, layout, false);
+        let shift_style = if highlight_right {
             Style::default()
                 .fg(Color::Black)
                 .bg(Color::Cyan)
@@ -263,7 +301,7 @@ pub fn render_keyboard(
 
     // Build keyboard rows
     for row in &layout.rows {
-        let line = render_keyboard_row(row, next_char, requires_shift, analytics, config);
+        let line = render_keyboard_row(row, next_char, requires_shift, analytics, config, layout);
         lines.push(line);
     }
 
@@ -290,12 +328,41 @@ pub fn render_keyboard(
 
         lines.push(legend1);
         lines.push(legend2);
+    } else if config.show_finger_colors {
+        // Show finger color legend when finger colors enabled and heatmap disabled
+        let legend1 = Line::from(vec![
+            Span::raw(" Finger Guide: "),
+            Span::styled("■", Style::default().fg(Color::Magenta)),
+            Span::raw(" L.Pinky "),
+            Span::styled("■", Style::default().fg(Color::LightBlue)),
+            Span::raw(" L.Ring "),
+            Span::styled("■", Style::default().fg(Color::Blue)),
+            Span::raw(" L.Middle "),
+            Span::styled("■", Style::default().fg(Color::Cyan)),
+            Span::raw(" L.Index"),
+        ]);
+
+        let legend2 = Line::from(vec![
+            Span::raw("               "),
+            Span::styled("■", Style::default().fg(Color::Green)),
+            Span::raw(" R.Index "),
+            Span::styled("■", Style::default().fg(Color::Yellow)),
+            Span::raw(" R.Middle "),
+            Span::styled("■", Style::default().fg(Color::LightRed)),
+            Span::raw(" R.Ring "),
+            Span::styled("■", Style::default().fg(Color::Red)),
+            Span::raw(" R.Pinky"),
+        ]);
+
+        lines.push(legend1);
+        lines.push(legend2);
     }
 
-    // Footer hint
+    // Footer hint - always show all available toggles
     lines.push(Line::from(""));
+    let footer_text = " Tab: hide keyboard | H: toggle heatmap | F: toggle finger colors";
     lines.push(Line::from(Span::styled(
-        " Press Tab to hide keyboard",
+        footer_text,
         Style::default().fg(Color::DarkGray),
     )));
 

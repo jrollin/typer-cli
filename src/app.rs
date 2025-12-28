@@ -10,6 +10,7 @@ use crate::data::{SessionRecord, Stats, Storage};
 use crate::engine::{calculate_results, SessionAnalyzer, TypingSession};
 use crate::keyboard::AzertyLayout;
 use crate::ui;
+use crate::ui::keyboard::KeyboardConfig;
 
 /// Application state
 #[derive(Debug, PartialEq)]
@@ -33,6 +34,7 @@ pub struct App {
     selected_duration_value: crate::engine::SessionDuration,
     keyboard_visible: bool,
     keyboard_layout: AzertyLayout,
+    keyboard_config: KeyboardConfig,
 }
 
 impl App {
@@ -154,6 +156,7 @@ impl App {
             selected_duration_value: crate::engine::SessionDuration::FiveMinutes,
             keyboard_visible: true, // Default visible
             keyboard_layout: AzertyLayout::new(),
+            keyboard_config: KeyboardConfig::default(),
         })
     }
 
@@ -236,6 +239,7 @@ impl App {
                                 self.keyboard_visible,
                                 &self.keyboard_layout,
                                 &self.stats.adaptive_analytics,
+                                &self.keyboard_config,
                             );
                         }
                     }
@@ -350,6 +354,15 @@ impl App {
                 KeyCode::Tab => {
                     // Toggle keyboard visibility
                     self.keyboard_visible = !self.keyboard_visible;
+                }
+                KeyCode::Char('f') | KeyCode::Char('F') => {
+                    // Toggle finger colors
+                    self.keyboard_config.show_finger_colors =
+                        !self.keyboard_config.show_finger_colors;
+                }
+                KeyCode::Char('h') | KeyCode::Char('H') => {
+                    // Toggle heatmap
+                    self.keyboard_config.show_heatmap = !self.keyboard_config.show_heatmap;
                 }
                 KeyCode::Char(c) => {
                     if let Some(session) = &mut self.session {
