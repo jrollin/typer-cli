@@ -15,12 +15,17 @@ use crate::ui::keyboard::{render_keyboard, render_keyboard_compact, KeyboardConf
 /// Structure for visible text window
 struct VisibleWindow {
     lines: Vec<String>,
-    /// Phase 3: Cursor position for future cursor visualization and navigation features
+    /// Cursor line within visible window (always 0 for first line)
     #[allow(dead_code)]
     cursor_line: usize,
-    /// Phase 3: Cursor offset for future cursor visualization and navigation features
+    /// Cursor offset within the cursor line
     #[allow(dead_code)]
     cursor_offset: usize,
+    /// Which wrapped line number the window starts at in full content
+    #[allow(dead_code)]
+    window_start_line: usize,
+    /// Cumulative character count at start of each visible line (for index translation)
+    line_start_indices: Vec<usize>,
 }
 
 /// Wrap text to fit terminal width using word boundaries
@@ -85,11 +90,64 @@ fn extract_visible_window(session: &TypingSession, width: usize) -> VisibleWindo
         .cloned()
         .collect();
 
+    // Compute cumulative character indices for visible lines
+    let mut line_start_indices = Vec::new();
+    for idx in cursor_line_idx..(cursor_line_idx + visible_lines.len()) {
+        // Calculate chars from start of content to this line
+        let chars_before_line: usize = lines
+            .iter()
+            .take(idx)
+            .map(|l| l.chars().count() + 1) // +1 for space between words
+            .sum();
+        line_start_indices.push(chars_before_line);
+    }
+
     VisibleWindow {
         lines: visible_lines,
         cursor_line: 0, // Cursor is always on first visible line
         cursor_offset: cursor_offset_in_line,
+        window_start_line: cursor_line_idx,
+        line_start_indices,
     }
+}
+
+/// Create styled expected text with character-level visual feedback
+/// - Already typed characters: dark gray (dimmed)
+/// - Next character to type: white + bold + underlined
+/// - Remaining characters: white
+fn create_styled_expected_text(
+    session: &TypingSession,
+    window: &VisibleWindow,
+) -> Vec<Line<'static>> {
+    let mut result_lines = Vec::new();
+
+    for (line_idx, line) in window.lines.iter().enumerate() {
+        let mut spans = Vec::new();
+        let line_start_index = window.line_start_indices[line_idx];
+
+        for (char_offset, ch) in line.chars().enumerate() {
+            let absolute_index = line_start_index + char_offset;
+
+            let style = if absolute_index < session.current_index {
+                // Already typed - dim
+                Style::default().fg(Color::DarkGray)
+            } else if absolute_index == session.current_index {
+                // Next character - highlight
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
+            } else {
+                // Remaining - normal
+                Style::default().fg(Color::White)
+            };
+
+            spans.push(Span::styled(ch.to_string(), style));
+        }
+
+        result_lines.push(Line::from(spans));
+    }
+
+    result_lines
 }
 
 /// Rendu de l'interface principale
@@ -264,28 +322,9 @@ fn render_typing_area(f: &mut Frame, area: Rect, session: &TypingSession) {
         ])
         .split(area);
 
-    // Expected text - 3-line sliding window
+    // Expected text - 3-line sliding window with character-level styling
     let window = extract_visible_window(session, terminal_width);
-    let expected_lines: Vec<Line> = window
-        .lines
-        .iter()
-        .enumerate()
-        .map(|(i, line)| {
-            if i == 0 {
-                // Highlight current line (where cursor is)
-                Line::from(Span::styled(
-                    line.to_string(),
-                    Style::default().fg(Color::White),
-                ))
-            } else {
-                // Preview lines in dark gray
-                Line::from(Span::styled(
-                    line.to_string(),
-                    Style::default().fg(Color::DarkGray),
-                ))
-            }
-        })
-        .collect();
+    let expected_lines = create_styled_expected_text(session, &window);
 
     let expected_text = Paragraph::new(expected_lines)
         .block(Block::default().title("Text to type").borders(Borders::ALL));
