@@ -360,7 +360,7 @@ pub fn render_keyboard(
 
     // Footer hint - always show all available toggles
     lines.push(Line::from(""));
-    let footer_text = " Tab: hide keyboard | H: toggle heatmap | F: toggle finger colors";
+    let footer_text = " Tab: hide keyboard | Ctrl+H: toggle heatmap | Ctrl+F: toggle finger colors";
     lines.push(Line::from(Span::styled(
         footer_text,
         Style::default().fg(Color::DarkGray),

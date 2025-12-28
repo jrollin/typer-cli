@@ -164,6 +164,7 @@ fn create_styled_expected_text(
 }
 
 /// Rendu de l'interface principale
+#[allow(clippy::too_many_arguments)]
 pub fn render(
     f: &mut Frame,
     session: &TypingSession,
@@ -177,43 +178,52 @@ pub fn render(
     let terminal_height = f.area().height;
 
     // Dynamic constraints based on keyboard visibility and terminal size
+    // New layout: Header -> Stats -> Content -> Keyboard -> Spacer -> Instructions
     let constraints = if keyboard_visible {
         if terminal_height >= 28 {
             // Full keyboard with shift indicators
             vec![
                 Constraint::Length(3),  // Header
-                Constraint::Min(8),     // Content (flexible)
-                Constraint::Length(12), // Keyboard (shift line + 5 rows + borders + legend + padding)
-                Constraint::Length(3),  // Stats
+                Constraint::Length(3),  // Stats (moved after header)
+                Constraint::Length(10), // Content (5 + 5 lines, no margin)
+                Constraint::Length(12), // Keyboard (follows content)
+                Constraint::Min(0),     // Spacer (absorbs remaining space)
+                Constraint::Length(3),  // Instructions (bottom)
             ]
         } else if terminal_height >= 23 {
             // Full keyboard without shift line
             vec![
                 Constraint::Length(3),  // Header
-                Constraint::Min(8),     // Content (flexible)
-                Constraint::Length(10), // Keyboard (5 rows + borders + legend)
-                Constraint::Length(3),  // Stats
+                Constraint::Length(3),  // Stats (moved after header)
+                Constraint::Length(10), // Content (5 + 5 lines, no margin)
+                Constraint::Length(10), // Keyboard (follows content)
+                Constraint::Min(0),     // Spacer
+                Constraint::Length(3),  // Instructions (bottom)
             ]
         } else {
             // Compact keyboard
             vec![
-                Constraint::Length(3), // Header
-                Constraint::Min(5),    // Content (reduced)
-                Constraint::Length(3), // Keyboard (compact)
-                Constraint::Length(3), // Stats
+                Constraint::Length(3),  // Header
+                Constraint::Length(3),  // Stats (moved after header)
+                Constraint::Length(10), // Content (5 + 5 lines, no margin)
+                Constraint::Length(3),  // Keyboard (compact)
+                Constraint::Min(0),     // Spacer
+                Constraint::Length(3),  // Instructions (bottom)
             ]
         }
     } else {
-        // Original layout (keyboard hidden)
+        // Layout without keyboard
         vec![
             Constraint::Length(3), // Header
-            Constraint::Min(8),    // Content
-            Constraint::Length(3), // Stats
+            Constraint::Length(3), // Stats (moved after header)
+            Constraint::Min(8),    // Content (can expand when no keyboard)
+            Constraint::Length(3), // Instructions (bottom)
         ]
     };
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
+        .margin(2)
         .constraints(constraints)
         .split(f.area());
 
@@ -223,11 +233,21 @@ pub fn render(
     render_header(f, chunks[chunk_idx]);
     chunk_idx += 1;
 
-    // Content area
+    // Stats (moved after header)
+    render_stats(
+        f,
+        chunks[chunk_idx],
+        wpm,
+        accuracy,
+        session.remaining_time(),
+    );
+    chunk_idx += 1;
+
+    // Content area (typing area)
     render_typing_area(f, chunks[chunk_idx], session);
     chunk_idx += 1;
 
-    // Keyboard (if visible)
+    // Keyboard (follows content with margin)
     if keyboard_visible {
         let next_char = session.content.chars().nth(session.current_index);
 
@@ -243,17 +263,13 @@ pub fn render(
                 keyboard_config,
             );
         }
-        chunk_idx += 1;
+        chunk_idx += 1; // Move to spacer
+        chunk_idx += 1; // Move to instructions
     }
+    // When keyboard is not visible, chunk_idx is already at instructions position
 
-    // Stats
-    render_stats(
-        f,
-        chunks[chunk_idx],
-        wpm,
-        accuracy,
-        session.remaining_time(),
-    );
+    // Instructions (bottom)
+    render_instructions(f, chunks[chunk_idx]);
 }
 
 /// Rendu du header
@@ -328,7 +344,6 @@ fn render_typing_area(f: &mut Frame, area: Rect, session: &TypingSession) {
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .margin(2)
         .constraints([
             Constraint::Length(5), // Expected text (3 lines + borders)
             Constraint::Length(5), // User input (3 lines + borders)
@@ -374,6 +389,21 @@ fn render_stats(
         .block(Block::default().borders(Borders::ALL));
 
     f.render_widget(stats, area);
+}
+
+/// Rendu des instructions
+fn render_instructions(f: &mut Frame, area: Rect) {
+    let instructions = vec![
+        Line::from(""),
+        Line::from(Span::styled(
+            "ESC to quit",
+            Style::default().fg(Color::Gray),
+        )),
+    ];
+
+    let instructions_widget = Paragraph::new(instructions).alignment(Alignment::Center);
+
+    f.render_widget(instructions_widget, area);
 }
 
 /// Rendu du menu de sélection de leçon

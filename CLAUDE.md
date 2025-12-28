@@ -8,7 +8,8 @@ Quick reference for AI assistants working on this project.
 **Phase 2: Home Row Levels 2-6** - ✅ Completed
 **Phase 2+: Adaptive Mode** - ✅ Completed
 **Phase 3: Visual Keyboard Display** - ✅ Completed
-**Current Focus**: Phase 3+ (Analytics visualization, heat maps, data export)
+**Phase 3.1: Layout Improvements** - ✅ Completed
+**Current Focus**: Phase 3+ (Analytics visualization, data export, gamification)
 
 ## Project Overview
 
@@ -55,7 +56,7 @@ Located in `docs/steering/`:
   - Appears in menu when ≥ 10 sessions completed
 
 **Phase 3 (Completed):**
-- **keyboard-display/** (`src/ui/keyboard.rs`, `src/keyboard/azerty.rs`) - Visual AZERTY keyboard layout ✅ NEW
+- **keyboard-display/** (`src/ui/keyboard.rs`, `src/keyboard/azerty.rs`) - Visual AZERTY keyboard layout
   - Full 5-row keyboard rendering (Number, Top, Home, Bottom, Modifier)
   - Real-time next-key highlighting (cyan background)
   - Shift state indication (both shift keys highlight)
@@ -66,6 +67,16 @@ Located in `docs/steering/`:
     - Tab: Toggle keyboard visibility
     - Ctrl+F: Toggle finger color hints
     - Ctrl+H: Toggle accuracy heatmap overlay
+
+**Phase 3.1 (Completed):**
+- **layout-improvements/** (`src/ui/render.rs`) - Enhanced interface layout ✅ NEW
+  - Reorganized layout: Header → Stats → Content → Keyboard → Instructions
+  - Stats block moved under header, before content
+  - Keyboard positioned after content (not fixed to bottom)
+  - Consistent margins (2 units) matching menu screens
+  - "ESC to quit" instructions at bottom
+  - Fixed keyboard shortcuts labels (Ctrl+F, Ctrl+H)
+  - Smooth keyboard toggle without layout shifts
 
 **Complete documentation index**: See `docs/README.md` for navigation guide and feature details.
 
@@ -234,10 +245,16 @@ Stats saved to: `~/.config/typer-cli/stats.json`
   - Real-time next-key highlighting and shift state indication
   - Keyboard shortcuts: Tab (toggle visibility), Ctrl+F (finger colors), Ctrl+H (heatmap)
   - Proper alignment and visual styling
+- **Phase 3.1**: Layout improvements ✅
+  - Reorganized interface layout (Header → Stats → Content → Keyboard → Instructions)
+  - Stats repositioned under header
+  - Keyboard flows after content (not fixed at bottom)
+  - Consistent margins across all screens
+  - Bottom instructions section ("ESC to quit")
+  - Fixed keyboard shortcut labels
 - **Phase 3+**: ⏳ FUTURE
   - Enhanced adaptive UI (pre/post-session feedback, progress indicators)
-  - Analytics visualization (heat maps, trend graphs)
-  - Keyboard accuracy heat map overlay
+  - Analytics visualization (performance graphs, trend charts)
   - Data export (JSON/CSV)
   - Gamification (achievements, streaks)
   - Themes and customization

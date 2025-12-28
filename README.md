@@ -22,13 +22,22 @@ Typer CLI is a terminal-based keyboard typing training tool. It provides an inte
 - ✅ **Minimal TUI**: Clean interface with ratatui
 - ✅ **AZERTY Keyboard**: Optimized for French layout
 
-### Adaptive Mode (Phase 2+) ✅ NEW
+### Adaptive Mode (Phase 2+) ✅
 - ✅ **Analytics Tracking**: Automatic per-key and per-bigram statistics
 - ✅ **Weakness Detection**: Identifies keys < 80% accuracy or slow speed
 - ✅ **Personalized Content**: 60% weak, 30% moderate, 10% strong key distribution
 - ✅ **Spaced Repetition**: Practice intervals based on mastery level
 - ✅ **Smart Appearance**: Shows in menu after 10+ sessions
 - ✅ **Privacy-Focused**: All data stored locally
+
+### Visual Keyboard (Phase 3) ✅ NEW
+- ✅ **Full AZERTY Layout**: Complete 5-row keyboard visualization
+- ✅ **Next-Key Highlighting**: Real-time cyan highlight on next character
+- ✅ **Shift Indicators**: Visual feedback for shift state
+- ✅ **Finger Color Hints**: Toggle with Ctrl+F for learning proper finger placement
+- ✅ **Accuracy Heatmap**: Toggle with Ctrl+H to see performance overlay
+- ✅ **Toggle Visibility**: Press Tab to show/hide keyboard
+- ✅ **Consistent Layout**: Clean margins matching menu screens
 
 **Total Lessons**: 34 (33 standard + 1 adaptive)
 
@@ -115,26 +124,41 @@ cargo run
 
 ### Interface
 
+The interface features a clean, organized layout with consistent margins:
+
 ```
-┌─────────────────────────────────┐
-│  TYPER CLI - Home Row Practice  │
-├─────────────────────────────────┤
-│  Text to type:                  │
-│  ff jj ff jj dd kk              │
-│                                 │
-│  Your input:                    │
-│  ff jj f█                       │
-│                                 │
-├─────────────────────────────────┤
-│  WPM: 45  │  Accuracy: 98%     │
-│  Time: 00:15                    │
-└─────────────────────────────────┘
+  ┌─────────────────────────────────┐
+  │  TYPER CLI - Home Row Practice  │  ← Header
+  ├─────────────────────────────────┤
+  │ WPM: 45 │ Accuracy: 98% │ 00:15 │  ← Stats
+  ├─────────────────────────────────┤
+  │  Text to type:                  │
+  │  ff jj ff jj dd kk              │  ← Content
+  │  Your input:                    │
+  │  ff jj f█                       │
+  ├─────────────────────────────────┤
+  │  [AZERTY Keyboard Layout]       │  ← Keyboard (Tab to toggle)
+  │  Next key highlighted           │
+  │  Tab │ Ctrl+H │ Ctrl+F          │
+  │                                 │
+  │         ESC to quit             │  ← Instructions
+  └─────────────────────────────────┘
 ```
 
+**Visual Feedback:**
 - **Green**: Correct character
 - **Red**: Incorrect character
-- **Gray**: Not yet typed
+- **White**: Not yet typed
 - **Blinking cursor**: Current position
+- **Cyan highlight**: Next key to press (on keyboard)
+
+**Keyboard Display Features:**
+- Full AZERTY layout visualization
+- Real-time next-key highlighting
+- Shift state indicators
+- Optional finger color hints (Ctrl+F)
+- Optional accuracy heatmap overlay (Ctrl+H)
+- Toggle visibility with Tab
 
 ## Technical Stack
 
@@ -152,23 +176,24 @@ src/
 ├── main.rs           # Entry point + terminal init
 ├── app.rs            # App state + event loop
 ├── ui/
-│   └── render.rs     # TUI rendering with ratatui
+│   ├── render.rs     # TUI rendering with ratatui
+│   └── keyboard.rs   # Visual keyboard display (NEW)
 ├── engine/
 │   ├── types.rs      # TypingSession, CharInput
 │   ├── scoring.rs    # WPM and accuracy calculation
-│   ├── analytics.rs  # Per-key/bigram statistics tracking (NEW)
-│   └── adaptive.rs   # Weakness detection, spaced repetition (NEW)
+│   ├── analytics.rs  # Per-key/bigram statistics tracking
+│   └── adaptive.rs   # Weakness detection, spaced repetition
 ├── content/
 │   ├── lesson.rs            # Lesson definitions
 │   ├── generator.rs         # Home row content generation
 │   ├── bigram_generator.rs  # Bigram practice content
 │   ├── code_generator.rs    # Code symbols content
-│   └── adaptive_generator.rs # Personalized content (NEW)
+│   └── adaptive_generator.rs # Personalized content
 ├── data/
 │   ├── stats.rs      # Stats structures (with adaptive analytics)
 │   └── storage.rs    # JSON persistence
 └── keyboard/
-    └── azerty.rs     # Layout AZERTY
+    └── azerty.rs     # AZERTY layout model
 ```
 
 ## Data
@@ -286,11 +311,19 @@ See `tasks.md` for detailed tracking of implemented tasks.
 - [x] Automatic analytics after each session
 - [x] Conditional menu appearance (≥10 sessions)
 
-### Phase 3: Enhancements (Future)
+### Phase 3: Visual Keyboard ✅ Completed
+- [x] Full AZERTY keyboard layout rendering
+- [x] Real-time next-key highlighting
+- [x] Shift state indicators
+- [x] Toggle keyboard visibility (Tab)
+- [x] Finger color hints (Ctrl+F)
+- [x] Accuracy heatmap overlay (Ctrl+H)
+- [x] Improved layout consistency and margins
+
+### Phase 3+: Future Enhancements
 - [ ] Enhanced adaptive UI (pre/post-session feedback)
-- [ ] Progress visualization (heat maps, graphs)
+- [ ] Progress visualization (performance graphs, trends)
 - [ ] Data export (JSON/CSV)
-- [ ] Keyboard visualization
 - [ ] Gamification (achievements, streaks)
 - [ ] Theme customization
 - [ ] Multi-layout support (BÉPO, Dvorak)
