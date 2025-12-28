@@ -45,7 +45,35 @@
 - [ ] Symbol-focused lessons
 - [ ] French text with accents
 
-## Phase 3: Multi-Layout Support
+## Phase 3: Visual Keyboard Display ✓
+
+### AZERTY Visual Layout (src/ui/keyboard.rs)
+- [x] Number row display ([²] [1] [2] [3]... base characters)
+- [x] Top row with Tab key box ([Tab] [a] [z] [e]...)
+- [x] Home row with Caps Lock key box ([Caps] [q] [s] [d]...)
+- [x] Enter key as arrow ([←]) on home row right end
+- [x] Bottom row with Shift key boxes ([ ⇧ ] [<] [w]... [ ⇧ ])
+- [x] Modifier row ([Ctrl] [⌘] [⌥] [Space] [Alt] [Fn1] [Fn2])
+- [x] Next key highlighting (cyan background)
+- [x] Shift key highlighting (both shift keys when shift required)
+- [x] Non-typeable keys in grey (Tab, Caps, Ctrl, Cmd, Option, Alt, Fn)
+- [x] Proper AZERTY alignment and spacing
+
+### Layout Data Model (src/keyboard/azerty.rs)
+- [x] Extended RowType enum with Modifier variant
+- [x] Complete number row (14 keys including ²)
+- [x] Shift variant mappings (² → ³, letters, symbols)
+- [x] Base key lookup (handles shift variants)
+- [x] Modifier row definition
+- [x] Unit tests (91 tests passing)
+
+### Integration
+- [x] Keyboard rendering in main UI layout
+- [x] Tab key toggle (show/hide keyboard)
+- [x] Real-time next key indication
+- [x] Shift state detection and display
+
+## Phase 4: Multi-Layout Support (FUTURE)
 
 ### Additional Layouts
 - [ ] BÉPO layout support
@@ -68,11 +96,11 @@
 - [ ] Layout validation
 - [ ] Layout switching in UI
 
-### Visualization
-- [ ] ASCII keyboard layout display
+### Advanced Visualization
 - [ ] Finger position indicators
-- [ ] Key highlighting for current lesson
-- [ ] Heat map overlay for error rates
+- [ ] Heat map overlay for error rates (accuracy colors)
+- [ ] Adaptive analytics integration
+- [ ] Compact mode for small terminals
 
 ## Phase 4: Advanced Features
 

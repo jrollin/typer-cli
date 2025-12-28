@@ -8,6 +8,7 @@ use crate::content::{
 };
 use crate::data::{SessionRecord, Stats, Storage};
 use crate::engine::{calculate_results, SessionAnalyzer, TypingSession};
+use crate::keyboard::AzertyLayout;
 use crate::ui;
 
 /// Application state
@@ -30,6 +31,8 @@ pub struct App {
     lessons: Vec<Lesson>,
     selected_duration: usize,
     selected_duration_value: crate::engine::SessionDuration,
+    keyboard_visible: bool,
+    keyboard_layout: AzertyLayout,
 }
 
 impl App {
@@ -149,6 +152,8 @@ impl App {
             lessons,
             selected_duration: 2, // Default to 5 minutes (index 2)
             selected_duration_value: crate::engine::SessionDuration::FiveMinutes,
+            keyboard_visible: true, // Default visible
+            keyboard_layout: AzertyLayout::new(),
         })
     }
 
@@ -223,7 +228,15 @@ impl App {
                                 result.error_count,
                             );
                         } else {
-                            ui::render(f, session, result.wpm, result.accuracy);
+                            ui::render(
+                                f,
+                                session,
+                                result.wpm,
+                                result.accuracy,
+                                self.keyboard_visible,
+                                &self.keyboard_layout,
+                                &self.stats.adaptive_analytics,
+                            );
                         }
                     }
                 }
@@ -333,6 +346,10 @@ impl App {
                     // Return to duration menu (discard session)
                     self.state = AppState::DurationMenu;
                     self.session = None;
+                }
+                KeyCode::Tab => {
+                    // Toggle keyboard visibility
+                    self.keyboard_visible = !self.keyboard_visible;
                 }
                 KeyCode::Char(c) => {
                     if let Some(session) = &mut self.session {

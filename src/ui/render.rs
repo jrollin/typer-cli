@@ -7,7 +7,10 @@ use ratatui::{
 };
 
 use crate::content::Lesson;
+use crate::engine::analytics::AdaptiveAnalytics;
 use crate::engine::TypingSession;
+use crate::keyboard::AzertyLayout;
+use crate::ui::keyboard::{render_keyboard, render_keyboard_compact, KeyboardConfig};
 
 /// Structure for visible text window
 struct VisibleWindow {
@@ -90,19 +93,100 @@ fn extract_visible_window(session: &TypingSession, width: usize) -> VisibleWindo
 }
 
 /// Rendu de l'interface principale
-pub fn render(f: &mut Frame, session: &TypingSession, wpm: f64, accuracy: f64) {
-    let chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
+pub fn render(
+    f: &mut Frame,
+    session: &TypingSession,
+    wpm: f64,
+    accuracy: f64,
+    keyboard_visible: bool,
+    keyboard_layout: &AzertyLayout,
+    analytics: &Option<AdaptiveAnalytics>,
+) {
+    let terminal_height = f.area().height;
+
+    // Dynamic constraints based on keyboard visibility and terminal size
+    let constraints = if keyboard_visible {
+        if terminal_height >= 28 {
+            // Full keyboard with shift indicators
+            vec![
+                Constraint::Length(3),  // Header
+                Constraint::Min(8),     // Content (flexible)
+                Constraint::Length(12), // Keyboard (shift line + 5 rows + borders + legend + padding)
+                Constraint::Length(3),  // Stats
+            ]
+        } else if terminal_height >= 23 {
+            // Full keyboard without shift line
+            vec![
+                Constraint::Length(3),  // Header
+                Constraint::Min(8),     // Content (flexible)
+                Constraint::Length(10), // Keyboard (5 rows + borders + legend)
+                Constraint::Length(3),  // Stats
+            ]
+        } else {
+            // Compact keyboard
+            vec![
+                Constraint::Length(3), // Header
+                Constraint::Min(5),    // Content (reduced)
+                Constraint::Length(3), // Keyboard (compact)
+                Constraint::Length(3), // Stats
+            ]
+        }
+    } else {
+        // Original layout (keyboard hidden)
+        vec![
             Constraint::Length(3), // Header
             Constraint::Min(8),    // Content
             Constraint::Length(3), // Stats
-        ])
+        ]
+    };
+
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(constraints)
         .split(f.area());
 
-    render_header(f, chunks[0]);
-    render_typing_area(f, chunks[1], session);
-    render_stats(f, chunks[2], wpm, accuracy, session.remaining_time());
+    let mut chunk_idx = 0;
+
+    // Header
+    render_header(f, chunks[chunk_idx]);
+    chunk_idx += 1;
+
+    // Content area
+    render_typing_area(f, chunks[chunk_idx], session);
+    chunk_idx += 1;
+
+    // Keyboard (if visible)
+    if keyboard_visible {
+        let next_char = session.content.chars().nth(session.current_index);
+        let config = KeyboardConfig {
+            show_heatmap: analytics.is_some(),
+            _show_shift_indicators: terminal_height >= 28,
+            _compact_mode: terminal_height < 20,
+        };
+
+        if terminal_height < 20 {
+            render_keyboard_compact(f, chunks[chunk_idx], keyboard_layout, next_char);
+        } else {
+            render_keyboard(
+                f,
+                chunks[chunk_idx],
+                keyboard_layout,
+                next_char,
+                analytics,
+                &config,
+            );
+        }
+        chunk_idx += 1;
+    }
+
+    // Stats
+    render_stats(
+        f,
+        chunks[chunk_idx],
+        wpm,
+        accuracy,
+        session.remaining_time(),
+    );
 }
 
 /// Rendu du header

@@ -413,9 +413,249 @@ pub fn analyze_finger_performance(sessions: &[SessionRecord]) -> HashMap<Finger,
 }
 ```
 
+## Visual Keyboard Display (Phase 3)
+
+### Rendering Architecture
+
+**Module**: `src/ui/keyboard.rs`
+
+The visual keyboard display renders the full AZERTY layout with real-time next-key highlighting and shift state indication.
+
+### Layout Structure
+
+**Complete AZERTY visual layout:**
+
+```
+│              [²] [1] [2] [3] [4] [5] [6] [7] [8] [9] [0] [°] [=]            │
+│              [Tab] [a] [z] [e] [r] [t] [y] [u] [i] [o] [p] [^] [$]          │
+│              [Caps] [q] [s] [d] [f] [g] [h] [j] [k] [l] [m] [ù] [*] [←]     │
+│              [ ⇧ ] [<] [w] [x] [c] [v] [b] [n] [,] [;] [:] [!] [ ⇧ ]        │
+│              [Ctrl] [⌘] [⌥] [        Space        ] [Alt] [Fn1] [Fn2]       │
+```
+
+### Row Rendering
+
+**Key rendering logic:**
+
+```rust
+fn render_keyboard_row(
+    row: &KeyboardRow,
+    next_char: Option<char>,
+    requires_shift: bool,
+    analytics: &Option<AdaptiveAnalytics>,
+    config: &KeyboardConfig,
+) -> Line<'static> {
+    let mut spans = Vec::new();
+
+    // Center padding
+    spans.push(Span::raw("              ")); // 14 spaces
+
+    // Add modifier key boxes at start (Tab, Caps, Shift)
+    match row.row_type {
+        RowType::Top => {
+            spans.push(Span::styled("[Tab] ", Style::default().fg(Color::DarkGray)));
+        }
+        RowType::Home => {
+            spans.push(Span::styled("[Caps] ", Style::default().fg(Color::DarkGray)));
+        }
+        RowType::Bottom => {
+            // Left Shift - highlight if shift required
+            let shift_style = if requires_shift {
+                Style::default()
+                    .fg(Color::Black)
+                    .bg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::DarkGray)
+            };
+            spans.push(Span::styled("[ ⇧ ] ", shift_style));
+        }
+        _ => {}
+    }
+
+    // Render each key
+    for (i, key) in row.keys.iter().enumerate() {
+        // Display base character (e.g., [1] not [&])
+        let display_char = key.base;
+
+        // Determine if this key is highlighted
+        let base_key = if let Some(nc) = next_char {
+            layout.get_base_key(nc).unwrap_or(nc)
+        } else {
+            '\0'
+        };
+        let is_highlighted = key.base == base_key;
+
+        // Apply highlighting style
+        let style = if is_highlighted {
+            Style::default()
+                .fg(Color::Black)
+                .bg(Color::Cyan)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::White)
+        };
+
+        spans.push(Span::styled(format!("[{}] ", display_char), style));
+    }
+
+    Line::from(spans)
+}
+```
+
+### Modifier Row Handling
+
+**Special rendering for non-typeable keys:**
+
+```rust
+if row.row_type == RowType::Modifier {
+    match i {
+        0 => spans.push(Span::styled("[Ctrl] ", Style::default().fg(Color::DarkGray))),
+        1 => spans.push(Span::styled("[⌘] ", Style::default().fg(Color::DarkGray))),
+        2 => spans.push(Span::styled("[⌥] ", Style::default().fg(Color::DarkGray))),
+        3 => {
+            // Space key - can be highlighted
+            let is_highlighted = next_char == Some(' ');
+            let style = if is_highlighted {
+                Style::default()
+                    .fg(Color::Black)
+                    .bg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::White)
+            };
+            spans.push(Span::styled("[        Space        ] ", style));
+        }
+        4 => spans.push(Span::styled("[Alt] ", Style::default().fg(Color::DarkGray))),
+        5 => spans.push(Span::styled("[Fn1] ", Style::default().fg(Color::DarkGray))),
+        6 => spans.push(Span::styled("[Fn2]", Style::default().fg(Color::DarkGray))),
+        _ => {}
+    }
+}
+```
+
+### Shift State Indication
+
+**Both shift keys highlight when shift is required:**
+
+```rust
+// Left Shift (in row rendering)
+let shift_style = if requires_shift {
+    Style::default()
+        .fg(Color::Black)
+        .bg(Color::Cyan)
+        .add_modifier(Modifier::BOLD)
+} else {
+    Style::default().fg(Color::DarkGray)
+};
+spans.push(Span::styled("[ ⇧ ] ", shift_style));
+
+// Right Shift (at end of bottom row)
+if row.row_type == RowType::Bottom {
+    spans.push(Span::raw(" "));
+    spans.push(Span::styled("[ ⇧ ]", shift_style));
+}
+```
+
+### Enter Key Rendering
+
+**Special arrow key on home row:**
+
+```rust
+if key.base == '\n' {
+    // Show arrow [←] on home row only
+    if row.row_type == RowType::Home {
+        let is_highlighted = next_char == Some('\n');
+        let style = if is_highlighted {
+            Style::default()
+                .fg(Color::Black)
+                .bg(Color::Cyan)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::DarkGray)
+        };
+        spans.push(Span::raw(" "));
+        spans.push(Span::styled("[←]", style));
+    }
+    // Skip Enter on top row
+}
+```
+
+### Data Model Extensions
+
+**Extended RowType enum:**
+
+```rust
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum RowType {
+    Number,   // ²1234567890°=
+    Top,      // azertyuiop^$
+    Home,     // qsdfghjklmù*
+    Bottom,   // <wxcvbn,;:!
+    Space,    // Space bar (legacy)
+    Modifier, // Ctrl, Cmd, Option, Space, Alt, Fn1, Fn2
+}
+```
+
+**Modifier row definition:**
+
+```rust
+fn modifier_row() -> KeyboardRow {
+    KeyboardRow {
+        row_type: RowType::Modifier,
+        keys: vec![
+            Key::new('\0', None), // Ctrl placeholder
+            Key::new('⌘', None),  // Cmd
+            Key::new('⌥', None),  // Option
+            Key::new(' ', None),  // Space
+            Key::new('\0', None), // Alt placeholder
+            Key::new('\0', None), // Fn1 placeholder
+            Key::new('\0', None), // Fn2 placeholder
+        ],
+    }
+}
+```
+
+### Color Scheme
+
+**Highlighting and visual states:**
+
+- **Next key**: `Color::Black` on `Color::Cyan` background (bold)
+- **Shift keys (active)**: `Color::Black` on `Color::Cyan` background (bold)
+- **Shift keys (inactive)**: `Color::DarkGray`
+- **Non-typeable keys**: `Color::DarkGray` (Tab, Caps, Ctrl, Cmd, Option, Alt, Fn)
+- **Enter (inactive)**: `Color::DarkGray`
+- **Regular keys**: `Color::White`
+
+### Integration with Main UI
+
+**Toggle visibility with Tab key:**
+
+```rust
+// In src/app.rs
+KeyCode::Tab => {
+    self.keyboard_visible = !self.keyboard_visible;
+}
+
+// In src/ui/render.rs
+if keyboard_visible {
+    keyboard::render_keyboard(
+        f,
+        chunks[2],
+        keyboard_layout,
+        next_char,
+        requires_shift,
+        analytics,
+        &KeyboardConfig::default(),
+    );
+}
+```
+
 ## File Locations
 
-- `src/keyboard/azerty.rs` - AZERTY layout definitions
+- `src/keyboard/azerty.rs` - AZERTY layout definitions and data model
 - `src/keyboard/mod.rs` - Module exports
+- `src/ui/keyboard.rs` - Visual keyboard rendering (Phase 3)
+- `src/ui/mod.rs` - UI module exports
 - (Future) `src/keyboard/bepo.rs` - BÉPO layout
 - (Future) `src/keyboard/trait.rs` - KeyboardLayout trait

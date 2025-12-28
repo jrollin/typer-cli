@@ -7,7 +7,8 @@ Quick reference for AI assistants working on this project.
 **Phase 1: MVP** - ✅ Completed
 **Phase 2: Home Row Levels 2-6** - ✅ Completed
 **Phase 2+: Adaptive Mode** - ✅ Completed
-**Current Focus**: Phase 3 (UI enhancements, analytics visualization)
+**Phase 3: Visual Keyboard Display** - ✅ Completed
+**Current Focus**: Phase 3+ (Analytics visualization, heat maps, data export)
 
 ## Project Overview
 
@@ -45,13 +46,23 @@ Located in `docs/steering/`:
 - **code-symbols/** (`src/content/`) - Programming symbols for TypeScript, Rust, Python
 
 **Phase 2+ (Completed):**
-- **adaptive-mode/** (`src/engine/analytics.rs`, `src/engine/adaptive.rs`, `src/content/adaptive_generator.rs`) - Personalized training with analytics ✅ NEW
+- **adaptive-mode/** (`src/engine/analytics.rs`, `src/engine/adaptive.rs`, `src/content/adaptive_generator.rs`) - Personalized training with analytics
   - Per-key and per-bigram statistics tracking
   - Weakness detection (accuracy < 80%, speed > 75th percentile)
   - Spaced repetition algorithm
   - Adaptive content generation (60% weak, 30% moderate, 10% strong)
   - Automatic analytics tracking after each session
   - Appears in menu when ≥ 10 sessions completed
+
+**Phase 3 (Completed):**
+- **keyboard-display/** (`src/ui/keyboard.rs`, `src/keyboard/azerty.rs`) - Visual AZERTY keyboard layout ✅ NEW
+  - Full 5-row keyboard rendering (Number, Top, Home, Bottom, Modifier)
+  - Real-time next-key highlighting (cyan background)
+  - Shift state indication (both shift keys highlight)
+  - Proper AZERTY layout with base characters
+  - Modifier keys (Tab, Caps, Shift, Ctrl, Cmd, Option, Alt, Fn)
+  - Enter key as arrow [←] on home row
+  - Tab key toggle (show/hide keyboard)
 
 **Complete documentation index**: See `docs/README.md` for navigation guide and feature details.
 
@@ -63,7 +74,7 @@ Located in `docs/steering/`:
 ```bash
 # Development
 cargo run              # Launch application
-cargo test             # Run test suite (81 tests)
+cargo test             # Run test suite (91 tests)
 cargo check            # Fast compilation check
 
 # Testing Adaptive Mode
@@ -91,7 +102,7 @@ Runs automatically on every push to `main` and all pull requests.
 
 **Jobs:**
 - **Quality Checks**: Formatting (cargo fmt), linting (cargo clippy -D warnings), compilation (cargo check)
-- **Test Suite**: Runs 81 tests on Ubuntu and macOS
+- **Test Suite**: Runs 91 tests on Ubuntu and macOS
 - **Security Audit**: Scans dependencies for known vulnerabilities (non-blocking)
 
 **Status**: [![CI](https://github.com/jrollin/typer-cli/workflows/CI/badge.svg)](https://github.com/jrollin/typer-cli/actions/workflows/ci.yml)
@@ -157,7 +168,9 @@ git cliff -o CHANGELOG.md
 src/
 ├── main.rs          # Entry point
 ├── app.rs           # App state, event loop
-├── ui/render.rs     # TUI rendering
+├── ui/              # TUI rendering
+│   ├── render.rs    # Main layout rendering
+│   └── keyboard.rs  # Visual keyboard display
 ├── engine/          # Session logic, scoring, analytics
 │   ├── analytics.rs # Per-key/bigram statistics tracking
 │   ├── adaptive.rs  # Weakness detection, spaced repetition
@@ -169,7 +182,7 @@ src/
 │   ├── code_generator.rs      # Code symbols
 │   └── generator.rs           # Home row drills
 ├── data/            # Stats persistence (with adaptive analytics)
-└── keyboard/        # AZERTY layout
+└── keyboard/        # AZERTY layout and data model
 ```
 
 ## Stack Summary
@@ -213,9 +226,15 @@ Stats saved to: `~/.config/typer-cli/stats.json`
   - Adaptive content generation (60/30/10 distribution)
   - Automatic tracking after each session
   - Conditional menu appearance (≥ 10 sessions, ≥ 100 keystrokes)
-- **Phase 3**: ⏳ FUTURE
+- **Phase 3**: Visual keyboard display ✅
+  - Full AZERTY keyboard layout rendering (Number, Top, Home, Bottom, Modifier rows)
+  - Real-time next-key highlighting and shift state indication
+  - Tab key toggle to show/hide keyboard
+  - Proper alignment and visual styling
+- **Phase 3+**: ⏳ FUTURE
   - Enhanced adaptive UI (pre/post-session feedback, progress indicators)
   - Analytics visualization (heat maps, trend graphs)
+  - Keyboard accuracy heat map overlay
   - Data export (JSON/CSV)
   - Gamification (achievements, streaks)
   - Themes and customization
