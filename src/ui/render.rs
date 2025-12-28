@@ -112,7 +112,8 @@ fn extract_visible_window(session: &TypingSession, width: usize) -> VisibleWindo
 }
 
 /// Create styled expected text with character-level visual feedback
-/// - Already typed characters: dark gray (dimmed)
+/// - Correctly typed characters: dark gray (dimmed)
+/// - Mistyped characters: red (error indication)
 /// - Next character to type: white + bold + underlined
 /// - Remaining characters: white
 fn create_styled_expected_text(
@@ -129,8 +130,20 @@ fn create_styled_expected_text(
             let absolute_index = line_start_index + char_offset;
 
             let style = if absolute_index < session.current_index {
-                // Already typed - dim
-                Style::default().fg(Color::DarkGray)
+                // Already typed - check if correct or incorrect
+                if absolute_index < session.inputs.len() {
+                    let input = &session.inputs[absolute_index];
+                    if input.is_correct {
+                        // Correct - dim (dark gray)
+                        Style::default().fg(Color::DarkGray)
+                    } else {
+                        // Incorrect - red to show error
+                        Style::default().fg(Color::Red)
+                    }
+                } else {
+                    // Fallback (shouldn't happen)
+                    Style::default().fg(Color::DarkGray)
+                }
             } else if absolute_index == session.current_index {
                 // Next character - highlight
                 Style::default()
