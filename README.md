@@ -104,6 +104,9 @@ cargo run
 **During Practice:**
 - **Typing**: Simply type the displayed characters
 - **Backspace**: Correct mistakes
+- **Tab**: Toggle keyboard display visibility
+- **Ctrl+F**: Toggle finger color hints on keyboard
+- **Ctrl+H**: Toggle accuracy heatmap overlay
 - **ESC**: Return to menu
 
 **After Completion:**

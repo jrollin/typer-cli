@@ -629,12 +629,29 @@ fn modifier_row() -> KeyboardRow {
 
 ### Integration with Main UI
 
-**Toggle visibility with Tab key:**
+**Keyboard display shortcuts:**
 
 ```rust
 // In src/app.rs
+
+// Toggle keyboard visibility with Tab
 KeyCode::Tab => {
     self.keyboard_visible = !self.keyboard_visible;
+}
+
+// Toggle finger color hints with Ctrl+F
+KeyCode::Char('f') | KeyCode::Char('F')
+    if key.modifiers.contains(KeyModifiers::CONTROL) =>
+{
+    self.keyboard_config.show_finger_colors =
+        !self.keyboard_config.show_finger_colors;
+}
+
+// Toggle accuracy heatmap overlay with Ctrl+H
+KeyCode::Char('h') | KeyCode::Char('H')
+    if key.modifiers.contains(KeyModifiers::CONTROL) =>
+{
+    self.keyboard_config.show_heatmap = !self.keyboard_config.show_heatmap;
 }
 
 // In src/ui/render.rs
@@ -646,10 +663,17 @@ if keyboard_visible {
         next_char,
         requires_shift,
         analytics,
-        &KeyboardConfig::default(),
+        &keyboard_config,  // Uses current configuration
     );
 }
 ```
+
+**Keyboard Shortcuts during Practice:**
+- **Tab**: Toggle keyboard display visibility
+- **Ctrl+F**: Toggle finger color hints (shows which finger to use)
+- **Ctrl+H**: Toggle accuracy heatmap overlay (shows per-key accuracy)
+
+Note: Using Ctrl modifier ensures these shortcuts don't conflict with typing 'f' or 'h' characters during practice.
 
 ## File Locations
 

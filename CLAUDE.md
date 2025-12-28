@@ -62,7 +62,10 @@ Located in `docs/steering/`:
   - Proper AZERTY layout with base characters
   - Modifier keys (Tab, Caps, Shift, Ctrl, Cmd, Option, Alt, Fn)
   - Enter key as arrow [←] on home row
-  - Tab key toggle (show/hide keyboard)
+  - Keyboard shortcuts:
+    - Tab: Toggle keyboard visibility
+    - Ctrl+F: Toggle finger color hints
+    - Ctrl+H: Toggle accuracy heatmap overlay
 
 **Complete documentation index**: See `docs/README.md` for navigation guide and feature details.
 
@@ -229,7 +232,7 @@ Stats saved to: `~/.config/typer-cli/stats.json`
 - **Phase 3**: Visual keyboard display ✅
   - Full AZERTY keyboard layout rendering (Number, Top, Home, Bottom, Modifier rows)
   - Real-time next-key highlighting and shift state indication
-  - Tab key toggle to show/hide keyboard
+  - Keyboard shortcuts: Tab (toggle visibility), Ctrl+F (finger colors), Ctrl+H (heatmap)
   - Proper alignment and visual styling
 - **Phase 3+**: ⏳ FUTURE
   - Enhanced adaptive UI (pre/post-session feedback, progress indicators)

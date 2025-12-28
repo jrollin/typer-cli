@@ -1,4 +1,4 @@
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
+use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::DefaultTerminal;
 use std::io;
 use std::time::Duration;
@@ -355,13 +355,17 @@ impl App {
                     // Toggle keyboard visibility
                     self.keyboard_visible = !self.keyboard_visible;
                 }
-                KeyCode::Char('f') | KeyCode::Char('F') => {
-                    // Toggle finger colors
+                KeyCode::Char('f') | KeyCode::Char('F')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                {
+                    // Toggle finger colors (Ctrl+F)
                     self.keyboard_config.show_finger_colors =
                         !self.keyboard_config.show_finger_colors;
                 }
-                KeyCode::Char('h') | KeyCode::Char('H') => {
-                    // Toggle heatmap
+                KeyCode::Char('h') | KeyCode::Char('H')
+                    if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                {
+                    // Toggle heatmap (Ctrl+H)
                     self.keyboard_config.show_heatmap = !self.keyboard_config.show_heatmap;
                 }
                 KeyCode::Char(c) => {
