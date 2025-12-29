@@ -27,14 +27,14 @@ impl Finger {
     /// Get the terminal color for this finger
     pub fn color(&self) -> Color {
         match self {
-            Finger::LeftPinky => Color::Magenta,
-            Finger::LeftRing => Color::LightBlue,
-            Finger::LeftMiddle => Color::Blue,
-            Finger::LeftIndex => Color::Cyan,
-            Finger::RightIndex => Color::Green,
-            Finger::RightMiddle => Color::Yellow,
-            Finger::RightRing => Color::LightRed,
-            Finger::RightPinky => Color::Red,
+            Finger::LeftPinky => Color::Magenta,        // Purple/pink
+            Finger::LeftRing => Color::LightCyan,       // Bright aqua
+            Finger::LeftMiddle => Color::Blue,          // Dark blue
+            Finger::LeftIndex => Color::Green,          // Green
+            Finger::RightIndex => Color::Yellow,        // Bright yellow
+            Finger::RightMiddle => Color::LightMagenta, // Pink/light purple
+            Finger::RightRing => Color::LightRed,       // Orange-red
+            Finger::RightPinky => Color::White,         // Bright white
             Finger::Thumb => Color::Gray,
         }
     }

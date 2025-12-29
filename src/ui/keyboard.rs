@@ -334,23 +334,23 @@ pub fn render_keyboard(
             Span::raw(" Finger Guide: "),
             Span::styled("■", Style::default().fg(Color::Magenta)),
             Span::raw(" L.Pinky "),
-            Span::styled("■", Style::default().fg(Color::LightBlue)),
+            Span::styled("■", Style::default().fg(Color::LightCyan)),
             Span::raw(" L.Ring "),
             Span::styled("■", Style::default().fg(Color::Blue)),
             Span::raw(" L.Middle "),
-            Span::styled("■", Style::default().fg(Color::Cyan)),
+            Span::styled("■", Style::default().fg(Color::Green)),
             Span::raw(" L.Index"),
         ]);
 
         let legend2 = Line::from(vec![
             Span::raw("               "),
-            Span::styled("■", Style::default().fg(Color::Green)),
-            Span::raw(" R.Index "),
             Span::styled("■", Style::default().fg(Color::Yellow)),
+            Span::raw(" R.Index "),
+            Span::styled("■", Style::default().fg(Color::LightMagenta)),
             Span::raw(" R.Middle "),
             Span::styled("■", Style::default().fg(Color::LightRed)),
             Span::raw(" R.Ring "),
-            Span::styled("■", Style::default().fg(Color::Red)),
+            Span::styled("■", Style::default().fg(Color::White)),
             Span::raw(" R.Pinky"),
         ]);
 
