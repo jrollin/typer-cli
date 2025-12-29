@@ -409,12 +409,7 @@ fn render_instructions(f: &mut Frame, area: Rect) {
 }
 
 /// Rendu du menu de sélection de leçon
-pub fn render_menu(
-    f: &mut Frame,
-    lessons: &[Lesson],
-    selected: usize,
-    scroll_offset: usize,
-) {
+pub fn render_menu(f: &mut Frame, lessons: &[Lesson], selected: usize, scroll_offset: usize) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(2)
@@ -442,37 +437,57 @@ pub fn render_menu(
     // Build complete items list with category separators
     let mut all_items: Vec<ListItem> = Vec::new();
 
-    // PRIMARY section header
-    all_items.push(ListItem::new(Line::from(Span::styled(
-        "━━━ PRIMARY - Key Training ━━━",
-        Style::default()
-            .fg(Color::Cyan)
-            .add_modifier(Modifier::BOLD),
-    ))));
+    // Determine if adaptive mode is present (first lesson)
+    let has_adaptive = !lessons.is_empty()
+        && matches!(
+            lessons[0].lesson_type,
+            crate::content::lesson::LessonType::Adaptive
+        );
+
+    // ADAPTIVE section header (if present - first lesson)
+    if has_adaptive {
+        all_items.push(ListItem::new(Line::from(Span::styled(
+            "━━━ ADAPTIVE ━━━",
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        ))));
+    }
 
     // Add all lessons with category separators
     for (i, lesson) in lessons.iter().enumerate() {
-        // Add SECONDARY separator before lesson 25 (0-indexed: 24)
-        if i == 25 {
+        // Add FINGER TRAINING separator (after adaptive if present, otherwise first)
+        let finger_training_index = if has_adaptive { 1 } else { 0 };
+        if i == finger_training_index {
+            if has_adaptive {
+                all_items.push(ListItem::new(Line::from("")));
+            }
+            all_items.push(ListItem::new(Line::from(Span::styled(
+                "━━━ FINGER TRAINING ━━━",
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+            ))));
+        }
+
+        // Add PRIMARY separator (after finger training - 24 lessons later)
+        let primary_index = if has_adaptive { 25 } else { 24 };
+        if i == primary_index {
             all_items.push(ListItem::new(Line::from("")));
             all_items.push(ListItem::new(Line::from(Span::styled(
-                "━━━ SECONDARY - Programming & Languages ━━━",
+                "━━━ PRIMARY - Key Training ━━━",
                 Style::default()
                     .fg(Color::Cyan)
                     .add_modifier(Modifier::BOLD),
             ))));
         }
 
-        // Add ADAPTIVE separator before the last lesson (if it exists and is adaptive)
-        if i == lessons.len() - 1
-            && matches!(
-                lesson.lesson_type,
-                crate::content::lesson::LessonType::Adaptive
-            )
-        {
+        // Add SECONDARY separator (after primary - 25 lessons later)
+        let secondary_index = if has_adaptive { 50 } else { 49 };
+        if i == secondary_index {
             all_items.push(ListItem::new(Line::from("")));
             all_items.push(ListItem::new(Line::from(Span::styled(
-                "━━━ ADAPTIVE ━━━",
+                "━━━ SECONDARY - Programming & Languages ━━━",
                 Style::default()
                     .fg(Color::Cyan)
                     .add_modifier(Modifier::BOLD),
@@ -505,18 +520,19 @@ pub fn render_menu(
 
     // Add scroll indicator to title
     let scroll_indicator = if total_items > menu_area_height {
-        format!(" (showing {}-{} of {})", visible_start + 1, visible_end, total_items)
+        format!(
+            " (showing {}-{} of {})",
+            visible_start + 1,
+            visible_end,
+            total_items
+        )
     } else {
         String::new()
     };
 
     let title = format!("Typing Lessons{}", scroll_indicator);
 
-    let list = List::new(visible_items).block(
-        Block::default()
-            .title(title)
-            .borders(Borders::ALL),
-    );
+    let list = List::new(visible_items).block(Block::default().title(title).borders(Borders::ALL));
 
     f.render_widget(list, chunks[1]);
 

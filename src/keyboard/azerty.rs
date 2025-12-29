@@ -129,23 +129,23 @@ impl AzertyLayout {
         self.home_row.contains(&c)
     }
 
-    /// Build number row (²1234567890°=) - displays shift variants by default
+    /// Build number row - French AZERTY (symbols are base, numbers are shift)
     fn number_row() -> KeyboardRow {
         KeyboardRow {
             row_type: RowType::Number,
             keys: vec![
                 Key::new('²', Some('³'), Finger::LeftPinky), // Superscript 2/3 (first key)
-                Key::new('1', Some('&'), Finger::LeftRing),
-                Key::new('2', Some('é'), Finger::LeftMiddle),
-                Key::new('3', Some('"'), Finger::LeftIndex),
-                Key::new('4', Some('\''), Finger::LeftIndex),
-                Key::new('5', Some('('), Finger::RightIndex),
-                Key::new('6', Some('-'), Finger::RightIndex),
-                Key::new('7', Some('è'), Finger::RightMiddle),
-                Key::new('8', Some('_'), Finger::RightRing),
-                Key::new('9', Some('ç'), Finger::RightPinky),
-                Key::new('0', Some('à'), Finger::RightPinky),
-                Key::new('°', Some(')'), Finger::RightPinky),
+                Key::new('&', Some('1'), Finger::LeftPinky),
+                Key::new('é', Some('2'), Finger::LeftPinky),
+                Key::new('"', Some('3'), Finger::LeftRing),
+                Key::new('\'', Some('4'), Finger::LeftMiddle),
+                Key::new('(', Some('5'), Finger::LeftIndex),
+                Key::new('-', Some('6'), Finger::LeftIndex),
+                Key::new('è', Some('7'), Finger::RightIndex),
+                Key::new('_', Some('8'), Finger::RightMiddle),
+                Key::new('ç', Some('9'), Finger::RightRing),
+                Key::new('à', Some('0'), Finger::RightPinky),
+                Key::new(')', Some('°'), Finger::RightPinky),
                 Key::new('=', Some('+'), Finger::RightPinky),
             ],
         }
@@ -201,15 +201,15 @@ impl AzertyLayout {
             row_type: RowType::Bottom,
             keys: vec![
                 Key::new('<', Some('>'), Finger::LeftPinky),
-                Key::new('w', Some('W'), Finger::LeftRing),
-                Key::new('x', Some('X'), Finger::LeftMiddle),
-                Key::new('c', Some('C'), Finger::LeftIndex),
+                Key::new('w', Some('W'), Finger::LeftPinky),
+                Key::new('x', Some('X'), Finger::LeftRing),
+                Key::new('c', Some('C'), Finger::LeftMiddle),
                 Key::new('v', Some('V'), Finger::LeftIndex),
-                Key::new('b', Some('B'), Finger::RightIndex),
+                Key::new('b', Some('B'), Finger::LeftIndex),
                 Key::new('n', Some('N'), Finger::RightIndex),
-                Key::new(',', Some('?'), Finger::RightMiddle),
-                Key::new(';', Some('.'), Finger::RightRing),
-                Key::new(':', Some('/'), Finger::RightPinky),
+                Key::new(',', Some('?'), Finger::RightIndex),
+                Key::new(';', Some('.'), Finger::RightMiddle),
+                Key::new(':', Some('/'), Finger::RightRing),
                 Key::new('!', Some('§'), Finger::RightPinky),
                 Key::new('\0', None, Finger::RightPinky), // Right Shift placeholder (null character)
             ],
@@ -362,9 +362,9 @@ mod tests {
         // First key should be ²
         assert_eq!(layout.rows[0].keys[0].base, '²');
         assert_eq!(layout.rows[0].keys[0].shift_variant, Some('³'));
-        // 12th key (index 11) should be °
-        assert_eq!(layout.rows[0].keys[11].base, '°');
-        assert_eq!(layout.rows[0].keys[11].shift_variant, Some(')'));
+        // 12th key (index 11) - French AZERTY: ) is base, ° is shift
+        assert_eq!(layout.rows[0].keys[11].base, ')');
+        assert_eq!(layout.rows[0].keys[11].shift_variant, Some('°'));
         // Last key should be =
         assert_eq!(layout.rows[0].keys[12].base, '=');
         assert_eq!(layout.rows[0].keys[12].shift_variant, Some('+'));
@@ -401,18 +401,19 @@ mod tests {
     #[test]
     fn test_get_base_key() {
         let layout = AzertyLayout::new();
-        // Base characters
+        // Base characters (French AZERTY: symbols are base, numbers are shift)
         assert_eq!(layout.get_base_key('²'), Some('²'));
         assert_eq!(layout.get_base_key('a'), Some('a'));
         assert_eq!(layout.get_base_key('q'), Some('q'));
-        assert_eq!(layout.get_base_key('1'), Some('1'));
-        // Shift variants
+        assert_eq!(layout.get_base_key('&'), Some('&')); // Base character
+        assert_eq!(layout.get_base_key('é'), Some('é')); // Base character
+                                                         // Shift variants (numbers require shift on French AZERTY)
         assert_eq!(layout.get_base_key('³'), Some('²'));
         assert_eq!(layout.get_base_key('A'), Some('a'));
         assert_eq!(layout.get_base_key('Q'), Some('q'));
-        assert_eq!(layout.get_base_key('&'), Some('1'));
-        assert_eq!(layout.get_base_key('é'), Some('2'));
-        // Special characters
+        assert_eq!(layout.get_base_key('1'), Some('&')); // 1 is shift of &
+        assert_eq!(layout.get_base_key('2'), Some('é')); // 2 is shift of é
+                                                         // Special characters
         assert_eq!(layout.get_base_key('<'), Some('<'));
         assert_eq!(layout.get_base_key('>'), Some('<'));
         assert_eq!(layout.get_base_key('%'), Some('ù'));

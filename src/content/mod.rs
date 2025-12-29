@@ -3,6 +3,7 @@ pub mod bigram;
 pub mod bigram_generator;
 pub mod code_generator;
 pub mod code_symbols;
+pub mod finger_generator;
 pub mod generator;
 pub mod lesson;
 

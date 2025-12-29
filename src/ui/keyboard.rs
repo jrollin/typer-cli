@@ -21,7 +21,7 @@ impl Default for KeyboardConfig {
     fn default() -> Self {
         Self {
             _show_shift_indicators: true,
-            show_heatmap: true,
+            show_heatmap: false,
             show_finger_colors: true,
             _compact_mode: false,
         }

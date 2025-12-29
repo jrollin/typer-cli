@@ -30,16 +30,25 @@ Typer CLI is a terminal-based keyboard typing training tool. It provides an inte
 - ✅ **Smart Appearance**: Shows in menu after 10+ sessions
 - ✅ **Privacy-Focused**: All data stored locally
 
-### Visual Keyboard (Phase 3) ✅ NEW
+### Visual Keyboard (Phase 3) ✅
 - ✅ **Full AZERTY Layout**: Complete 5-row keyboard visualization
 - ✅ **Next-Key Highlighting**: Real-time cyan highlight on next character
 - ✅ **Shift Indicators**: Visual feedback for shift state
 - ✅ **Finger Color Hints**: Toggle with Ctrl+F for learning proper finger placement
-- ✅ **Accuracy Heatmap**: Toggle with Ctrl+H to see performance overlay
+- ✅ **Accuracy Heatmap**: Toggle with Ctrl+H to see performance overlay (disabled by default)
 - ✅ **Toggle Visibility**: Press Tab to show/hide keyboard
 - ✅ **Consistent Layout**: Clean margins matching menu screens
 
-**Total Lessons**: 34 (33 standard + 1 adaptive)
+### Finger Training (Phase 3.2) ✅ NEW
+- ✅ **24 Targeted Lessons**: 4 finger pairs (Pinky, Ring, Middle, Index) × 6 variants
+- ✅ **Progressive Difficulty**: 3 levels (Home Row, Extended, All Keys)
+- ✅ **Base + Shift Variants**: Practice both base characters and mixed case
+- ✅ **Corrected AZERTY Mappings**: 16 fixes to French keyboard finger assignments
+- ✅ **Smart Drills**: Auto-generated 3-phase patterns (repetitions, pairs, triplets)
+- ✅ **Prioritized Menu**: Finger training appears second (after adaptive mode)
+- ✅ **Green Separator**: Easy identification in lesson menu
+
+**Total Lessons**: 77 (52 standard + 24 finger training + 1 adaptive)
 
 ## Installation
 

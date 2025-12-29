@@ -9,6 +9,7 @@ Quick reference for AI assistants working on this project.
 **Phase 2+: Adaptive Mode** - ✅ Completed
 **Phase 3: Visual Keyboard Display** - ✅ Completed
 **Phase 3.1: Layout Improvements** - ✅ Completed
+**Phase 3.2: Finger Training** - ✅ Completed
 **Current Focus**: Phase 3+ (Analytics visualization, data export, gamification)
 
 ## Project Overview
@@ -69,7 +70,7 @@ Located in `docs/steering/`:
     - Ctrl+H: Toggle accuracy heatmap overlay
 
 **Phase 3.1 (Completed):**
-- **layout-improvements/** (`src/ui/render.rs`) - Enhanced interface layout ✅ NEW
+- **layout-improvements/** (`src/ui/render.rs`) - Enhanced interface layout
   - Reorganized layout: Header → Stats → Content → Keyboard → Instructions
   - Stats block moved under header, before content
   - Keyboard positioned after content (not fixed to bottom)
@@ -77,6 +78,18 @@ Located in `docs/steering/`:
   - "ESC to quit" instructions at bottom
   - Fixed keyboard shortcuts labels (Ctrl+F, Ctrl+H)
   - Smooth keyboard toggle without layout shifts
+
+**Phase 3.2 (Completed):**
+- **finger-training/** (`src/content/finger_generator.rs`) - Finger-specific practice lessons ✅ NEW
+  - 24 lessons: 4 finger pairs (Pinky, Ring, Middle, Index) × 6 variants
+  - 3 difficulty levels: Home Row, Extended, All Keys
+  - Base and shift variants for each level
+  - Corrected French AZERTY finger mappings (16 fixes)
+  - Auto-generated drills with 3-phase pattern
+  - Shift drills use 50% lower, 40% upper, 10% symbols
+  - Green "FINGER TRAINING" menu separator
+  - Reordered menu: Adaptive → Finger Training → Primary → Secondary
+  - Heatmap disabled by default (Ctrl+H to enable)
 
 **Complete documentation index**: See `docs/README.md` for navigation guide and feature details.
 
@@ -194,6 +207,7 @@ src/
 │   ├── adaptive_generator.rs  # Personalized content
 │   ├── bigram_generator.rs    # Bigram practice
 │   ├── code_generator.rs      # Code symbols
+│   ├── finger_generator.rs    # Finger-based drills
 │   └── generator.rs           # Home row drills
 ├── data/            # Stats persistence (with adaptive analytics)
 └── keyboard/        # AZERTY layout and data model
@@ -252,6 +266,13 @@ Stats saved to: `~/.config/typer-cli/stats.json`
   - Consistent margins across all screens
   - Bottom instructions section ("ESC to quit")
   - Fixed keyboard shortcut labels
+- **Phase 3.2**: Finger-based training ✅
+  - 24 finger lessons (4 pairs × 6 variants: 3 levels × 2 modes)
+  - Corrected French AZERTY finger mappings (16 fixes)
+  - Auto-generated drills with 3-phase pattern
+  - Shift variants with weighted distribution (50/40/10)
+  - Reordered menu: Adaptive → Finger Training → Primary → Secondary
+  - Heatmap disabled by default
 - **Phase 3+**: ⏳ FUTURE
   - Enhanced adaptive UI (pre/post-session feedback, progress indicators)
   - Analytics visualization (performance graphs, trend charts)

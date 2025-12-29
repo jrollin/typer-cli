@@ -330,6 +330,15 @@ pub fn get_shifted_char(c: char) -> Option<char> {
         .map(|map| map.shifted)
 }
 
+/// Finger pair combinations for bilateral training (left + right)
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum FingerPairType {
+    Pinky,  // Left pinky + Right pinky
+    Ring,   // Left ring + Right ring
+    Middle, // Left middle + Right middle
+    Index,  // Left index + Right index
+}
+
 /// Types de leçons disponibles
 #[derive(Debug, Clone, PartialEq)]
 pub enum LessonType {
@@ -352,6 +361,12 @@ pub enum LessonType {
         level: usize,
     },
     Adaptive,
+    /// Finger-based training by finger pair, level, and shift variant
+    FingerPair {
+        finger_pair: FingerPairType,
+        level: u8,        // 1=Home Row, 2=Extended, 3=All Keys
+        with_shift: bool, // false=base chars, true=mixed case+symbols
+    },
 }
 
 /// Représente une leçon de typing
@@ -530,6 +545,76 @@ impl Lesson {
                 )
             })
             .collect()
+    }
+
+    /// Create all 24 finger-based lessons (4 finger pairs × 6 lessons each)
+    pub fn finger_pair_lessons() -> Vec<Lesson> {
+        use FingerPairType::*;
+        let mut lessons = Vec::new();
+
+        for &finger_pair in &[Pinky, Ring, Middle, Index] {
+            for level in 1..=3 {
+                // Base version (no shift)
+                lessons.push(Lesson::new(
+                    LessonType::FingerPair {
+                        finger_pair,
+                        level,
+                        with_shift: false,
+                    },
+                    Self::finger_pair_title(finger_pair, level, false),
+                    Self::finger_pair_description(finger_pair, level, false),
+                    vec![], // Keys determined dynamically during generation
+                ));
+
+                // Shift version (mixed case)
+                lessons.push(Lesson::new(
+                    LessonType::FingerPair {
+                        finger_pair,
+                        level,
+                        with_shift: true,
+                    },
+                    Self::finger_pair_title(finger_pair, level, true),
+                    Self::finger_pair_description(finger_pair, level, true),
+                    vec![], // Keys determined dynamically during generation
+                ));
+            }
+        }
+
+        lessons
+    }
+
+    fn finger_pair_title(pair: FingerPairType, level: u8, with_shift: bool) -> String {
+        let pair_name = match pair {
+            FingerPairType::Pinky => "Pinky Fingers",
+            FingerPairType::Ring => "Ring Fingers",
+            FingerPairType::Middle => "Middle Fingers",
+            FingerPairType::Index => "Index Fingers",
+        };
+        let level_name = match level {
+            1 => "Home Row",
+            2 => "Extended",
+            3 => "All Keys",
+            _ => "Unknown",
+        };
+        if with_shift {
+            format!("{} - {} + Shift", pair_name, level_name)
+        } else {
+            format!("{} - {}", pair_name, level_name)
+        }
+    }
+
+    fn finger_pair_description(_pair: FingerPairType, level: u8, with_shift: bool) -> String {
+        let level_desc = match level {
+            1 => "Home row keys only",
+            2 => "Home + top/bottom rows",
+            3 => "All keys including numbers and symbols",
+            _ => "Unknown level",
+        };
+        if with_shift {
+            format!("{} with mixed case", level_desc)
+        } else {
+            level_desc.to_string()
+        }
     }
 }
 

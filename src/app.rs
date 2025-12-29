@@ -43,10 +43,18 @@ impl App {
         let storage = Storage::new()?;
         let stats = storage.load()?;
 
-        // Build complete lesson list with grouped organization
+        // Build complete lesson list with reordered organization
         let mut lessons = Vec::new();
 
-        // PRIMARY SECTION: Key Training (25 lessons)
+        // ADAPTIVE SECTION (if sufficient data) - NOW FIRST
+        if should_show_adaptive_mode(&stats) {
+            lessons.push(Lesson::adaptive_lesson());
+        }
+
+        // FINGER TRAINING SECTION (24 lessons: 4 pairs × 6 lessons each) - NOW SECOND
+        lessons.extend(Lesson::finger_pair_lessons());
+
+        // PRIMARY SECTION: Key Training (25 lessons) - NOW THIRD
         // Organized: individual lessons → group → shift variant
 
         // Group 1: Lessons 1-4 (basic home row pairs)
@@ -115,7 +123,7 @@ impl App {
                 .take(1),
         ); // Group 13-17 + Shift
 
-        // SECONDARY SECTION: Programming & Languages (27 lessons)
+        // SECONDARY SECTION: Programming & Languages (27 lessons) - NOW LAST
 
         // French Bigram lessons (3 lessons)
         lessons.extend(Lesson::bigram_lessons(
@@ -141,14 +149,9 @@ impl App {
         // Python Code Symbols (6 lessons)
         lessons.extend(Lesson::code_symbol_lessons(ProgrammingLanguage::Python));
 
-        // ADAPTIVE SECTION (if sufficient data)
-        if should_show_adaptive_mode(&stats) {
-            lessons.push(Lesson::adaptive_lesson());
-        }
-
         Ok(Self {
             session: None,
-            state: AppState::LessonMenu,  // Start with lesson selection
+            state: AppState::LessonMenu, // Start with lesson selection
             storage,
             stats,
             selected_lesson: 0,
@@ -215,7 +218,12 @@ impl App {
             // Render
             terminal.draw(|f| match self.state {
                 AppState::LessonMenu => {
-                    ui::render_menu(f, &self.lessons, self.selected_lesson, self.lesson_scroll_offset);
+                    ui::render_menu(
+                        f,
+                        &self.lessons,
+                        self.selected_lesson,
+                        self.lesson_scroll_offset,
+                    );
                 }
                 AppState::DurationMenu => {
                     ui::render_duration_menu(f, self.selected_duration);
