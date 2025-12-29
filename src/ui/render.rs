@@ -174,6 +174,7 @@ pub fn render(
     keyboard_layout: &AzertyLayout,
     analytics: &Option<AdaptiveAnalytics>,
     keyboard_config: &KeyboardConfig,
+    lesson_name: &str,
 ) {
     let terminal_height = f.area().height;
 
@@ -230,7 +231,7 @@ pub fn render(
     let mut chunk_idx = 0;
 
     // Header
-    render_header(f, chunks[chunk_idx]);
+    render_header(f, chunks[chunk_idx], lesson_name);
     chunk_idx += 1;
 
     // Stats (moved after header)
@@ -273,8 +274,9 @@ pub fn render(
 }
 
 /// Rendu du header
-fn render_header(f: &mut Frame, area: Rect) {
-    let title = Paragraph::new("TYPER CLI - Home Row Practice")
+fn render_header(f: &mut Frame, area: Rect, lesson_name: &str) {
+    let title_text = format!("TYPER CLI - {}", lesson_name);
+    let title = Paragraph::new(title_text)
         .style(
             Style::default()
                 .fg(Color::Cyan)
@@ -407,7 +409,12 @@ fn render_instructions(f: &mut Frame, area: Rect) {
 }
 
 /// Rendu du menu de sélection de leçon
-pub fn render_menu(f: &mut Frame, lessons: &[Lesson], selected: usize) {
+pub fn render_menu(
+    f: &mut Frame,
+    lessons: &[Lesson],
+    selected: usize,
+    scroll_offset: usize,
+) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(2)
@@ -429,11 +436,14 @@ pub fn render_menu(f: &mut Frame, lessons: &[Lesson], selected: usize) {
         .block(Block::default().borders(Borders::ALL));
     f.render_widget(header, chunks[0]);
 
-    // Menu items with category separators
-    let mut items: Vec<ListItem> = Vec::new();
+    // Calculate visible area height (minus borders and padding)
+    let menu_area_height = chunks[1].height.saturating_sub(2) as usize;
+
+    // Build complete items list with category separators
+    let mut all_items: Vec<ListItem> = Vec::new();
 
     // PRIMARY section header
-    items.push(ListItem::new(Line::from(Span::styled(
+    all_items.push(ListItem::new(Line::from(Span::styled(
         "━━━ PRIMARY - Key Training ━━━",
         Style::default()
             .fg(Color::Cyan)
@@ -444,8 +454,8 @@ pub fn render_menu(f: &mut Frame, lessons: &[Lesson], selected: usize) {
     for (i, lesson) in lessons.iter().enumerate() {
         // Add SECONDARY separator before lesson 25 (0-indexed: 24)
         if i == 25 {
-            items.push(ListItem::new(Line::from("")));
-            items.push(ListItem::new(Line::from(Span::styled(
+            all_items.push(ListItem::new(Line::from("")));
+            all_items.push(ListItem::new(Line::from(Span::styled(
                 "━━━ SECONDARY - Programming & Languages ━━━",
                 Style::default()
                     .fg(Color::Cyan)
@@ -460,8 +470,8 @@ pub fn render_menu(f: &mut Frame, lessons: &[Lesson], selected: usize) {
                 crate::content::lesson::LessonType::Adaptive
             )
         {
-            items.push(ListItem::new(Line::from("")));
-            items.push(ListItem::new(Line::from(Span::styled(
+            all_items.push(ListItem::new(Line::from("")));
+            all_items.push(ListItem::new(Line::from(Span::styled(
                 "━━━ ADAPTIVE ━━━",
                 Style::default()
                     .fg(Color::Cyan)
@@ -480,12 +490,31 @@ pub fn render_menu(f: &mut Frame, lessons: &[Lesson], selected: usize) {
         let prefix = if i == selected { "▶ " } else { "  " };
         let content = format!("{}{}. {}", prefix, i + 1, lesson.title);
 
-        items.push(ListItem::new(Line::from(Span::styled(content, style))));
+        all_items.push(ListItem::new(Line::from(Span::styled(content, style))));
     }
 
-    let list = List::new(items).block(
+    // Calculate visible slice based on scroll offset
+    let total_items = all_items.len();
+    let visible_start = scroll_offset.min(total_items.saturating_sub(1));
+    let visible_end = (visible_start + menu_area_height).min(total_items);
+    let visible_items: Vec<ListItem> = all_items
+        .into_iter()
+        .skip(visible_start)
+        .take(visible_end - visible_start)
+        .collect();
+
+    // Add scroll indicator to title
+    let scroll_indicator = if total_items > menu_area_height {
+        format!(" (showing {}-{} of {})", visible_start + 1, visible_end, total_items)
+    } else {
+        String::new()
+    };
+
+    let title = format!("Typing Lessons{}", scroll_indicator);
+
+    let list = List::new(visible_items).block(
         Block::default()
-            .title("Typing Lessons")
+            .title(title)
             .borders(Borders::ALL),
     );
 
@@ -495,7 +524,7 @@ pub fn render_menu(f: &mut Frame, lessons: &[Lesson], selected: usize) {
     let instructions = vec![
         Line::from(""),
         Line::from(Span::styled(
-            "Use ↑/↓ or j/k to navigate  •  Press Enter/Space or 1-6 to start  •  ESC to quit",
+            "Use ↑/↓ or j/k to navigate  •  Press Enter/Space or 1-6 to select  •  ESC to quit",
             Style::default().fg(Color::Gray),
         )),
     ];
@@ -560,7 +589,7 @@ pub fn render_duration_menu(f: &mut Frame, selected: usize) {
     let instructions = vec![
         Line::from(""),
         Line::from(Span::styled(
-            "Use ↑/↓ or j/k to navigate  •  Press Enter/Space to continue  •  ESC to quit",
+            "Use ↑/↓ or j/k to navigate  •  Press Enter/Space to start  •  ESC to go back",
             Style::default().fg(Color::Gray),
         )),
     ];

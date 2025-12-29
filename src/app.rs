@@ -30,6 +30,7 @@ pub struct App {
     stats: Stats,
     selected_lesson: usize,
     lessons: Vec<Lesson>,
+    lesson_scroll_offset: usize,
     selected_duration: usize,
     selected_duration_value: crate::engine::SessionDuration,
     keyboard_visible: bool,
@@ -147,11 +148,12 @@ impl App {
 
         Ok(Self {
             session: None,
-            state: AppState::DurationMenu,
+            state: AppState::LessonMenu,  // Start with lesson selection
             storage,
             stats,
             selected_lesson: 0,
             lessons,
+            lesson_scroll_offset: 0,
             selected_duration: 2, // Default to 5 minutes (index 2)
             selected_duration_value: crate::engine::SessionDuration::FiveMinutes,
             keyboard_visible: true, // Default visible
@@ -212,11 +214,11 @@ impl App {
         loop {
             // Render
             terminal.draw(|f| match self.state {
+                AppState::LessonMenu => {
+                    ui::render_menu(f, &self.lessons, self.selected_lesson, self.lesson_scroll_offset);
+                }
                 AppState::DurationMenu => {
                     ui::render_duration_menu(f, self.selected_duration);
-                }
-                AppState::LessonMenu => {
-                    ui::render_menu(f, &self.lessons, self.selected_lesson);
                 }
                 AppState::Running | AppState::Completed => {
                     if let Some(session) = &self.session {
@@ -231,6 +233,7 @@ impl App {
                                 result.error_count,
                             );
                         } else {
+                            let lesson_name = &self.lessons[self.selected_lesson].title;
                             ui::render(
                                 f,
                                 session,
@@ -240,6 +243,7 @@ impl App {
                                 &self.keyboard_layout,
                                 &self.stats.adaptive_analytics,
                                 &self.keyboard_config,
+                                lesson_name,
                             );
                         }
                     }
@@ -292,9 +296,51 @@ impl App {
         }
 
         match self.state {
+            AppState::LessonMenu => match key.code {
+                KeyCode::Esc | KeyCode::Char('q') => {
+                    // Quit from first menu
+                    self.state = AppState::Quit;
+                }
+                KeyCode::Up | KeyCode::Char('k') => {
+                    if self.selected_lesson > 0 {
+                        self.selected_lesson -= 1;
+                        // Scroll up if selection goes above viewport
+                        if self.selected_lesson < self.lesson_scroll_offset {
+                            self.lesson_scroll_offset = self.selected_lesson;
+                        }
+                    }
+                }
+                KeyCode::Down | KeyCode::Char('j') => {
+                    if self.selected_lesson < self.lessons.len() - 1 {
+                        self.selected_lesson += 1;
+                        // Scroll down if selection goes below viewport (using conservative estimate of 20)
+                        let viewport_height = 20;
+                        if self.selected_lesson >= self.lesson_scroll_offset + viewport_height {
+                            self.lesson_scroll_offset = self.selected_lesson - viewport_height + 1;
+                        }
+                    }
+                }
+                KeyCode::Enter | KeyCode::Char(' ') => {
+                    // Go to duration menu after lesson selected
+                    self.state = AppState::DurationMenu;
+                }
+                KeyCode::Char(c) if c.is_ascii_digit() => {
+                    // Allow direct selection with numbers
+                    if let Some(digit) = c.to_digit(10) {
+                        let index = (digit as usize).saturating_sub(1);
+                        if index < self.lessons.len() {
+                            self.selected_lesson = index;
+                            // Go to duration menu after lesson selected
+                            self.state = AppState::DurationMenu;
+                        }
+                    }
+                }
+                _ => {}
+            },
             AppState::DurationMenu => match key.code {
                 KeyCode::Esc | KeyCode::Char('q') => {
-                    self.state = AppState::Quit;
+                    // Go back to lesson menu
+                    self.state = AppState::LessonMenu;
                 }
                 KeyCode::Up | KeyCode::Char('k') => {
                     if self.selected_duration > 0 {
@@ -308,47 +354,17 @@ impl App {
                     }
                 }
                 KeyCode::Enter | KeyCode::Char(' ') => {
-                    // Save selected duration and move to lesson menu
+                    // Save selected duration and start lesson
                     self.selected_duration_value =
                         crate::engine::SessionDuration::all()[self.selected_duration];
-                    self.state = AppState::LessonMenu;
-                }
-                _ => {}
-            },
-            AppState::LessonMenu => match key.code {
-                KeyCode::Esc | KeyCode::Char('q') => {
-                    // Go back to duration menu
-                    self.state = AppState::DurationMenu;
-                }
-                KeyCode::Up | KeyCode::Char('k') => {
-                    if self.selected_lesson > 0 {
-                        self.selected_lesson -= 1;
-                    }
-                }
-                KeyCode::Down | KeyCode::Char('j') => {
-                    if self.selected_lesson < self.lessons.len() - 1 {
-                        self.selected_lesson += 1;
-                    }
-                }
-                KeyCode::Enter | KeyCode::Char(' ') => {
                     self.start_lesson(self.selected_lesson);
-                }
-                KeyCode::Char(c) if c.is_ascii_digit() => {
-                    // Allow direct selection with numbers 1-6
-                    if let Some(digit) = c.to_digit(10) {
-                        let index = (digit as usize).saturating_sub(1);
-                        if index < self.lessons.len() {
-                            self.selected_lesson = index;
-                            self.start_lesson(index);
-                        }
-                    }
                 }
                 _ => {}
             },
             AppState::Running => match key.code {
                 KeyCode::Esc => {
-                    // Return to duration menu (discard session)
-                    self.state = AppState::DurationMenu;
+                    // Return to lesson menu (discard session)
+                    self.state = AppState::LessonMenu;
                     self.session = None;
                 }
                 KeyCode::Tab => {
@@ -383,13 +399,13 @@ impl App {
             AppState::Completed => {
                 match key.code {
                     KeyCode::Char('q') | KeyCode::Esc => {
-                        // Return to duration menu
-                        self.state = AppState::DurationMenu;
+                        // Return to lesson menu
+                        self.state = AppState::LessonMenu;
                         self.session = None;
                     }
                     KeyCode::Char('r') => {
-                        // Restart same lesson with same duration
-                        self.start_lesson(self.selected_lesson);
+                        // Re-select duration for restart
+                        self.state = AppState::DurationMenu;
                     }
                     _ => {}
                 }
