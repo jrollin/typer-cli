@@ -134,7 +134,6 @@ impl AzertyLayout {
         KeyboardRow {
             row_type: RowType::Number,
             keys: vec![
-                Key::new('²', Some('³'), Finger::LeftPinky), // Superscript 2/3 (first key)
                 Key::new('&', Some('1'), Finger::LeftPinky),
                 Key::new('é', Some('2'), Finger::LeftPinky),
                 Key::new('"', Some('3'), Finger::LeftRing),
@@ -358,16 +357,16 @@ mod tests {
     #[test]
     fn test_number_row_has_13_keys() {
         let layout = AzertyLayout::new();
-        assert_eq!(layout.rows[0].keys.len(), 13);
-        // First key should be ²
-        assert_eq!(layout.rows[0].keys[0].base, '²');
-        assert_eq!(layout.rows[0].keys[0].shift_variant, Some('³'));
-        // 12th key (index 11) - French AZERTY: ) is base, ° is shift
-        assert_eq!(layout.rows[0].keys[11].base, ')');
-        assert_eq!(layout.rows[0].keys[11].shift_variant, Some('°'));
+        assert_eq!(layout.rows[0].keys.len(), 12);
+        // First key should be &
+        assert_eq!(layout.rows[0].keys[0].base, '&');
+        assert_eq!(layout.rows[0].keys[0].shift_variant, Some('1'));
+        // 11th key (index 10) - French AZERTY: ) is base, ° is shift
+        assert_eq!(layout.rows[0].keys[10].base, ')');
+        assert_eq!(layout.rows[0].keys[10].shift_variant, Some('°'));
         // Last key should be =
-        assert_eq!(layout.rows[0].keys[12].base, '=');
-        assert_eq!(layout.rows[0].keys[12].shift_variant, Some('+'));
+        assert_eq!(layout.rows[0].keys[11].base, '=');
+        assert_eq!(layout.rows[0].keys[11].shift_variant, Some('+'));
     }
 
     #[test]
@@ -382,7 +381,6 @@ mod tests {
     #[test]
     fn test_shift_mapping_numbers() {
         let layout = AzertyLayout::new();
-        assert_eq!(layout.shift_mappings.get(&'²'), Some(&'³'));
         assert_eq!(layout.shift_mappings.get(&'1'), Some(&'&'));
         assert_eq!(layout.shift_mappings.get(&'5'), Some(&'('));
         assert_eq!(layout.shift_mappings.get(&'0'), Some(&'à'));
@@ -402,13 +400,11 @@ mod tests {
     fn test_get_base_key() {
         let layout = AzertyLayout::new();
         // Base characters (French AZERTY: symbols are base, numbers are shift)
-        assert_eq!(layout.get_base_key('²'), Some('²'));
         assert_eq!(layout.get_base_key('a'), Some('a'));
         assert_eq!(layout.get_base_key('q'), Some('q'));
         assert_eq!(layout.get_base_key('&'), Some('&')); // Base character
         assert_eq!(layout.get_base_key('é'), Some('é')); // Base character
                                                          // Shift variants (numbers require shift on French AZERTY)
-        assert_eq!(layout.get_base_key('³'), Some('²'));
         assert_eq!(layout.get_base_key('A'), Some('a'));
         assert_eq!(layout.get_base_key('Q'), Some('q'));
         assert_eq!(layout.get_base_key('1'), Some('&')); // 1 is shift of &

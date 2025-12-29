@@ -147,8 +147,11 @@ fn render_keyboard_row<'a>(
     // Add center padding
     spans.push(Span::raw("              ")); // 14 spaces
 
-    // Add modifier key box at start of row (Tab, Caps, Shift)
+    // Add modifier key box at start of row (E, Tab, Caps, Shift)
     match row.row_type {
+        RowType::Number => {
+            spans.push(Span::styled("[E] ", Style::default().fg(Color::DarkGray)));
+        }
         RowType::Top => {
             spans.push(Span::styled("[Tab] ", Style::default().fg(Color::DarkGray)));
         }

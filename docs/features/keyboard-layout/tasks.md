@@ -48,7 +48,7 @@
 ## Phase 3: Visual Keyboard Display ✓
 
 ### AZERTY Visual Layout (src/ui/keyboard.rs)
-- [x] Number row display ([²] [1] [2] [3]... base characters)
+- [x] Number row display ([E] [&] [é] ["] [']... with Escape key prefix)
 - [x] Top row with Tab key box ([Tab] [a] [z] [e]...)
 - [x] Home row with Caps Lock key box ([Caps] [q] [s] [d]...)
 - [x] Enter key as arrow ([←]) on home row right end
@@ -61,8 +61,8 @@
 
 ### Layout Data Model (src/keyboard/azerty.rs)
 - [x] Extended RowType enum with Modifier variant
-- [x] Complete number row (14 keys including ²)
-- [x] Shift variant mappings (² → ³, letters, symbols)
+- [x] Complete number row (12 keys, starting with &)
+- [x] Shift variant mappings (letters, symbols, numbers)
 - [x] Base key lookup (handles shift variants)
 - [x] Modifier row definition
 - [x] Unit tests (91 tests passing)

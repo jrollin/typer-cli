@@ -426,7 +426,7 @@ The visual keyboard display renders the full AZERTY layout with real-time next-k
 **Complete AZERTY visual layout:**
 
 ```
-│              [²] [1] [2] [3] [4] [5] [6] [7] [8] [9] [0] [°] [=]            │
+│              [E] [&] [é] ["] ['] [(] [-] [è] [_] [ç] [à] [)] [=]            │
 │              [Tab] [a] [z] [e] [r] [t] [y] [u] [i] [o] [p] [^] [$]          │
 │              [Caps] [q] [s] [d] [f] [g] [h] [j] [k] [l] [m] [ù] [*] [←]     │
 │              [ ⇧ ] [<] [w] [x] [c] [v] [b] [n] [,] [;] [:] [!] [ ⇧ ]        │
@@ -588,7 +588,7 @@ if key.base == '\n' {
 ```rust
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RowType {
-    Number,   // ²1234567890°=
+    Number,   // &é"'(-è_çà)=
     Top,      // azertyuiop^$
     Home,     // qsdfghjklmù*
     Bottom,   // <wxcvbn,;:!
