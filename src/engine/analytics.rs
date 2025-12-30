@@ -9,7 +9,7 @@ use super::types::CharInput;
 use super::types::TypingSession;
 
 /// Mastery level classification for keys and bigrams
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum MasteryLevel {
     Beginner,   // < 70% accuracy or < 5 attempts
     Learning,   // 70-85% accuracy

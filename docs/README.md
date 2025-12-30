@@ -184,9 +184,23 @@ Hierarchical navigation system for improved lesson discovery.
 - ESC navigation: Lessons → Categories → Quit
 - Context preservation after session completion
 
+#### [statistics-page/](features/statistics-page/) ✅ COMPLETED
+Performance analytics dashboard with visual keyboard heatmap.
+
+**Module**: `src/ui/render.rs`, `src/app.rs`
+
+- Overall session statistics (sessions, keystrokes, WPM, accuracy)
+- Mastery level breakdown (Mastered, Proficient, Learning, Beginner counts)
+- Top 10 weaknesses list (< 80% accuracy with error details)
+- Common mistype patterns (top 5 error patterns)
+- Visual keyboard heatmap with accuracy-based color coding
+- Two-column layout (40% stats / 60% heatmap)
+- Accessible via 's' key from main menu
+- Graceful placeholder when no analytics data exists
+
 ### Future Features (Phase 3+)
 
-- **Analytics visualization** - Heat maps, trend graphs, progress charts
+- **Enhanced analytics** - Trend graphs, progress charts over time, session history visualization
 - **Enhanced adaptive UI** - Pre/post-session feedback, progress indicators
 - **Data export** - JSON/CSV export for external analysis
 - **Themes** - Multiple color schemes, high contrast options
@@ -257,16 +271,16 @@ Module locations are documented in each feature's design.md:
 
 ## Project Status
 
-**Current Phase**: Phase 3.3 Complete (Two-Level Menu System) ✓
+**Current Phase**: Phase 3.5 Complete (Statistics Dashboard) ✓
 
 **Total Tests**: 129 passing
 - 13 tests: typing-session
 - 7 tests: home-row-lessons
 - 12 tests: bigram-training
 - 12 tests: code-symbols
-- 9 tests: analytics (NEW)
-- 9 tests: adaptive algorithms (NEW)
-- 6 tests: adaptive generator (NEW)
+- 9 tests: analytics
+- 9 tests: adaptive algorithms
+- 6 tests: adaptive generator
 - 7 tests: session-storage
 - 2 tests: keyboard-layout
 - 3 tests: content generation
@@ -284,10 +298,12 @@ Module locations are documented in each feature's design.md:
 - Phase 3.1: Layout improvements ✓
 - Phase 3.2: Finger training ✓
 - Phase 3.3: Two-level menu system ✓
+- Phase 3.4: Menu grouping ✓
+- Phase 3.5: Statistics dashboard ✓
 
 **Total Lessons**: 77 (52 standard + 24 finger training + 1 adaptive)
 
-**Next Phase**: Analytics visualization and data export (Phase 3+)
+**Next Phase**: Enhanced analytics (trend graphs, data export) and gamification (Phase 3+)
 
 ## Additional Resources
 

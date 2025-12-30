@@ -105,7 +105,7 @@ Located in `docs/steering/`:
   - Maintains category context after session completion
 
 **Phase 3.4 (Completed):**
-- **menu-grouping/** (`src/ui/render.rs`, `src/app.rs`) - Visual lesson grouping within categories ✅ NEW
+- **menu-grouping/** (`src/ui/render.rs`, `src/app.rs`) - Visual lesson grouping within categories
   - Category-aware lesson grouping with visual separators
   - **Languages category**: Grouped by language (French, English) with cyan separators
   - **Finger Training category**: Grouped by finger pair (Pinky, Ring, Middle, Index) with green separators
@@ -114,6 +114,17 @@ Located in `docs/steering/`:
   - Automatic blank line spacing between groups
   - Lesson ordering optimized for logical grouping
   - Improves navigation and lesson discovery within large categories
+
+**Phase 3.5 (Completed):**
+- **statistics-page/** (`src/ui/render.rs`, `src/app.rs`) - Comprehensive performance dashboard ✅ NEW
+  - Overall session statistics (sessions, keystrokes, WPM, accuracy)
+  - Mastery level breakdown (counts per classification: Mastered, Proficient, Learning, Beginner)
+  - Top 10 weaknesses list (< 80% accuracy with error details)
+  - Common mistype patterns (top 5 error patterns showing which keys are confused)
+  - Visual keyboard heatmap with accuracy-based color coding
+  - Accessible from main menu with 's' key
+  - Graceful placeholder when no analytics data exists
+  - Two-column layout optimized for terminal display (40% stats / 60% heatmap)
 
 **Complete documentation index**: See `docs/README.md` for navigation guide and feature details.
 

@@ -17,6 +17,7 @@ use crate::ui::keyboard::KeyboardConfig;
 #[derive(Debug, PartialEq)]
 enum AppState {
     LessonTypeMenu,
+    Statistics,
     LessonMenu,
     DurationMenu,
     Running,
@@ -241,6 +242,14 @@ impl App {
                 AppState::LessonTypeMenu => {
                     ui::render_lesson_type_menu(f, &self.categories, self.selected_category);
                 }
+                AppState::Statistics => {
+                    ui::render_statistics(
+                        f,
+                        &self.stats,
+                        &self.keyboard_layout,
+                        &self.keyboard_config,
+                    );
+                }
                 AppState::LessonMenu => {
                     let filtered_lessons: Vec<_> =
                         self.filtered_lessons().into_iter().cloned().collect();
@@ -342,6 +351,9 @@ impl App {
             AppState::LessonTypeMenu => match key.code {
                 KeyCode::Esc | KeyCode::Char('q') => {
                     self.state = AppState::Quit;
+                }
+                KeyCode::Char('s') | KeyCode::Char('S') => {
+                    self.state = AppState::Statistics;
                 }
                 KeyCode::Up | KeyCode::Char('k') => {
                     if self.selected_category > 0 {
@@ -504,6 +516,12 @@ impl App {
                     _ => {}
                 }
             }
+            AppState::Statistics => match key.code {
+                KeyCode::Esc | KeyCode::Char('q') => {
+                    self.state = AppState::LessonTypeMenu;
+                }
+                _ => {}
+            },
             AppState::Quit => {}
         }
 

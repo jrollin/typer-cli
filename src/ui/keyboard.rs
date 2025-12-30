@@ -10,11 +10,13 @@ use crate::engine::analytics::AdaptiveAnalytics;
 use crate::keyboard::{AzertyLayout, Hand, Key, RowType};
 
 /// Keyboard display configuration
+#[derive(Clone)]
 pub struct KeyboardConfig {
     pub _show_shift_indicators: bool,
     pub show_heatmap: bool,
     pub show_finger_colors: bool,
     pub _compact_mode: bool,
+    pub show_footer_shortcuts: bool,
 }
 
 impl Default for KeyboardConfig {
@@ -24,6 +26,7 @@ impl Default for KeyboardConfig {
             show_heatmap: false,
             show_finger_colors: true,
             _compact_mode: false,
+            show_footer_shortcuts: true,
         }
     }
 }
@@ -37,7 +40,7 @@ fn get_accuracy_color(accuracy: f64) -> Color {
     } else if accuracy >= 70.0 {
         Color::LightRed // Learning: 70-80%
     } else {
-        Color::Red // Weak: <70%
+        Color::Blue // Weak: <70%
     }
 }
 
@@ -318,15 +321,15 @@ pub fn render_keyboard(
             Span::styled("■", Style::default().fg(Color::Green)),
             Span::raw(" Mastered (90%+)   "),
             Span::styled("■", Style::default().fg(Color::Yellow)),
-            Span::raw(" Good (80-90%)"),
+            Span::raw(" Proficient (80-90%)"),
         ]);
 
         let legend2 = Line::from(vec![
             Span::raw(" "),
             Span::styled("■", Style::default().fg(Color::LightRed)),
             Span::raw(" Learning (70-80%) "),
-            Span::styled("■", Style::default().fg(Color::Red)),
-            Span::raw(" Weak (<70%)"),
+            Span::styled("■", Style::default().fg(Color::Blue)),
+            Span::raw(" Beginner (<70%)"),
         ]);
 
         lines.push(legend1);
@@ -361,13 +364,16 @@ pub fn render_keyboard(
         lines.push(legend2);
     }
 
-    // Footer hint - always show all available toggles
-    lines.push(Line::from(""));
-    let footer_text = " Tab: hide keyboard | Ctrl+H: toggle heatmap | Ctrl+F: toggle finger colors";
-    lines.push(Line::from(Span::styled(
-        footer_text,
-        Style::default().fg(Color::DarkGray),
-    )));
+    // Footer hint - only show in typing session context
+    if config.show_footer_shortcuts {
+        lines.push(Line::from(""));
+        let footer_text =
+            " Tab: hide keyboard | Ctrl+H: toggle heatmap | Ctrl+F: toggle finger colors";
+        lines.push(Line::from(Span::styled(
+            footer_text,
+            Style::default().fg(Color::DarkGray),
+        )));
+    }
 
     let keyboard_widget = Paragraph::new(lines)
         .block(
