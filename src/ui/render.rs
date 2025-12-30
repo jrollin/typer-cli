@@ -59,7 +59,7 @@ fn find_cursor_line(lines: &[String], char_pos: usize) -> (usize, usize) {
     for (line_idx, line) in lines.iter().enumerate() {
         let line_len = line.chars().count();
         if char_pos < char_count + line_len {
-            return (line_idx, char_pos - char_count);
+            return (line_idx, char_pos.saturating_sub(char_count));
         }
         char_count += line_len + 1; // +1 for space between words
     }
