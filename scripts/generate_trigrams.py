@@ -55,7 +55,7 @@ FRENCH_EXAMPLES = {
     "par": ["par", "part", "parler", "parent", "partir", "partout", "pardon", "parfait", "parcours", "pareil"],
     "pou": ["pour", "pou", "pouvoir", "poule", "poupée", "poussière", "pourtant", "pourquoi", "pouce", "poumon"],
     "dan": ["dans", "danse", "danger", "dangereux", "dandine", "dandy", "danois", "danseur", "dandiner", "dantesque"],
-    "tre": ["être", "entre", "quatre", "fenêtre", "lettre", "mettre", "battre", "centre", "montre", "theatre"],
+    "tre": ["être", "entre", "quatre", "fenêtre", "lettre", "mettre", "battre", "centre", "montre", "théâtre"],
     "lle": ["elle", "belle", "celle", "quelle", "nouvelle", "vielle", "aller", "appelle", "mademoiselle", "ville"],
 }
 
@@ -81,6 +81,20 @@ ENGLISH_EXAMPLES = {
     "ess": ["ess", "less", "mess", "press", "stress", "dress", "process", "success", "business", "unless"],
     "eve": ["eve", "ever", "every", "even", "event", "level", "seven", "never", "clever", "however"],
 }
+
+
+def validate_examples(pattern: str, examples: List[str]) -> bool:
+    """
+    Validate that all examples contain the pattern (case-insensitive).
+
+    Returns: True if all examples are valid, False otherwise
+    """
+    all_valid = True
+    for example in examples:
+        if pattern.lower() not in example.lower():
+            print(f"⚠️  WARNING: '{example}' does not contain '{pattern}'")
+            all_valid = False
+    return all_valid
 
 
 def normalize_frequencies(trigrams: List[Tuple[str, float]], count: int = 20) -> List[Tuple[str, float, float]]:
@@ -141,6 +155,27 @@ def main():
     print()
     print(f"Generating top {TRIGRAM_COUNT} trigrams per language...")
     print()
+
+    # Validate examples before normalizing
+    print("Validating English examples...")
+    english_valid = True
+    for trigram, _ in ENGLISH_TOP_20[:TRIGRAM_COUNT]:
+        examples = ENGLISH_EXAMPLES.get(trigram, [])
+        if not validate_examples(trigram, examples):
+            english_valid = False
+
+    print("Validating French examples...")
+    french_valid = True
+    for trigram, _ in FRENCH_TOP_20[:TRIGRAM_COUNT]:
+        examples = FRENCH_EXAMPLES.get(trigram, [])
+        if not validate_examples(trigram, examples):
+            french_valid = False
+
+    if not (english_valid and french_valid):
+        print("\n⚠️  WARNING: Some examples do not contain their trigrams!")
+        print("Please fix the examples before using the generated code.\n")
+    else:
+        print("✅ All examples validated successfully!\n")
 
     # Normalize frequencies
     english_normalized = normalize_frequencies(ENGLISH_TOP_20, TRIGRAM_COUNT)

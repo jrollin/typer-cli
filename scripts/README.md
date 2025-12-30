@@ -1,6 +1,6 @@
-# Bigram Research Scripts
+# Content Generation Scripts
 
-This directory contains scripts for researching and updating bigram frequency data used in typer-cli's pattern training.
+This directory contains scripts for generating Rust code for bigrams, trigrams, and common words used in typer-cli's pattern training.
 
 ## Overview
 
@@ -31,8 +31,10 @@ Bigrams are 2-letter combinations (like "th", "qu", "es") that appear frequently
 
 ```
 scripts/
-├── README.md              # This file
-└── update_bigrams.py      # Main research and generation script
+├── README.md                    # This file
+├── generate_bigrams.py          # Bigram code generation
+├── generate_trigrams.py         # Trigram code generation
+└── generate_common_words.py     # Common words code generation
 ```
 
 ## Usage
@@ -43,7 +45,7 @@ Run the script to generate Rust code with corpus-backed bigram data:
 
 ```bash
 cd /home/julien/projects/typer-cli
-python3 scripts/update_bigrams.py
+python3 scripts/generate_bigrams.py
 ```
 
 ### Output
@@ -95,6 +97,31 @@ After running the script:
 
 ## Data Validation
 
+### French Accentuation Policy
+
+All French examples **MUST** use proper accent marks to ensure authentic typing practice:
+
+**Required accent marks:**
+- `é, è, ê` (acute, grave, circumflex e)
+- `à, â` (grave, circumflex a)
+- `ç` (cedilla)
+- `ô, ù, î, ï, œ` (other diacritics)
+
+**Rationale:**
+1. **Authentic French typing practice** - Users learn to type real French words
+2. **Consistency with bigram examples** - All scripts use same standards
+3. **Better language learning** - Reinforces proper spelling
+4. **Aligns with real-world usage** - Matches actual French texts
+
+**Validation:**
+- Scripts include automatic validation via `validate_examples()` function
+- Run tests after integration: `cargo test` validates examples contain patterns
+- Manual review recommended for accented patterns to ensure proper matching
+
+**Note:** Some validation warnings for accented patterns (e.g., "très" contains "es" but validator may not match due to accent normalization) are expected and should be manually verified.
+
+---
+
 ### Frequency Normalization
 
 Frequencies are normalized using linear interpolation:
@@ -112,11 +139,12 @@ This creates:
 ### Example Word Selection Criteria
 
 Example words must:
-- Contain the target bigram (validated by test)
+- Contain the target bigram/trigram (validated by test)
 - Be common in contemporary usage
 - Vary in word length (short → long)
 - Include different word types (nouns, verbs, adjectives)
 - Be appropriate for typing practice (no profanity)
+- **For French:** Include proper accent marks (see policy above)
 
 ## Frequency Data
 
@@ -187,7 +215,7 @@ Update bigram data when:
 1. Update frequency data in `ENGLISH_TOP_100` or `FRENCH_TOP_100`
 2. Add/update example words in `ENGLISH_EXAMPLES` or `FRENCH_EXAMPLES`
 3. Adjust `BIGRAM_COUNT` if needed
-4. Run script: `python3 scripts/update_bigrams.py`
+4. Run script: `python3 scripts/generate_bigrams.py`
 5. Review and integrate generated code
 6. Update tests if needed
 7. Document changes in git commit

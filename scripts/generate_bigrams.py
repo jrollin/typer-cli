@@ -149,6 +149,20 @@ ENGLISH_EXAMPLES = {
 }
 
 
+def validate_examples(pattern: str, examples: List[str]) -> bool:
+    """
+    Validate that all examples contain the pattern (case-insensitive).
+
+    Returns: True if all examples are valid, False otherwise
+    """
+    all_valid = True
+    for example in examples:
+        if pattern.lower() not in example.lower():
+            print(f"⚠️  WARNING: '{example}' does not contain '{pattern}'")
+            all_valid = False
+    return all_valid
+
+
 def normalize_frequencies(bigrams: List[Tuple[str, float]], count: int = 30) -> List[Tuple[str, float, float]]:
     """
     Normalize top N bigram frequencies to 0.70-1.00 range for typing practice.
@@ -205,7 +219,28 @@ def main():
     print("  - French: Lexique database & French corpus analysis")
     print(f"\nGenerating top {BIGRAM_COUNT} bigrams per language...\n")
 
-    # Generate top 20 for each language
+    # Validate examples before normalizing
+    print("Validating English examples...")
+    english_valid = True
+    for bigram, _ in ENGLISH_TOP_100[:BIGRAM_COUNT]:
+        examples = ENGLISH_EXAMPLES.get(bigram, [])
+        if not validate_examples(bigram, examples):
+            english_valid = False
+
+    print("Validating French examples...")
+    french_valid = True
+    for bigram, _ in FRENCH_TOP_100[:BIGRAM_COUNT]:
+        examples = FRENCH_EXAMPLES.get(bigram, [])
+        if not validate_examples(bigram, examples):
+            french_valid = False
+
+    if not (english_valid and french_valid):
+        print("\n⚠️  WARNING: Some examples do not contain their bigrams!")
+        print("Please fix the examples before using the generated code.\n")
+    else:
+        print("✅ All examples validated successfully!\n")
+
+    # Generate top 40 for each language
     english_normalized = normalize_frequencies(ENGLISH_TOP_100, BIGRAM_COUNT)
     french_normalized = normalize_frequencies(FRENCH_TOP_100, BIGRAM_COUNT)
 
