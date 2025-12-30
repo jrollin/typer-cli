@@ -48,7 +48,7 @@ Typer CLI is a terminal-based keyboard typing training tool. It provides an inte
 - ✅ **Smart Drills**: Auto-generated 3-phase patterns (repetitions, pairs, triplets)
 - ✅ **Prioritized Menu**: Finger training appears second (after adaptive mode)
 
-### Two-Level Menu System (Phase 3.3) ✅ NEW
+### Two-Level Menu System (Phase 3.3) ✅
 - ✅ **Category Navigation**: Browse lessons by type (Adaptive, Finger Training, Key Training, Languages, Code)
 - ✅ **Filtered Views**: See only relevant lessons for selected category
 - ✅ **Visual Descriptions**: Each category has a clear description and color coding
@@ -56,6 +56,14 @@ Typer CLI is a terminal-based keyboard typing training tool. It provides an inte
 - ✅ **Intuitive Flow**: Category → Lesson → Duration → Practice
 - ✅ **Smart ESC Navigation**: Lessons → Categories → Quit
 - ✅ **Context Preservation**: Returns to same category after completing session
+
+### Menu Grouping (Phase 3.4) ✅ NEW
+- ✅ **Visual Separators**: Lessons organized with colored dividers within categories
+- ✅ **Language Grouping**: Languages category groups French and English lessons separately
+- ✅ **Finger Grouping**: Finger Training groups by finger pair (Pinky, Ring, Middle, Index)
+- ✅ **Code Grouping**: Code category groups Code Patterns, TypeScript, Rust, and Python
+- ✅ **Color-Coded**: Separators match category colors for visual consistency
+- ✅ **Improved Navigation**: Easier to find and browse lessons within large categories
 
 **Total Lessons**: 77 (52 standard + 24 finger training + 1 adaptive)
 

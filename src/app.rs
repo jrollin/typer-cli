@@ -131,39 +131,35 @@ impl App {
 
         // SECONDARY SECTION: Programming & Languages (27 lessons) - NOW LAST
 
-        // French Bigram lessons (3 lessons)
+        // --- FRENCH LANGUAGE LESSONS (12 lessons) ---
+        // French Bigram lessons (4 lessons)
         lessons.extend(Lesson::bigram_lessons(
             BigramType::Natural,
             Some(Language::French),
         ));
+        // French Trigram lessons (4 lessons)
+        lessons.extend(Lesson::trigram_lessons(Language::French));
+        // French Common Words (4 lessons)
+        lessons.extend(Lesson::common_word_lessons(Language::French));
 
-        // English Bigram lessons (3 lessons)
+        // --- ENGLISH LANGUAGE LESSONS (12 lessons) ---
+        // English Bigram lessons (4 lessons)
         lessons.extend(Lesson::bigram_lessons(
             BigramType::Natural,
             Some(Language::English),
         ));
-
-        // Code Bigram lessons (4 lessons)
-        lessons.extend(Lesson::bigram_lessons(BigramType::Code, None));
-
-        // French Trigram lessons (4 lessons)
-        lessons.extend(Lesson::trigram_lessons(Language::French));
-
         // English Trigram lessons (4 lessons)
         lessons.extend(Lesson::trigram_lessons(Language::English));
-
-        // French Common Words (4 lessons)
-        lessons.extend(Lesson::common_word_lessons(Language::French));
-
         // English Common Words (4 lessons)
         lessons.extend(Lesson::common_word_lessons(Language::English));
 
+        // --- CODE LESSONS (22 lessons) ---
+        // Code Bigram lessons (4 lessons)
+        lessons.extend(Lesson::bigram_lessons(BigramType::Code, None));
         // TypeScript Code Symbols (6 lessons)
         lessons.extend(Lesson::code_symbol_lessons(ProgrammingLanguage::TypeScript));
-
         // Rust Code Symbols (6 lessons)
         lessons.extend(Lesson::code_symbol_lessons(ProgrammingLanguage::Rust));
-
         // Python Code Symbols (6 lessons)
         lessons.extend(Lesson::code_symbol_lessons(ProgrammingLanguage::Python));
 

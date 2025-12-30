@@ -445,22 +445,218 @@ pub fn render_menu(
     // Calculate visible area height (minus borders and padding)
     let menu_area_height = chunks[1].height.saturating_sub(2) as usize;
 
-    // Build lesson items (simplified - no category separators)
+    // Build lesson items with category-specific grouping separators
     let mut all_items: Vec<ListItem> = Vec::new();
 
-    for (i, lesson) in lessons.iter().enumerate() {
-        let style = if i == selected {
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD)
-        } else {
-            Style::default().fg(Color::White)
-        };
+    match category_name {
+        Some("Languages") => {
+            // Group lessons by language
+            use crate::content::bigram::Language;
+            use crate::content::lesson::LessonType;
 
-        let prefix = if i == selected { "▶ " } else { "  " };
-        let content = format!("{}{}. {}", prefix, i + 1, lesson.title);
+            let mut current_language: Option<Language> = None;
 
-        all_items.push(ListItem::new(Line::from(Span::styled(content, style))));
+            for (i, lesson) in lessons.iter().enumerate() {
+                // Detect language from lesson type
+                let lesson_language = match &lesson.lesson_type {
+                    LessonType::Bigram {
+                        language: Some(lang),
+                        ..
+                    }
+                    | LessonType::Trigram { language: lang, .. }
+                    | LessonType::CommonWords { language: lang, .. } => Some(*lang),
+                    _ => None,
+                };
+
+                // Add separator when language changes
+                if lesson_language != current_language && lesson_language.is_some() {
+                    current_language = lesson_language;
+
+                    // Add blank line before separator (except for first group)
+                    if i > 0 {
+                        all_items.push(ListItem::new(Line::from("")));
+                    }
+
+                    // Add language separator
+                    let language_name = match current_language {
+                        Some(Language::French) => "FRENCH",
+                        Some(Language::English) => "ENGLISH",
+                        None => "",
+                    };
+
+                    all_items.push(ListItem::new(Line::from(Span::styled(
+                        format!("─── {} ───", language_name),
+                        Style::default()
+                            .fg(Color::Cyan)
+                            .add_modifier(Modifier::BOLD),
+                    ))));
+                }
+
+                // Add lesson item
+                let style = if i == selected {
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD)
+                } else {
+                    Style::default().fg(Color::White)
+                };
+
+                let prefix = if i == selected { "▶ " } else { "  " };
+                let content = format!("{}{}. {}", prefix, i + 1, lesson.title);
+
+                all_items.push(ListItem::new(Line::from(Span::styled(content, style))));
+            }
+        }
+        Some("Finger Training") => {
+            // Group lessons by finger pair
+            use crate::content::lesson::{FingerPairType, LessonType};
+
+            let mut current_finger_pair: Option<FingerPairType> = None;
+
+            for (i, lesson) in lessons.iter().enumerate() {
+                // Detect finger pair from lesson type
+                let lesson_finger_pair = match &lesson.lesson_type {
+                    LessonType::FingerPair { finger_pair, .. } => Some(*finger_pair),
+                    _ => None,
+                };
+
+                // Add separator when finger pair changes
+                if lesson_finger_pair != current_finger_pair && lesson_finger_pair.is_some() {
+                    current_finger_pair = lesson_finger_pair;
+
+                    // Add blank line before separator (except for first group)
+                    if i > 0 {
+                        all_items.push(ListItem::new(Line::from("")));
+                    }
+
+                    // Add finger pair separator
+                    let finger_name = match current_finger_pair {
+                        Some(FingerPairType::Pinky) => "PINKY FINGERS",
+                        Some(FingerPairType::Ring) => "RING FINGERS",
+                        Some(FingerPairType::Middle) => "MIDDLE FINGERS",
+                        Some(FingerPairType::Index) => "INDEX FINGERS",
+                        None => "",
+                    };
+
+                    all_items.push(ListItem::new(Line::from(Span::styled(
+                        format!("─── {} ───", finger_name),
+                        Style::default()
+                            .fg(Color::Green)
+                            .add_modifier(Modifier::BOLD),
+                    ))));
+                }
+
+                // Add lesson item
+                let style = if i == selected {
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD)
+                } else {
+                    Style::default().fg(Color::White)
+                };
+
+                let prefix = if i == selected { "▶ " } else { "  " };
+                let content = format!("{}{}. {}", prefix, i + 1, lesson.title);
+
+                all_items.push(ListItem::new(Line::from(Span::styled(content, style))));
+            }
+        }
+        Some("Code") => {
+            // Group lessons by type (code bigrams vs language-specific symbols)
+            use crate::content::bigram::BigramType;
+            use crate::content::code_symbols::ProgrammingLanguage;
+            use crate::content::lesson::LessonType;
+
+            #[derive(Debug, PartialEq, Clone, Copy)]
+            enum CodeGroupType {
+                CodeBigrams,
+                TypeScript,
+                Rust,
+                Python,
+            }
+
+            let mut current_group: Option<CodeGroupType> = None;
+
+            for (i, lesson) in lessons.iter().enumerate() {
+                // Detect code group type from lesson type
+                let lesson_group = match &lesson.lesson_type {
+                    LessonType::Bigram {
+                        bigram_type: BigramType::Code,
+                        ..
+                    } => Some(CodeGroupType::CodeBigrams),
+                    LessonType::CodeSymbols {
+                        language: ProgrammingLanguage::TypeScript,
+                        ..
+                    } => Some(CodeGroupType::TypeScript),
+                    LessonType::CodeSymbols {
+                        language: ProgrammingLanguage::Rust,
+                        ..
+                    } => Some(CodeGroupType::Rust),
+                    LessonType::CodeSymbols {
+                        language: ProgrammingLanguage::Python,
+                        ..
+                    } => Some(CodeGroupType::Python),
+                    _ => None,
+                };
+
+                // Add separator when group changes
+                if lesson_group != current_group && lesson_group.is_some() {
+                    current_group = lesson_group;
+
+                    // Add blank line before separator (except for first group)
+                    if i > 0 {
+                        all_items.push(ListItem::new(Line::from("")));
+                    }
+
+                    // Add group separator
+                    let group_name = match current_group {
+                        Some(CodeGroupType::CodeBigrams) => "CODE PATTERNS",
+                        Some(CodeGroupType::TypeScript) => "TYPESCRIPT",
+                        Some(CodeGroupType::Rust) => "RUST",
+                        Some(CodeGroupType::Python) => "PYTHON",
+                        None => "",
+                    };
+
+                    all_items.push(ListItem::new(Line::from(Span::styled(
+                        format!("─── {} ───", group_name),
+                        Style::default()
+                            .fg(Color::Magenta)
+                            .add_modifier(Modifier::BOLD),
+                    ))));
+                }
+
+                // Add lesson item
+                let style = if i == selected {
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD)
+                } else {
+                    Style::default().fg(Color::White)
+                };
+
+                let prefix = if i == selected { "▶ " } else { "  " };
+                let content = format!("{}{}. {}", prefix, i + 1, lesson.title);
+
+                all_items.push(ListItem::new(Line::from(Span::styled(content, style))));
+            }
+        }
+        _ => {
+            // Standard rendering for other categories (Key Training, Adaptive)
+            for (i, lesson) in lessons.iter().enumerate() {
+                let style = if i == selected {
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD)
+                } else {
+                    Style::default().fg(Color::White)
+                };
+
+                let prefix = if i == selected { "▶ " } else { "  " };
+                let content = format!("{}{}. {}", prefix, i + 1, lesson.title);
+
+                all_items.push(ListItem::new(Line::from(Span::styled(content, style))));
+            }
+        }
     }
 
     // Calculate visible slice based on scroll offset

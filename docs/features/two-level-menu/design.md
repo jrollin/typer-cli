@@ -110,20 +110,30 @@ fn absolute_lesson_index(&self, relative_index: usize) -> Option<usize> {
 ┌─────────────────────────────────────┐
 │  TYPER CLI - Finger Training Lessons│  ← Header with category
 ├─────────────────────────────────────┤
-│  ▶ 1. Pinky fingers - Home row     │
-│    2. Pinky fingers - Home + Shift │
-│    3. Pinky fingers - Extended     │
+│  ─── PINKY FINGERS ───              │  ← Group separator (green)
+│  ▶ 1. Pinky Fingers - Home Row     │
+│    2. Pinky Fingers - Home Row + Shift│
+│    3. Pinky Fingers - Extended     │
+│    4. Pinky Fingers - Extended + Shift│
+│    5. Pinky Fingers - All Keys     │
+│    6. Pinky Fingers - All Keys + Shift│
+│                                     │
+│  ─── RING FINGERS ───               │  ← Group separator (green)
+│    7. Ring Fingers - Home Row      │
 │  ...                                │
 ├─────────────────────────────────────┤
 │  ↑/↓ or j/k • Enter/1-9 • ESC back │  ← "go back" not "quit"
 └─────────────────────────────────────┘
 ```
 
-**Key Changes**:
-- No category separators (handled by separate screen)
-- Simpler lesson list rendering
-- Category name in header
-- "ESC to go back" instruction
+**Visual Grouping** (Phase 3.4):
+- Visual separators group lessons within categories by logical type
+- Languages: Grouped by language (French, English) - cyan separators
+- Finger Training: Grouped by finger pair (Pinky, Ring, Middle, Index) - green separators
+- Code: Grouped by type/language (Code Patterns, TypeScript, Rust, Python) - magenta separators
+- Separators use category colors for visual consistency
+- Blank line spacing between groups for readability
+- Key Training and Adaptive categories use standard rendering (no grouping)
 
 ## Event Handling
 

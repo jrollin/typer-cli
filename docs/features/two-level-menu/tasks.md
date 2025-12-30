@@ -117,21 +117,70 @@
   - [x] Update structure.md with category module
   - [x] Update docs/README.md index
 
+## Phase 3.4: Menu Grouping Enhancement ✅
+
+### Visual Grouping Implementation ✅
+
+- [x] **Add language grouping to Languages category** (`src/ui/render.rs`)
+  - [x] Detect language from lesson types (Bigram, Trigram, CommonWords)
+  - [x] Add "─── FRENCH ───" and "─── ENGLISH ───" separators
+  - [x] Use cyan color matching category
+  - [x] Add blank line spacing between groups
+
+- [x] **Add finger pair grouping to Finger Training category** (`src/ui/render.rs`)
+  - [x] Detect finger pair from lesson type
+  - [x] Add separators for Pinky, Ring, Middle, Index fingers
+  - [x] Use green color matching category
+  - [x] Add blank line spacing between groups
+
+- [x] **Add code grouping to Code category** (`src/ui/render.rs`)
+  - [x] Detect code group type (Code Bigrams, TypeScript, Rust, Python)
+  - [x] Add "─── CODE PATTERNS ───" separator for code bigrams
+  - [x] Add language-specific separators for TypeScript, Rust, Python
+  - [x] Use magenta color matching category
+  - [x] Add blank line spacing between groups
+
+- [x] **Reorganize lesson ordering** (`src/app.rs`)
+  - [x] Group French language lessons together (Bigrams, Trigrams, Words)
+  - [x] Group English language lessons together (Bigrams, Trigrams, Words)
+  - [x] Ensure finger pair lessons maintain grouping order
+  - [x] Ensure code lessons maintain grouping order
+
+- [x] **Testing and validation**
+  - [x] Build passes (cargo build)
+  - [x] All 129 tests passing
+  - [x] Clippy passes
+  - [x] Code formatted
+
+- [x] **Update documentation**
+  - [x] Update CLAUDE.md with Phase 3.4
+  - [x] Update README.md with Menu Grouping feature
+  - [x] Update design.md with visual grouping section
+
 ## Summary
 
-**Implementation Date**: 2025-12-30
-**Total Tasks**: 38 completed
-**Files Modified**: 6 (app.rs, render.rs, mod.rs × 2, CLAUDE.md, README.md)
+**Phase 3.3 Implementation Date**: 2025-12-30
+**Phase 3.4 Implementation Date**: 2025-12-30
+**Total Tasks**: 52 completed (38 core + 14 grouping)
+**Files Modified**: 4 (app.rs, render.rs, CLAUDE.md, README.md, design.md)
 **Files Created**: 5 (category.rs, requirements.md, design.md, tasks.md, docs updates)
 **Tests**: 129 passing (no regressions)
 **Code Quality**: All checks passing
 
 ## Benefits Delivered
 
+### Phase 3.3 (Two-Level Menu)
 1. **Improved Navigation**: Hierarchical structure reduces cognitive load
 2. **Better Organization**: Lessons grouped by logical categories
 3. **Enhanced Discoverability**: Clear descriptions help users find relevant lessons
-4. **Cleaner UI**: No category separators in lesson lists
-5. **Intuitive Flow**: ESC navigation follows natural hierarchy
-6. **Context Preservation**: Returns to same category after sessions
-7. **Backwards Compatible**: All existing functionality preserved
+4. **Intuitive Flow**: ESC navigation follows natural hierarchy
+5. **Context Preservation**: Returns to same category after sessions
+6. **Backwards Compatible**: All existing functionality preserved
+
+### Phase 3.4 (Menu Grouping)
+7. **Visual Organization**: Related lessons visually grouped within categories
+8. **Easier Scanning**: Clear separators improve lesson discovery
+9. **Language Clarity**: French and English lessons clearly separated
+10. **Finger Pair Focus**: Each finger pair visually distinct in menu
+11. **Code Organization**: Generic patterns vs language-specific symbols clearly marked
+12. **Color Consistency**: Separators match category colors for visual coherence

@@ -11,6 +11,7 @@ Quick reference for AI assistants working on this project.
 **Phase 3.1: Layout Improvements** - ✅ Completed
 **Phase 3.2: Finger Training** - ✅ Completed
 **Phase 3.3: Two-Level Menu System** - ✅ Completed
+**Phase 3.4: Menu Grouping** - ✅ Completed
 **Current Focus**: Phase 3+ (Analytics visualization, data export, gamification)
 
 ## Project Overview
@@ -92,7 +93,7 @@ Located in `docs/steering/`:
   - Heatmap disabled by default (Ctrl+H to enable)
 
 **Phase 3.3 (Completed):**
-- **two-level-menu/** (`src/content/category.rs`, `src/app.rs`, `src/ui/render.rs`) - Hierarchical navigation system ✅ NEW
+- **two-level-menu/** (`src/content/category.rs`, `src/app.rs`, `src/ui/render.rs`) - Hierarchical navigation system
   - Two-screen navigation: Category selection → Lesson selection
   - 5 lesson categories: Adaptive, Finger Training, Key Training, Languages, Code
   - Category-based lesson filtering (simplified menu rendering)
@@ -102,6 +103,17 @@ Located in `docs/steering/`:
   - Navigation flow: Category menu → Filtered lessons → Duration → Session
   - ESC navigation: Lessons → Categories → Quit
   - Maintains category context after session completion
+
+**Phase 3.4 (Completed):**
+- **menu-grouping/** (`src/ui/render.rs`, `src/app.rs`) - Visual lesson grouping within categories ✅ NEW
+  - Category-aware lesson grouping with visual separators
+  - **Languages category**: Grouped by language (French, English) with cyan separators
+  - **Finger Training category**: Grouped by finger pair (Pinky, Ring, Middle, Index) with green separators
+  - **Code category**: Grouped by type/language (Code Patterns, TypeScript, Rust, Python) with magenta separators
+  - Separators use category colors for visual consistency
+  - Automatic blank line spacing between groups
+  - Lesson ordering optimized for logical grouping
+  - Improves navigation and lesson discovery within large categories
 
 **Complete documentation index**: See `docs/README.md` for navigation guide and feature details.
 
