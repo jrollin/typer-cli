@@ -137,8 +137,20 @@ impl App {
             Some(Language::English),
         ));
 
-        // Code Bigram lessons (3 lessons)
+        // Code Bigram lessons (4 lessons)
         lessons.extend(Lesson::bigram_lessons(BigramType::Code, None));
+
+        // French Trigram lessons (4 lessons)
+        lessons.extend(Lesson::trigram_lessons(Language::French));
+
+        // English Trigram lessons (4 lessons)
+        lessons.extend(Lesson::trigram_lessons(Language::English));
+
+        // French Common Words (4 lessons)
+        lessons.extend(Lesson::common_word_lessons(Language::French));
+
+        // English Common Words (4 lessons)
+        lessons.extend(Lesson::common_word_lessons(Language::English));
 
         // TypeScript Code Symbols (6 lessons)
         lessons.extend(Lesson::code_symbol_lessons(ProgrammingLanguage::TypeScript));

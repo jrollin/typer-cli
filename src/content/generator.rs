@@ -1,6 +1,8 @@
 use super::bigram_generator::BigramGenerator;
 use super::code_generator::CodeSymbolGenerator;
+use super::common_word_generator::CommonWordGenerator;
 use super::lesson::{get_shifted_char, Lesson, LessonType, KEY_PAIR_GROUPS, KEY_PAIR_LESSONS};
+use super::trigram_generator::TrigramGenerator;
 use rand::seq::SliceRandom;
 use rand::Rng;
 
@@ -41,6 +43,14 @@ impl ContentGenerator for Lesson {
                 level,
             } => {
                 let generator = BigramGenerator::new(*bigram_type, *language);
+                generator.generate(*level, length)
+            }
+            LessonType::Trigram { language, level } => {
+                let generator = TrigramGenerator::new(*language);
+                generator.generate(*level, length)
+            }
+            LessonType::CommonWords { language, level } => {
+                let generator = CommonWordGenerator::new(*language);
                 generator.generate(*level, length)
             }
             LessonType::CodeSymbols { language, level } => {

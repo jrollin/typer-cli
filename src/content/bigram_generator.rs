@@ -23,13 +23,14 @@ impl BigramGenerator {
     /// Level 1: Drill mode (pure repetition)
     /// Level 2: Word mode (contextual words)
     /// Level 3: Mixed mode (realistic sentences)
+    /// Level 4: Mixed mode with all bigrams
     pub fn generate(&self, level: usize, length: usize) -> String {
         let selected_bigrams = self.select_bigrams_for_level(level);
 
         match level {
             1 => self.generate_drill_mode(&selected_bigrams, length),
             2 => self.generate_word_mode(&selected_bigrams, length),
-            3 => self.generate_mixed_mode(&selected_bigrams, length),
+            3 | 4 => self.generate_mixed_mode(&selected_bigrams, length),
             _ => String::new(),
         }
     }
@@ -38,8 +39,9 @@ impl BigramGenerator {
     fn select_bigrams_for_level(&self, level: usize) -> Vec<&Bigram> {
         let count = match level {
             1 => 5,  // Top 5 most common
-            2 => 7,  // Top 7
-            3 => 10, // Top 10
+            2 => 10, // Top 10 (doubles)
+            3 => 20, // Top 20 (doubles again)
+            4 => 40, // All 40 (PERFECT DOUBLING!)
             _ => 5,
         };
 
@@ -133,7 +135,7 @@ mod tests {
         assert!(content.len() <= 30);
 
         // Should contain repeated bigrams
-        assert!(content.contains("qu qu qu") || content.contains("ou ou ou"));
+        assert!(content.contains("es es es") || content.contains("le le le"));
     }
 
     #[test]
@@ -142,14 +144,14 @@ mod tests {
         let content = gen.generate(2, 50);
 
         assert!(!content.is_empty());
-        assert!(content.len() <= 50);
+        assert!(content.chars().count() <= 50); // Use char count instead of byte length
 
         // Should contain real words, not drill patterns
         assert!(
-            content.contains("que")
-                || content.contains("qui")
-                || content.contains("pour")
-                || content.contains("vous")
+            content.contains("les")
+                || content.contains("des")
+                || content.contains("en")
+                || content.contains("entre")
         );
     }
 
@@ -159,7 +161,7 @@ mod tests {
         let content = gen.generate(3, 60);
 
         assert!(!content.is_empty());
-        assert!(content.len() <= 60);
+        assert!(content.chars().count() <= 60); // Use char count instead of byte length
 
         // Should contain multiple words
         let word_count = content.split_whitespace().count();
@@ -196,7 +198,7 @@ mod tests {
         assert!(!level3.is_empty());
 
         // Level 1 should have drill patterns
-        assert!(level1.contains("qu qu qu") || level1.contains("ou ou ou"));
+        assert!(level1.contains("es es es") || level1.contains("le le le"));
 
         // Level 2/3 should have real words
         assert!(level2.split_whitespace().any(|w| w.len() > 2));

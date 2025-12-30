@@ -3,9 +3,13 @@ pub mod bigram;
 pub mod bigram_generator;
 pub mod code_generator;
 pub mod code_symbols;
+pub mod common_word;
+pub mod common_word_generator;
 pub mod finger_generator;
 pub mod generator;
 pub mod lesson;
+pub mod trigram;
+pub mod trigram_generator;
 
 pub use adaptive_generator::AdaptiveLessonGenerator;
 pub use bigram::{BigramType, Language};

@@ -14,7 +14,8 @@ Typer CLI is a terminal-based keyboard typing training tool. It provides an inte
 
 ### Core Features (Phase 1-2) ✅
 - ✅ **Home Row Lessons**: 6 progressive levels for AZERTY home row
-- ✅ **Bigram Training**: French, English, and Code patterns (9 lessons)
+- ✅ **Bigram Training**: French (40 bigrams with accents), English (30), Code (10)
+- ✅ **Trigram Training**: French (25 trigrams with accents), English (20)
 - ✅ **Code Symbols**: TypeScript, Rust, Python practice (18 lessons)
 - ✅ **Real-time Feedback**: Green/red coloring for each character
 - ✅ **Live Metrics**: WPM (words per minute) and accuracy

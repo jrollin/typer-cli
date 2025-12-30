@@ -44,7 +44,8 @@ Located in `docs/steering/`:
 
 **Phase 2 (Completed):**
 - **home-row-lessons/** (`src/content/`) - All 6 progressive home row levels with menu selection
-- **bigram-training/** (`src/content/`) - French, English, and Code bigram practice
+- **bigram-training/** (`src/content/`) - French (40 with accents), English (30), Code (10) bigram practice
+- **trigram-training/** (`src/content/`) - French (25 with accents), English (20) trigram practice
 - **code-symbols/** (`src/content/`) - Programming symbols for TypeScript, Rust, Python
 
 **Phase 2+ (Completed):**

@@ -356,6 +356,14 @@ pub enum LessonType {
         language: Option<Language>,
         level: usize,
     },
+    Trigram {
+        language: Language,
+        level: usize,
+    },
+    CommonWords {
+        language: Language,
+        level: usize,
+    },
     CodeSymbols {
         language: ProgrammingLanguage,
         level: usize,
@@ -487,6 +495,98 @@ impl Lesson {
                 },
                 format!("{} Bigrams - Level 3", lang_name),
                 "Mixed mode: Realistic text".to_string(),
+                vec![],
+            ),
+            Lesson::new(
+                LessonType::Bigram {
+                    bigram_type,
+                    language,
+                    level: 4,
+                },
+                format!("{} Bigrams - Level 4", lang_name),
+                match (bigram_type, language) {
+                    (BigramType::Natural, Some(Language::French)) => {
+                        "Mixed mode: All 40 bigrams (with accents)".to_string()
+                    }
+                    (BigramType::Natural, Some(Language::English)) => {
+                        "Mixed mode: All 30 bigrams".to_string()
+                    }
+                    (BigramType::Code, _) => "Mixed mode: All 10 code bigrams".to_string(),
+                    _ => "Mixed mode: All bigrams".to_string(),
+                },
+                vec![],
+            ),
+        ]
+    }
+
+    /// Create trigram lessons for a language
+    pub fn trigram_lessons(language: Language) -> Vec<Lesson> {
+        let lang_name = match language {
+            Language::French => "French",
+            Language::English => "English",
+        };
+
+        vec![
+            Lesson::new(
+                LessonType::Trigram { language, level: 1 },
+                format!("{} Trigrams - Level 1", lang_name),
+                "Drill mode: Pure repetition (5 trigrams)".to_string(),
+                vec![],
+            ),
+            Lesson::new(
+                LessonType::Trigram { language, level: 2 },
+                format!("{} Trigrams - Level 2", lang_name),
+                "Word mode: Contextual practice (10 trigrams)".to_string(),
+                vec![],
+            ),
+            Lesson::new(
+                LessonType::Trigram { language, level: 3 },
+                format!("{} Trigrams - Level 3", lang_name),
+                "Mixed mode: Realistic text (20 trigrams)".to_string(), // Updated from 15 to 20
+                vec![],
+            ),
+            Lesson::new(
+                LessonType::Trigram { language, level: 4 },
+                format!("{} Trigrams - Level 4", lang_name),
+                match language {
+                    Language::French => "Mixed mode: All 25 trigrams (with accents)".to_string(),
+                    Language::English => "Mixed mode: All 20 trigrams".to_string(),
+                },
+                vec![],
+            ),
+        ]
+    }
+
+    /// Create common word lessons for a language
+    pub fn common_word_lessons(language: Language) -> Vec<Lesson> {
+        let lang_name = match language {
+            Language::French => "French",
+            Language::English => "English",
+        };
+
+        vec![
+            Lesson::new(
+                LessonType::CommonWords { language, level: 1 },
+                format!("{} Words - Level 1", lang_name),
+                "Top 50 most common words".to_string(),
+                vec![],
+            ),
+            Lesson::new(
+                LessonType::CommonWords { language, level: 2 },
+                format!("{} Words - Level 2", lang_name),
+                "Top 100 most common words".to_string(),
+                vec![],
+            ),
+            Lesson::new(
+                LessonType::CommonWords { language, level: 3 },
+                format!("{} Words - Level 3", lang_name),
+                "Top 200 most common words".to_string(),
+                vec![],
+            ),
+            Lesson::new(
+                LessonType::CommonWords { language, level: 4 },
+                format!("{} Words - Level 4", lang_name),
+                "All 500 most common words".to_string(),
                 vec![],
             ),
         ]

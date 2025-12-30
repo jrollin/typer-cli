@@ -49,21 +49,19 @@ pub enum LessonType {
 
 ### Bigram Data
 
-**French Bigrams** (frequency-ordered):
+**French Bigrams** (40 total, frequency-ordered, includes accented characters):
 ```rust
-const FRENCH_BIGRAMS: &[(&str, f32, &[&str])] = &[
-    ("qu", 0.95, &["que", "qui", "quoi", "quelque"]),
-    ("ou", 0.90, &["pour", "vous", "nous", "ou"]),
-    ("en", 0.88, &["en", "ment", "bien", "rien"]),
-    ("on", 0.85, &["on", "bon", "son", "non"]),
-    ("es", 0.83, &["les", "des", "mes", "ses"]),
-    ("er", 0.80, &["premier", "dernier", "aller"]),
-    ("re", 0.78, &["re", "très", "entre", "être"]),
-    ("de", 0.75, &["de", "des", "depuis", "devant"]),
-    ("ai", 0.72, &["ai", "mais", "fait", "jamais"]),
-    ("an", 0.70, &["an", "dans", "avant", "sans"]),
-];
+// Top 30 non-accented bigrams + 10 accented patterns
+// Frequency range: 1.00 → 0.61
+// Notable accented bigrams: ér, és, ét, èr, ée, à, ça, ôt, ès, çu
+// Each bigram has 10 example words for variety
 ```
+
+Key highlights:
+- **40 total bigrams** (30 non-accented + 10 accented)
+- **Perfect doubling**: Level progression 5 → 10 → 20 → 40
+- **Accented patterns**: Covers é, è, ê, à, ç for French typing
+- **10 examples per bigram**: Ensures varied practice
 
 **English Bigrams**:
 ```rust
@@ -117,8 +115,9 @@ impl BigramGenerator {
     fn select_bigrams_for_level(&self, level: usize) -> Vec<&Bigram> {
         let count = match level {
             1 => 5,   // Top 5 most common
-            2 => 10,  // Top 10
-            3 => 20,  // All available
+            2 => 10,  // Top 10 (doubles)
+            3 => 20,  // Top 20 (doubles again)
+            4 => 40,  // All 40 (PERFECT DOUBLING!)
             _ => 5,
         };
 
