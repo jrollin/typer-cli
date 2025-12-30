@@ -40,14 +40,22 @@ Typer CLI is a terminal-based keyboard typing training tool. It provides an inte
 - ✅ **Toggle Visibility**: Press Tab to show/hide keyboard
 - ✅ **Consistent Layout**: Clean margins matching menu screens
 
-### Finger Training (Phase 3.2) ✅ NEW
+### Finger Training (Phase 3.2) ✅
 - ✅ **24 Targeted Lessons**: 4 finger pairs (Pinky, Ring, Middle, Index) × 6 variants
 - ✅ **Progressive Difficulty**: 3 levels (Home Row, Extended, All Keys)
 - ✅ **Base + Shift Variants**: Practice both base characters and mixed case
 - ✅ **Corrected AZERTY Mappings**: 16 fixes to French keyboard finger assignments
 - ✅ **Smart Drills**: Auto-generated 3-phase patterns (repetitions, pairs, triplets)
 - ✅ **Prioritized Menu**: Finger training appears second (after adaptive mode)
-- ✅ **Green Separator**: Easy identification in lesson menu
+
+### Two-Level Menu System (Phase 3.3) ✅ NEW
+- ✅ **Category Navigation**: Browse lessons by type (Adaptive, Finger Training, Key Training, Languages, Code)
+- ✅ **Filtered Views**: See only relevant lessons for selected category
+- ✅ **Visual Descriptions**: Each category has a clear description and color coding
+- ✅ **Quick Selection**: Use number keys 1-5 for direct category access
+- ✅ **Intuitive Flow**: Category → Lesson → Duration → Practice
+- ✅ **Smart ESC Navigation**: Lessons → Categories → Quit
+- ✅ **Context Preservation**: Returns to same category after completing session
 
 **Total Lessons**: 77 (52 standard + 24 finger training + 1 adaptive)
 
@@ -114,11 +122,17 @@ cargo run
 
 ### Controls
 
-**In Menu:**
+**In Category Menu:**
+- **↑/↓ or j/k**: Navigate categories
+- **Enter or Space**: Open category
+- **1-5**: Quick select category by number
+- **ESC or q**: Quit application
+
+**In Lesson Menu:**
 - **↑/↓ or j/k**: Navigate lessons
-- **Enter or Space**: Start selected lesson
+- **Enter or Space**: Select lesson
 - **1-9**: Quick select lesson by number
-- **ESC or q**: Quit
+- **ESC or q**: Return to category menu
 
 **During Practice:**
 - **Typing**: Simply type the displayed characters
@@ -128,8 +142,13 @@ cargo run
 - **Ctrl+H**: Toggle accuracy heatmap overlay
 - **ESC**: Return to menu
 
+**In Duration Menu:**
+- **↑/↓ or j/k**: Navigate durations
+- **Enter or Space**: Start lesson
+- **ESC or q**: Return to lesson menu
+
 **After Completion:**
-- **q or ESC**: Return to menu
+- **q or ESC**: Return to lesson menu
 - **r**: Restart same lesson
 
 ### Interface
@@ -184,16 +203,17 @@ The interface features a clean, organized layout with consistent margins:
 ```
 src/
 ├── main.rs           # Entry point + terminal init
-├── app.rs            # App state + event loop
+├── app.rs            # App state machine + two-level navigation + event loop
 ├── ui/
-│   ├── render.rs     # TUI rendering with ratatui
-│   └── keyboard.rs   # Visual keyboard display (NEW)
+│   ├── render.rs     # Category menu, lesson menu, TUI rendering
+│   └── keyboard.rs   # Visual keyboard display
 ├── engine/
 │   ├── types.rs      # TypingSession, CharInput
 │   ├── scoring.rs    # WPM and accuracy calculation
 │   ├── analytics.rs  # Per-key/bigram statistics tracking
 │   └── adaptive.rs   # Weakness detection, spaced repetition
 ├── content/
+│   ├── category.rs          # Lesson categories, filtering (NEW)
 │   ├── lesson.rs            # Lesson definitions
 │   ├── generator.rs         # Home row content generation
 │   ├── bigram_generator.rs  # Bigram practice content

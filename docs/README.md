@@ -145,12 +145,53 @@ Personalized training based on individual weaknesses.
 - Automatic analytics tracking after each session ✓
 - Conditional menu appearance (>= 10 sessions, >= 100 keystrokes) ✓
 
+### Phase 3 Features (Completed) ✅
+
+#### [keyboard-display/](features/keyboard-display/) ✅ COMPLETED
+Visual AZERTY keyboard layout with real-time highlighting.
+
+**Module**: `src/ui/keyboard.rs`, `src/keyboard/azerty.rs`
+
+- Full 5-row keyboard rendering (Number, Top, Home, Bottom, Modifier rows)
+- Real-time next-key highlighting (cyan background)
+- Shift state indication (both shift keys highlight)
+- Finger color hints toggle (Ctrl+F)
+- Accuracy heatmap overlay toggle (Ctrl+H)
+- Keyboard visibility toggle (Tab)
+
+#### [finger-training/](features/finger-training/) ✅ COMPLETED
+Targeted finger-pair practice with bilateral drills.
+
+**Module**: `src/content/finger_generator.rs`
+
+- 24 lessons: 4 finger pairs × 6 variants
+- 3 difficulty levels: Home Row, Extended, All Keys
+- Base and shift variants for each level
+- Corrected French AZERTY finger mappings (16 fixes)
+- Auto-generated drills with 3-phase pattern
+- Prioritized menu placement (after adaptive mode)
+
+#### [two-level-menu/](features/two-level-menu/) ✅ COMPLETED
+Hierarchical navigation system for improved lesson discovery.
+
+**Module**: `src/content/category.rs`, `src/app.rs`, `src/ui/render.rs`
+
+- Two-screen navigation: Category selection → Lesson selection
+- 5 lesson categories: Adaptive, Finger Training, Key Training, Languages, Code
+- Category-based lesson filtering
+- Visual descriptions and color coding
+- Number shortcuts (1-5 for categories, 1-9 for lessons)
+- ESC navigation: Lessons → Categories → Quit
+- Context preservation after session completion
+
 ### Future Features (Phase 3+)
 
 - **Analytics visualization** - Heat maps, trend graphs, progress charts
+- **Enhanced adaptive UI** - Pre/post-session feedback, progress indicators
+- **Data export** - JSON/CSV export for external analysis
 - **Themes** - Multiple color schemes, high contrast options
 - **Multi-layout** - BÉPO, Dvorak, custom keyboard layouts
-- **Gamification** - Achievements, streaks, challenges, badges
+- **Gamification** - Optional achievements, streaks, challenges
 - **Advanced adaptive** - Machine learning, optimal schedules, fatigue detection
 
 ## Quick Navigation
@@ -181,11 +222,15 @@ Each feature folder contains:
 
 Module locations are documented in each feature's design.md:
 
-- `src/engine/` - Typing session core (see [typing-session/design.md](features/typing-session/design.md))
-- `src/content/` - Lesson generation (see [home-row-lessons/design.md](features/home-row-lessons/design.md))
+- `src/app.rs` - Application state machine and two-level navigation
+- `src/engine/` - Typing session core, analytics, adaptive algorithms
+- `src/content/` - Lesson generation and categorization
+  - `category.rs` - Category filtering (see [two-level-menu/design.md](features/two-level-menu/design.md))
 - `src/data/` - Statistics persistence (see [session-storage/design.md](features/session-storage/design.md))
-- `src/ui/` - Terminal interface (see [tui-interface/design.md](features/tui-interface/design.md))
-- `src/keyboard/` - Layout definitions (see [keyboard-layout/design.md](features/keyboard-layout/design.md))
+- `src/ui/` - Terminal interface
+  - `render.rs` - Category menu, lesson menu, session rendering
+  - `keyboard.rs` - Visual keyboard display
+- `src/keyboard/` - Layout definitions and finger mappings
 
 ## Development Workflow
 
@@ -212,9 +257,9 @@ Module locations are documented in each feature's design.md:
 
 ## Project Status
 
-**Current Phase**: Adaptive Mode MVP Complete ✓
+**Current Phase**: Phase 3.3 Complete (Two-Level Menu System) ✓
 
-**Total Tests**: 81 passing
+**Total Tests**: 129 passing
 - 13 tests: typing-session
 - 7 tests: home-row-lessons
 - 12 tests: bigram-training
@@ -231,12 +276,18 @@ Module locations are documented in each feature's design.md:
 - Phase 1: Home row Level 1 ✓
 - Phase 2: Home row Levels 2-6 ✓
 - Phase 2: Bigram training (French, English, Code) ✓
+- Phase 2: Trigram training (French, English) ✓
+- Phase 2: Common words (French, English) ✓
 - Phase 2: Code symbols (TypeScript, Rust, Python) ✓
-- Phase 2+: Adaptive Mode MVP ✓
+- Phase 2+: Adaptive Mode ✓
+- Phase 3: Visual keyboard display ✓
+- Phase 3.1: Layout improvements ✓
+- Phase 3.2: Finger training ✓
+- Phase 3.3: Two-level menu system ✓
 
-**Total Lessons**: 33 standard + 1 adaptive (appears when >= 10 sessions completed)
+**Total Lessons**: 77 (52 standard + 24 finger training + 1 adaptive)
 
-**Next Phase**: Adaptive mode UI enhancements (Phase 3)
+**Next Phase**: Analytics visualization and data export (Phase 3+)
 
 ## Additional Resources
 

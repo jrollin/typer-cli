@@ -10,6 +10,7 @@ Quick reference for AI assistants working on this project.
 **Phase 3: Visual Keyboard Display** - ✅ Completed
 **Phase 3.1: Layout Improvements** - ✅ Completed
 **Phase 3.2: Finger Training** - ✅ Completed
+**Phase 3.3: Two-Level Menu System** - ✅ Completed
 **Current Focus**: Phase 3+ (Analytics visualization, data export, gamification)
 
 ## Project Overview
@@ -81,16 +82,26 @@ Located in `docs/steering/`:
   - Smooth keyboard toggle without layout shifts
 
 **Phase 3.2 (Completed):**
-- **finger-training/** (`src/content/finger_generator.rs`) - Finger-specific practice lessons ✅ NEW
+- **finger-training/** (`src/content/finger_generator.rs`) - Finger-specific practice lessons
   - 24 lessons: 4 finger pairs (Pinky, Ring, Middle, Index) × 6 variants
   - 3 difficulty levels: Home Row, Extended, All Keys
   - Base and shift variants for each level
   - Corrected French AZERTY finger mappings (16 fixes)
   - Auto-generated drills with 3-phase pattern
   - Shift drills use 50% lower, 40% upper, 10% symbols
-  - Green "FINGER TRAINING" menu separator
-  - Reordered menu: Adaptive → Finger Training → Primary → Secondary
   - Heatmap disabled by default (Ctrl+H to enable)
+
+**Phase 3.3 (Completed):**
+- **two-level-menu/** (`src/content/category.rs`, `src/app.rs`, `src/ui/render.rs`) - Hierarchical navigation system ✅ NEW
+  - Two-screen navigation: Category selection → Lesson selection
+  - 5 lesson categories: Adaptive, Finger Training, Key Training, Languages, Code
+  - Category-based lesson filtering (simplified menu rendering)
+  - New `LessonCategoryType` enum and `LessonCategory` struct
+  - Category metadata: name, description, color coding
+  - Keyboard shortcuts: Numbers (1-5) for direct category selection
+  - Navigation flow: Category menu → Filtered lessons → Duration → Session
+  - ESC navigation: Lessons → Categories → Quit
+  - Maintains category context after session completion
 
 **Complete documentation index**: See `docs/README.md` for navigation guide and feature details.
 
@@ -102,7 +113,7 @@ Located in `docs/steering/`:
 ```bash
 # Development
 cargo run              # Launch application
-cargo test             # Run test suite (91 tests)
+cargo test             # Run test suite (129 tests)
 cargo check            # Fast compilation check
 
 # Testing Adaptive Mode
@@ -130,7 +141,7 @@ Runs automatically on every push to `main` and all pull requests.
 
 **Jobs:**
 - **Quality Checks**: Formatting (cargo fmt), linting (cargo clippy -D warnings), compilation (cargo check)
-- **Test Suite**: Runs 91 tests on Ubuntu and macOS
+- **Test Suite**: Runs 129 tests on Ubuntu and macOS
 - **Security Audit**: Scans dependencies for known vulnerabilities (non-blocking)
 
 **Status**: [![CI](https://github.com/jrollin/typer-cli/workflows/CI/badge.svg)](https://github.com/jrollin/typer-cli/actions/workflows/ci.yml)
@@ -195,20 +206,22 @@ git cliff -o CHANGELOG.md
 ```
 src/
 ├── main.rs          # Entry point
-├── app.rs           # App state, event loop
+├── app.rs           # App state machine, two-level navigation, event loop
 ├── ui/              # TUI rendering
-│   ├── render.rs    # Main layout rendering
+│   ├── render.rs    # Category menu, lesson menu, layout rendering
 │   └── keyboard.rs  # Visual keyboard display
 ├── engine/          # Session logic, scoring, analytics
 │   ├── analytics.rs # Per-key/bigram statistics tracking
 │   ├── adaptive.rs  # Weakness detection, spaced repetition
 │   ├── scoring.rs   # WPM and accuracy calculations
 │   └── types.rs     # TypingSession and CharInput
-├── content/         # Lesson generation
+├── content/         # Lesson generation and organization
+│   ├── category.rs            # Lesson categories, filtering
 │   ├── adaptive_generator.rs  # Personalized content
 │   ├── bigram_generator.rs    # Bigram practice
 │   ├── code_generator.rs      # Code symbols
 │   ├── finger_generator.rs    # Finger-based drills
+│   ├── lesson.rs              # Lesson types, definitions
 │   └── generator.rs           # Home row drills
 ├── data/            # Stats persistence (with adaptive analytics)
 └── keyboard/        # AZERTY layout and data model
@@ -272,8 +285,13 @@ Stats saved to: `~/.config/typer-cli/stats.json`
   - Corrected French AZERTY finger mappings (16 fixes)
   - Auto-generated drills with 3-phase pattern
   - Shift variants with weighted distribution (50/40/10)
-  - Reordered menu: Adaptive → Finger Training → Primary → Secondary
   - Heatmap disabled by default
+- **Phase 3.3**: Two-level menu system ✅
+  - Hierarchical navigation with category selection
+  - 5 categories: Adaptive, Finger Training, Key Training, Languages, Code
+  - Category-based lesson filtering
+  - Improved UX with descriptions and color coding
+  - ESC navigation flow: Lessons → Categories → Quit
 - **Phase 3+**: ⏳ FUTURE
   - Enhanced adaptive UI (pre/post-session feedback, progress indicators)
   - Analytics visualization (performance graphs, trend charts)

@@ -47,17 +47,34 @@ A lightweight, terminal-based typing trainer that:
 - **Session Persistence**: Automatic saving of practice statistics
 - **Minimal Interface**: Clean TUI with just essential information
 
-### Phase 2 (Planned)
-- **Bigram Training**: Common French (qu, ou, en) and English (th, er, on) letter pairs
-- **Code Mode**: Practice with programming symbols: `{}`, `[]`, `()`, `<>`, `->`, `::`, `=>`
-- **Language-Specific Practice**: TypeScript, Rust, Python syntax patterns
-- **Keyboard Visualization**: Display AZERTY layout with highlighted target keys
+### Phase 2 (Completed)
+- **Bigram Training**: Common French (40 with accents), English (30), and Code (10) letter pairs
+- **Trigram Training**: French (25 with accents) and English (20) three-letter sequences
+- **Code Symbols**: TypeScript, Rust, Python syntax patterns (18 lessons total)
+- **Common Words**: French and English most frequent words practice
 
-### Phase 3 (Future)
+### Phase 2+ (Completed)
 - **Adaptive Mode**: Automatically focus on keys with highest error rates
+- **Analytics Tracking**: Per-key and per-bigram statistics with mastery levels
+- **Weakness Detection**: Identifies keys < 80% accuracy or slow speed
+- **Spaced Repetition**: Practice intervals based on mastery level
+- **Personalized Content**: 60% weak, 30% moderate, 10% strong key distribution
+
+### Phase 3 (Completed)
+- **Keyboard Visualization**: Full AZERTY layout with real-time next-key highlighting
+- **Finger Color Hints**: Toggle finger placement guides (Ctrl+F)
+- **Accuracy Heatmap**: Performance overlay on keyboard (Ctrl+H)
+- **Layout Improvements**: Reorganized interface for better usability
+- **Finger Training**: 24 bilateral finger lessons (4 pairs × 6 variants)
+- **Two-Level Menu**: Category-based navigation system for improved lesson discovery
+
+### Phase 3+ (Future)
 - **Progress Tracking**: Historical graphs showing WPM and accuracy trends over time
-- **Detailed Analytics**: Per-key statistics for targeted improvement
+- **Enhanced Analytics UI**: Pre/post-session feedback, progress indicators
+- **Data Export**: JSON/CSV export for external analysis
 - **Custom Lessons**: User-defined practice content
+- **Gamification**: Optional achievements and streaks
+- **Themes**: Customizable color schemes
 
 ## Key Differentiators
 
@@ -93,22 +110,29 @@ A lightweight, terminal-based typing trainer that:
 ### First-Time User
 1. Install/compile typer-cli
 2. Run `cargo run` or `./typer-cli`
-3. Immediately starts with guided home row lesson
-4. Receives instant feedback on each keystroke
-5. Completes first session, sees results and stats
-6. Stats automatically saved for next session
+3. See category selection menu with 5 lesson types
+4. Select a category (e.g., "Key Training")
+5. Choose a lesson from filtered list
+6. Select practice duration (1-10 minutes)
+7. Receive instant feedback on each keystroke
+8. Complete first session, see results and stats
+9. Stats automatically saved for next session
 
 ### Returning User
 1. Launch application
-2. Continue with next progressive lesson or repeat for improvement
-3. Track improvement via real-time metrics
-4. Build muscle memory through consistent practice
+2. Browse categories to find desired lesson type
+3. Select lesson from filtered category view
+4. Track improvement via real-time metrics
+5. Build muscle memory through consistent practice
+6. Return to same category after session completion
 
-### Advanced User (Future Phases)
-1. Practice code symbols and programming patterns
-2. Use adaptive mode to focus on weak keys
-3. Review detailed analytics to identify improvement areas
-4. Set personal goals and track long-term progress
+### Advanced User
+1. Use Adaptive mode (unlocks after 10 sessions) to focus on weak keys
+2. Practice specific finger pairs with targeted drills
+3. Master code symbols for programming languages
+4. Toggle keyboard display features (finger hints, heatmap)
+5. Track per-key and per-bigram statistics automatically
+6. Progress through spaced repetition intervals
 
 ## Design Principles
 

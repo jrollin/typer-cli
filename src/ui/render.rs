@@ -409,7 +409,13 @@ fn render_instructions(f: &mut Frame, area: Rect) {
 }
 
 /// Rendu du menu de sélection de leçon
-pub fn render_menu(f: &mut Frame, lessons: &[Lesson], selected: usize, scroll_offset: usize) {
+pub fn render_menu(
+    f: &mut Frame,
+    lessons: &[Lesson],
+    selected: usize,
+    scroll_offset: usize,
+    category_name: Option<&str>,
+) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(2)
@@ -421,7 +427,12 @@ pub fn render_menu(f: &mut Frame, lessons: &[Lesson], selected: usize, scroll_of
         .split(f.area());
 
     // Header
-    let header = Paragraph::new("TYPER CLI - Select a Lesson")
+    let header_text = if let Some(name) = category_name {
+        format!("TYPER CLI - {} Lessons", name)
+    } else {
+        "TYPER CLI - Select a Lesson".to_string()
+    };
+    let header = Paragraph::new(header_text)
         .style(
             Style::default()
                 .fg(Color::Cyan)
@@ -434,66 +445,10 @@ pub fn render_menu(f: &mut Frame, lessons: &[Lesson], selected: usize, scroll_of
     // Calculate visible area height (minus borders and padding)
     let menu_area_height = chunks[1].height.saturating_sub(2) as usize;
 
-    // Build complete items list with category separators
+    // Build lesson items (simplified - no category separators)
     let mut all_items: Vec<ListItem> = Vec::new();
 
-    // Determine if adaptive mode is present (first lesson)
-    let has_adaptive = !lessons.is_empty()
-        && matches!(
-            lessons[0].lesson_type,
-            crate::content::lesson::LessonType::Adaptive
-        );
-
-    // ADAPTIVE section header (if present - first lesson)
-    if has_adaptive {
-        all_items.push(ListItem::new(Line::from(Span::styled(
-            "━━━ ADAPTIVE ━━━",
-            Style::default()
-                .fg(Color::Cyan)
-                .add_modifier(Modifier::BOLD),
-        ))));
-    }
-
-    // Add all lessons with category separators
     for (i, lesson) in lessons.iter().enumerate() {
-        // Add FINGER TRAINING separator (after adaptive if present, otherwise first)
-        let finger_training_index = if has_adaptive { 1 } else { 0 };
-        if i == finger_training_index {
-            if has_adaptive {
-                all_items.push(ListItem::new(Line::from("")));
-            }
-            all_items.push(ListItem::new(Line::from(Span::styled(
-                "━━━ FINGER TRAINING ━━━",
-                Style::default()
-                    .fg(Color::Green)
-                    .add_modifier(Modifier::BOLD),
-            ))));
-        }
-
-        // Add PRIMARY separator (after finger training - 24 lessons later)
-        let primary_index = if has_adaptive { 25 } else { 24 };
-        if i == primary_index {
-            all_items.push(ListItem::new(Line::from("")));
-            all_items.push(ListItem::new(Line::from(Span::styled(
-                "━━━ PRIMARY - Key Training ━━━",
-                Style::default()
-                    .fg(Color::Cyan)
-                    .add_modifier(Modifier::BOLD),
-            ))));
-        }
-
-        // Add SECONDARY separator (after primary - 25 lessons later)
-        let secondary_index = if has_adaptive { 50 } else { 49 };
-        if i == secondary_index {
-            all_items.push(ListItem::new(Line::from("")));
-            all_items.push(ListItem::new(Line::from(Span::styled(
-                "━━━ SECONDARY - Programming & Languages ━━━",
-                Style::default()
-                    .fg(Color::Cyan)
-                    .add_modifier(Modifier::BOLD),
-            ))));
-        }
-
         let style = if i == selected {
             Style::default()
                 .fg(Color::Yellow)
@@ -540,7 +495,7 @@ pub fn render_menu(f: &mut Frame, lessons: &[Lesson], selected: usize, scroll_of
     let instructions = vec![
         Line::from(""),
         Line::from(Span::styled(
-            "Use ↑/↓ or j/k to navigate  •  Press Enter/Space or 1-6 to select  •  ESC to quit",
+            "Use ↑/↓ or j/k to navigate  •  Press Enter/Space or 1-9 to select  •  ESC to go back",
             Style::default().fg(Color::Gray),
         )),
     ];
@@ -606,6 +561,90 @@ pub fn render_duration_menu(f: &mut Frame, selected: usize) {
         Line::from(""),
         Line::from(Span::styled(
             "Use ↑/↓ or j/k to navigate  •  Press Enter/Space to start  •  ESC to go back",
+            Style::default().fg(Color::Gray),
+        )),
+    ];
+
+    let instructions_widget = Paragraph::new(instructions).alignment(Alignment::Center);
+
+    f.render_widget(instructions_widget, chunks[2]);
+}
+
+/// Render lesson type category menu
+pub fn render_lesson_type_menu(
+    f: &mut Frame,
+    categories: &[crate::content::LessonCategory],
+    selected: usize,
+) {
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .margin(2)
+        .constraints([
+            Constraint::Length(3), // Header
+            Constraint::Min(10),   // Menu
+            Constraint::Length(3), // Instructions
+        ])
+        .split(f.area());
+
+    // Header
+    let header = Paragraph::new("TYPER CLI - Select Lesson Type")
+        .style(
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        )
+        .alignment(Alignment::Center)
+        .block(Block::default().borders(Borders::ALL));
+    f.render_widget(header, chunks[0]);
+
+    // Build category menu items (two-line format)
+    let mut items: Vec<ListItem> = Vec::new();
+
+    for (i, category) in categories.iter().enumerate() {
+        let is_selected = i == selected;
+
+        // First line: number and name
+        let name_style = if is_selected {
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(category.color)
+        };
+
+        let prefix = if is_selected { "▶ " } else { "  " };
+        let name_line = format!("{}{}. {}", prefix, i + 1, category.name);
+
+        items.push(ListItem::new(Line::from(Span::styled(
+            name_line, name_style,
+        ))));
+
+        // Second line: description
+        let description_line = format!("   {}", category.description);
+        items.push(ListItem::new(Line::from(Span::styled(
+            description_line,
+            Style::default().fg(Color::Gray),
+        ))));
+
+        // Blank line between categories (except after last)
+        if i < categories.len() - 1 {
+            items.push(ListItem::new(Line::from("")));
+        }
+    }
+
+    let list = List::new(items).block(
+        Block::default()
+            .title("Lesson Categories")
+            .borders(Borders::ALL),
+    );
+
+    f.render_widget(list, chunks[1]);
+
+    // Instructions
+    let instructions = vec![
+        Line::from(""),
+        Line::from(Span::styled(
+            "Use ↑/↓ or j/k to navigate  •  Press Enter/Space or 1-5 to select  •  ESC to quit",
             Style::default().fg(Color::Gray),
         )),
     ];

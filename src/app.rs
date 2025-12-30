@@ -4,7 +4,8 @@ use std::io;
 use std::time::Duration;
 
 use crate::content::{
-    AdaptiveLessonGenerator, BigramType, ContentGenerator, Language, Lesson, ProgrammingLanguage,
+    AdaptiveLessonGenerator, BigramType, ContentGenerator, Language, Lesson, LessonCategory,
+    LessonCategoryType, ProgrammingLanguage,
 };
 use crate::data::{SessionRecord, Stats, Storage};
 use crate::engine::{calculate_results, SessionAnalyzer, TypingSession};
@@ -15,8 +16,9 @@ use crate::ui::keyboard::KeyboardConfig;
 /// Application state
 #[derive(Debug, PartialEq)]
 enum AppState {
-    DurationMenu,
+    LessonTypeMenu,
     LessonMenu,
+    DurationMenu,
     Running,
     Completed,
     Quit,
@@ -36,6 +38,10 @@ pub struct App {
     keyboard_visible: bool,
     keyboard_layout: AzertyLayout,
     keyboard_config: KeyboardConfig,
+    // Category selection fields
+    selected_category: usize,
+    categories: Vec<LessonCategory>,
+    current_category: Option<LessonCategoryType>,
 }
 
 impl App {
@@ -161,9 +167,13 @@ impl App {
         // Python Code Symbols (6 lessons)
         lessons.extend(Lesson::code_symbol_lessons(ProgrammingLanguage::Python));
 
+        // Build category list
+        let has_adaptive = should_show_adaptive_mode(&stats);
+        let categories = LessonCategory::all(has_adaptive);
+
         Ok(Self {
             session: None,
-            state: AppState::LessonMenu, // Start with lesson selection
+            state: AppState::LessonTypeMenu, // Start with category selection
             storage,
             stats,
             selected_lesson: 0,
@@ -174,6 +184,9 @@ impl App {
             keyboard_visible: true, // Default visible
             keyboard_layout: AzertyLayout::new(),
             keyboard_config: KeyboardConfig::default(),
+            selected_category: 0,
+            categories,
+            current_category: None,
         })
     }
 
@@ -229,12 +242,26 @@ impl App {
         loop {
             // Render
             terminal.draw(|f| match self.state {
+                AppState::LessonTypeMenu => {
+                    ui::render_lesson_type_menu(f, &self.categories, self.selected_category);
+                }
                 AppState::LessonMenu => {
+                    let filtered_lessons: Vec<_> =
+                        self.filtered_lessons().into_iter().cloned().collect();
+
+                    let category_name = self.current_category.and_then(|ct| {
+                        self.categories
+                            .iter()
+                            .find(|c| c.category_type == ct)
+                            .map(|c| c.name)
+                    });
+
                     ui::render_menu(
                         f,
-                        &self.lessons,
+                        &filtered_lessons,
                         self.selected_lesson,
                         self.lesson_scroll_offset,
+                        category_name,
                     );
                 }
                 AppState::DurationMenu => {
@@ -316,47 +343,88 @@ impl App {
         }
 
         match self.state {
-            AppState::LessonMenu => match key.code {
+            AppState::LessonTypeMenu => match key.code {
                 KeyCode::Esc | KeyCode::Char('q') => {
-                    // Quit from first menu
                     self.state = AppState::Quit;
                 }
                 KeyCode::Up | KeyCode::Char('k') => {
-                    if self.selected_lesson > 0 {
-                        self.selected_lesson -= 1;
-                        // Scroll up if selection goes above viewport
-                        if self.selected_lesson < self.lesson_scroll_offset {
-                            self.lesson_scroll_offset = self.selected_lesson;
-                        }
+                    if self.selected_category > 0 {
+                        self.selected_category -= 1;
                     }
                 }
                 KeyCode::Down | KeyCode::Char('j') => {
-                    if self.selected_lesson < self.lessons.len() - 1 {
-                        self.selected_lesson += 1;
-                        // Scroll down if selection goes below viewport (using conservative estimate of 20)
-                        let viewport_height = 20;
-                        if self.selected_lesson >= self.lesson_scroll_offset + viewport_height {
-                            self.lesson_scroll_offset = self.selected_lesson - viewport_height + 1;
-                        }
+                    if self.selected_category < self.categories.len() - 1 {
+                        self.selected_category += 1;
                     }
                 }
                 KeyCode::Enter | KeyCode::Char(' ') => {
-                    // Go to duration menu after lesson selected
-                    self.state = AppState::DurationMenu;
+                    self.current_category =
+                        Some(self.categories[self.selected_category].category_type);
+                    self.selected_lesson = 0;
+                    self.lesson_scroll_offset = 0;
+                    self.state = AppState::LessonMenu;
                 }
                 KeyCode::Char(c) if c.is_ascii_digit() => {
-                    // Allow direct selection with numbers
                     if let Some(digit) = c.to_digit(10) {
                         let index = (digit as usize).saturating_sub(1);
-                        if index < self.lessons.len() {
-                            self.selected_lesson = index;
-                            // Go to duration menu after lesson selected
-                            self.state = AppState::DurationMenu;
+                        if index < self.categories.len() {
+                            self.selected_category = index;
+                            self.current_category = Some(self.categories[index].category_type);
+                            self.selected_lesson = 0;
+                            self.lesson_scroll_offset = 0;
+                            self.state = AppState::LessonMenu;
                         }
                     }
                 }
                 _ => {}
             },
+            AppState::LessonMenu => {
+                let filtered_count = self.filtered_lessons().len();
+
+                match key.code {
+                    KeyCode::Esc | KeyCode::Char('q') => {
+                        // Return to category menu
+                        self.state = AppState::LessonTypeMenu;
+                        self.current_category = None;
+                    }
+                    KeyCode::Up | KeyCode::Char('k') => {
+                        if self.selected_lesson > 0 {
+                            self.selected_lesson -= 1;
+                            // Scroll up if selection goes above viewport
+                            if self.selected_lesson < self.lesson_scroll_offset {
+                                self.lesson_scroll_offset = self.selected_lesson;
+                            }
+                        }
+                    }
+                    KeyCode::Down | KeyCode::Char('j') => {
+                        if self.selected_lesson < filtered_count - 1 {
+                            self.selected_lesson += 1;
+                            // Scroll down if selection goes below viewport (using conservative estimate of 20)
+                            let viewport_height = 20;
+                            if self.selected_lesson >= self.lesson_scroll_offset + viewport_height {
+                                self.lesson_scroll_offset =
+                                    self.selected_lesson - viewport_height + 1;
+                            }
+                        }
+                    }
+                    KeyCode::Enter | KeyCode::Char(' ') => {
+                        // Go to duration menu after lesson selected
+                        self.state = AppState::DurationMenu;
+                    }
+                    KeyCode::Char(c) if c.is_ascii_digit() => {
+                        // Allow direct selection with numbers
+                        if let Some(digit) = c.to_digit(10) {
+                            let index = (digit as usize).saturating_sub(1);
+                            if index < filtered_count {
+                                self.selected_lesson = index;
+                                // Go to duration menu after lesson selected
+                                self.state = AppState::DurationMenu;
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
             AppState::DurationMenu => match key.code {
                 KeyCode::Esc | KeyCode::Char('q') => {
                     // Go back to lesson menu
@@ -377,7 +445,13 @@ impl App {
                     // Save selected duration and start lesson
                     self.selected_duration_value =
                         crate::engine::SessionDuration::all()[self.selected_duration];
-                    self.start_lesson(self.selected_lesson);
+
+                    // Convert relative lesson index to absolute index
+                    if let Some(abs_idx) = self.absolute_lesson_index(self.selected_lesson) {
+                        // Store absolute index for use during session
+                        self.selected_lesson = abs_idx;
+                        self.start_lesson(abs_idx);
+                    }
                 }
                 _ => {}
             },
@@ -386,6 +460,8 @@ impl App {
                     // Return to lesson menu (discard session)
                     self.state = AppState::LessonMenu;
                     self.session = None;
+                    self.selected_lesson = 0;
+                    self.lesson_scroll_offset = 0;
                 }
                 KeyCode::Tab => {
                     // Toggle keyboard visibility
@@ -419,9 +495,11 @@ impl App {
             AppState::Completed => {
                 match key.code {
                     KeyCode::Char('q') | KeyCode::Esc => {
-                        // Return to lesson menu
+                        // Return to lesson menu (reset to first lesson in filtered view)
                         self.state = AppState::LessonMenu;
                         self.session = None;
+                        self.selected_lesson = 0;
+                        self.lesson_scroll_offset = 0;
                     }
                     KeyCode::Char('r') => {
                         // Re-select duration for restart
@@ -462,6 +540,32 @@ impl App {
         }
 
         Ok(())
+    }
+
+    /// Get lessons filtered by current category
+    fn filtered_lessons(&self) -> Vec<&Lesson> {
+        if let Some(category_type) = self.current_category {
+            let category = self
+                .categories
+                .iter()
+                .find(|c| c.category_type == category_type)
+                .expect("Current category must exist");
+
+            self.lessons
+                .iter()
+                .filter(|lesson| category.contains_lesson(lesson))
+                .collect()
+        } else {
+            Vec::new()
+        }
+    }
+
+    /// Convert filtered lesson index to absolute lessons vec index
+    fn absolute_lesson_index(&self, relative_index: usize) -> Option<usize> {
+        let filtered = self.filtered_lessons();
+        filtered
+            .get(relative_index)
+            .and_then(|lesson| self.lessons.iter().position(|l| std::ptr::eq(*lesson, l)))
     }
 }
 

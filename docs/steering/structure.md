@@ -10,32 +10,48 @@
 typer-cli/
 ├── src/
 │   ├── main.rs              # Entry point, terminal initialization
-│   ├── app.rs               # Application state and main event loop
+│   ├── app.rs               # Application state machine, two-level navigation, event loop
 │   ├── ui/
 │   │   ├── mod.rs           # UI module exports
-│   │   └── render.rs        # ratatui rendering logic
+│   │   ├── render.rs        # Category menu, lesson menu, TUI rendering
+│   │   └── keyboard.rs      # Visual keyboard display with highlighting
 │   ├── engine/
 │   │   ├── mod.rs           # Engine module exports
 │   │   ├── types.rs         # Core types: TypingSession, CharInput, SessionResult
-│   │   └── scoring.rs       # WPM and accuracy calculation algorithms
+│   │   ├── scoring.rs       # WPM and accuracy calculation algorithms
+│   │   ├── analytics.rs     # Per-key/bigram statistics tracking
+│   │   └── adaptive.rs      # Weakness detection, spaced repetition
 │   ├── content/
 │   │   ├── mod.rs           # Content module exports
+│   │   ├── category.rs      # Lesson categories, filtering logic
 │   │   ├── lesson.rs        # Lesson type definitions and enums
-│   │   └── generator.rs     # Content generation for lessons
+│   │   ├── generator.rs     # Home row content generation
+│   │   ├── bigram_generator.rs    # Bigram practice
+│   │   ├── trigram_generator.rs   # Trigram practice
+│   │   ├── code_generator.rs      # Code symbols
+│   │   ├── finger_generator.rs    # Finger-based drills
+│   │   ├── common_word_generator.rs # Common words practice
+│   │   └── adaptive_generator.rs  # Personalized content
 │   ├── data/
 │   │   ├── mod.rs           # Data module exports
-│   │   ├── stats.rs         # Stats and SessionRecord structures
+│   │   ├── stats.rs         # Stats and SessionRecord structures (with analytics)
 │   │   └── storage.rs       # JSON persistence (load/save)
 │   └── keyboard/
 │       ├── mod.rs           # Keyboard module exports
-│       └── azerty.rs        # AZERTY layout definition
+│       └── azerty.rs        # AZERTY layout definition with finger mapping
+├── docs/
+│   ├── README.md            # Documentation index
+│   ├── features/            # Feature-based documentation
+│   │   ├── two-level-menu/
+│   │   │   ├── requirements.md  # EARS format requirements
+│   │   │   ├── design.md        # Technical architecture
+│   │   │   └── tasks.md         # Implementation tracking
+│   │   └── [other features]/
+│   └── steering/            # Persistent knowledge
+│       ├── product.md       # Product vision and goals
+│       ├── tech.md          # Technology stack decisions
+│       └── structure.md     # This file
 ├── Cargo.toml               # Dependencies and project metadata
-├── requirements.md          # EARS format requirements
-├── design.md                # Technical design document
-├── tasks.md                 # Task tracking
-├── product.md               # Product vision and goals
-├── tech.md                  # Technology stack decisions
-├── structure.md             # This file
 ├── CLAUDE.md                # Lightweight AI assistant context
 └── README.md                # User-facing documentation
 ```
@@ -46,19 +62,32 @@ typer-cli/
 ```
 main.rs
   └─> app.rs
-       ├─> ui/render.rs
-       │    └─> engine/types.rs
+       ├─> ui/
+       │    ├─> render.rs (category menu, lesson menu, session rendering)
+       │    │    ├─> engine/types.rs
+       │    │    └─> content/category.rs
+       │    └─> keyboard.rs (visual keyboard display)
+       │         └─> keyboard/azerty.rs
        ├─> engine/
        │    ├─> types.rs (TypingSession, CharInput, SessionResult)
-       │    └─> scoring.rs (uses types.rs)
+       │    ├─> scoring.rs (uses types.rs)
+       │    ├─> analytics.rs (key/bigram statistics)
+       │    └─> adaptive.rs (weakness detection, spaced repetition)
        ├─> content/
-       │    ├─> lesson.rs
-       │    └─> generator.rs (uses lesson.rs, keyboard/azerty.rs)
+       │    ├─> category.rs (LessonCategory, filtering)
+       │    ├─> lesson.rs (LessonType enum, definitions)
+       │    ├─> generator.rs (home row generation)
+       │    ├─> bigram_generator.rs (uses lesson.rs)
+       │    ├─> trigram_generator.rs
+       │    ├─> code_generator.rs
+       │    ├─> finger_generator.rs (uses keyboard/azerty.rs)
+       │    ├─> common_word_generator.rs
+       │    └─> adaptive_generator.rs (uses analytics.rs)
        ├─> data/
-       │    ├─> stats.rs
+       │    ├─> stats.rs (SessionRecord, AdaptiveAnalytics)
        │    └─> storage.rs (uses stats.rs)
        └─> keyboard/
-            └─> azerty.rs
+            └─> azerty.rs (layout definition, finger mapping)
 ```
 
 ### Module Responsibilities
@@ -78,47 +107,84 @@ main.rs
 - Event handling (delegated to App)
 
 #### `app.rs`
-**Responsibility**: Application state and event orchestration
+**Responsibility**: Application state machine and event orchestration
 
 **Core struct:**
 ```rust
 pub struct App {
-    pub session: TypingSession,
-    pub should_quit: bool,
-    pub show_results: bool,
+    session: Option<TypingSession>,
+    state: AppState,  // LessonTypeMenu, LessonMenu, DurationMenu, Running, Completed, Quit
+    selected_category: usize,
+    categories: Vec<LessonCategory>,
+    current_category: Option<LessonCategoryType>,
+    selected_lesson: usize,
+    lessons: Vec<Lesson>,
+    // ... stats, storage, keyboard config
 }
 ```
 
+**State Machine:**
+```
+LessonTypeMenu → LessonMenu (filtered) → DurationMenu → Running → Completed
+     ↑                ↑                      ↑
+     └─ ESC ──────────┘────── ESC ──────────┘
+```
+
 **What it does:**
-- Maintains current session state
+- Manages two-level navigation (category → lesson)
+- Filters lessons by selected category
 - Routes keyboard events to appropriate handlers
-- Decides when to show results vs active session
-- Manages application lifecycle (quit, restart)
+- Converts relative lesson indices to absolute for execution
+- Manages application lifecycle and state transitions
+- Preserves category context after sessions
 
 **What it doesn't do:**
 - Rendering (delegates to ui/render.rs)
 - Scoring calculations (delegates to engine/scoring.rs)
-- Content generation (delegates to content/generator.rs)
+- Content generation (delegates to content generators)
 
 #### `ui/render.rs`
 **Responsibility**: Terminal UI rendering
 
 **What it does:**
+- Renders category selection menu with descriptions and colors
+- Renders filtered lesson menu for selected category
+- Renders duration selection menu
 - Renders active typing session layout
 - Renders results screen
-- Applies color coding (green/red/gray)
+- Applies color coding (green/red/gray, category colors)
 - Formats statistics display
-- Creates TUI widgets (blocks, paragraphs, spans)
+- Creates TUI widgets (blocks, paragraphs, spans, lists)
 
 **What it doesn't do:**
 - State management
 - Event handling
 - Scoring calculations
+- Lesson filtering (receives filtered list from app)
 
 **Key functions:**
-- `render_session()`: Main typing interface
+- `render_lesson_type_menu()`: Category selection screen
+- `render_menu()`: Filtered lesson selection (accepts category name)
+- `render_duration_menu()`: Duration selection
+- `render()`: Main typing interface
 - `render_results()`: End-of-session results screen
-- Color scheme: Green (correct), Red (incorrect), Gray (pending)
+- Color scheme: Green (correct), Red (incorrect), Gray (pending), category-specific colors
+
+#### `ui/keyboard.rs`
+**Responsibility**: Visual keyboard display
+
+**What it does:**
+- Renders full AZERTY keyboard layout (5 rows)
+- Highlights next key to press (cyan background)
+- Indicates shift state on both shift keys
+- Displays finger color hints (toggle with Ctrl+F)
+- Shows accuracy heatmap overlay (toggle with Ctrl+H)
+- Supports compact and full keyboard modes
+
+**What it doesn't do:**
+- Input handling
+- Key mapping logic (uses keyboard/azerty.rs)
+- State management
 
 #### `engine/types.rs`
 **Responsibility**: Core typing session domain model
@@ -174,24 +240,67 @@ pub struct SessionResult {
 - Independent of UI
 - Well-tested with edge cases
 
+#### `content/category.rs`
+**Responsibility**: Lesson categorization and filtering
+
+**Key types:**
+```rust
+pub enum LessonCategoryType {
+    Adaptive,
+    FingerTraining,
+    KeyTraining,
+    Languages,
+    Code,
+}
+
+pub struct LessonCategory {
+    pub category_type: LessonCategoryType,
+    pub name: &'static str,
+    pub description: &'static str,
+    pub color: Color,
+}
+```
+
+**What it does:**
+- Defines 5 lesson categories with metadata
+- Provides filtering logic via `contains_lesson()`
+- Generates category list with `all(has_adaptive: bool)`
+- Maps lesson types to categories
+
+**Category Filtering:**
+- Adaptive: `LessonType::Adaptive`
+- FingerTraining: `LessonType::FingerPair { .. }`
+- KeyTraining: `LessonType::KeyPair { .. } | LessonType::KeyPairGroup { .. }`
+- Languages: `BigramType::Natural | Trigram | CommonWords`
+- Code: `CodeSymbols | BigramType::Code`
+
 #### `content/lesson.rs`
 **Responsibility**: Lesson type definitions
 
 **Key types:**
 ```rust
-pub enum Lesson {
-    HomeRow { level: u8 },
+pub enum LessonType {
+    KeyPair { lesson_id: u8 },
+    KeyPairGroup { group_id: u8, with_shift: bool },
+    Bigram { bigram_type: BigramType, language: Option<Language>, level: u8 },
+    Trigram { language: Language, level: u8 },
+    CommonWords { language: Language, level: u8 },
+    CodeSymbols { language: ProgrammingLanguage, level: u8 },
+    FingerPair { finger_pair: FingerPair, level: u8, with_shift: bool },
+    Adaptive,
+}
+
+pub struct Lesson {
+    pub lesson_type: LessonType,
+    pub title: String,
 }
 ```
 
 **What it does:**
-- Defines available lesson types
-- Provides lesson metadata (name, difficulty)
-
-**Future extensibility:**
-- Add Bigram { language: Language }
-- Add Code { language: ProgrammingLanguage }
-- Add Adaptive { weak_keys: Vec<char> }
+- Defines all available lesson types
+- Provides lesson metadata (title, type)
+- Factory methods for creating lesson collections
+- Implements ContentGenerator trait for lesson execution
 
 #### `content/generator.rs`
 **Responsibility**: Practice content generation
