@@ -1,6 +1,6 @@
 /// Common word training support for typing practice
 /// 500 most common words per language with frequency weighting
-
+///
 /// A single common word with frequency data
 #[derive(Debug, Clone)]
 pub struct Word {
