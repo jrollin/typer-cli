@@ -6,11 +6,11 @@
 
 ## Data Persistence Requirements
 
-### R14: Session Statistics Storage
+### US-1 Session Statistics Storage
 WHEN a typing session completes
 THE SYSTEM SHALL save session statistics to persistent storage
 
-### R15: Session Record Format
+### US-2 Session Record Format
 WHEN saving session statistics
 THE SYSTEM SHALL record:
 - Timestamp
@@ -19,25 +19,25 @@ THE SYSTEM SHALL record:
 - Accuracy percentage
 - Session duration
 
-### R16: Storage Location
+### US-3 Storage Location
 THE SYSTEM SHALL store statistics in JSON format at ~/.config/typer-cli/stats.json
 
-### R17: Cross-Session Persistence
+### US-4 Cross-Session Persistence
 WHEN the application launches
 THE SYSTEM SHALL load previously saved statistics from storage
 
 ## Data Integrity Requirements
 
-### R33: Data Integrity
+### US-5 Data Integrity
 THE SYSTEM SHALL NOT lose statistics data due to normal application termination
 
 ## Future Phase Requirements (Out of MVP Scope)
 
-### R42: Progress Graphs (Phase 2+)
+### US-6 Progress Graphs (Phase 2+)
 FUTURE: Display historical WPM and accuracy trends
 
-### R43: Detailed Statistics (Phase 2+)
+### US-7 Detailed Statistics (Phase 2+)
 FUTURE: Display per-key accuracy and speed statistics
 
-### R44: CLI Arguments (Phase 2+)
+### US-8 CLI Arguments (Phase 2+)
 FUTURE: Support --stats argument to display historical data
