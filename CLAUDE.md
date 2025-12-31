@@ -2,6 +2,12 @@
 
 Quick reference for AI assistants working on this project.
 
+## Quick Reference Links
+
+- **User Documentation**: See `README.md` for installation and usage
+- **Contributor Guide**: See `docs/README.md` for development workflow
+- **Feature Details**: See `docs/features/<feature-name>/` for requirements/design/tasks
+
 ## Current Phase
 
 **Phase 1: MVP** - ✅ Completed
@@ -34,124 +40,32 @@ These are NOT technical debt - they represent well-architected future functional
 - Adaptive Features (2): WeaknessDetector (fully tested, ready for UI)
 - Scoring Utilities (1): calculate_accuracy() reference implementation
 
-See `~/.claude/plans/soft-wishing-mccarthy.md` for complete inventory.
-
 ## Project Overview
 
 Terminal-based typing trainer for AZERTY keyboards with real-time feedback and code-focused practice.
 
 ## Documentation Structure
 
-This project uses **feature-based documentation** organized in `docs/`:
+This project uses feature-based documentation. See [docs/README.md](docs/README.md) for:
+- Requirements → Design → Tasks workflow
+- Steering documents (product, tech, structure)
+- Feature documentation organization
 
-### Workflow: Requirements → Design → Tasks
+**77 lessons** across 5 categories: Adaptive, Finger Training, Key Training, Languages, Code
 
-Each feature in `docs/features/<feature-name>/` contains:
-- **requirements.md** - WHAT to build (EARS format: `WHEN [condition] THE SYSTEM SHALL [behavior]`)
-- **design.md** - HOW to build it (technical architecture, algorithms, data flows)
-- **tasks.md** - Implementation tracking (completed/pending tasks, organized by phase)
+| Feature | Module | Status |
+|---------|--------|--------|
+| Typing Engine | `src/engine/` | ✅ Phase 1 |
+| Home Row Lessons | `src/content/generator.rs` | ✅ Phase 2 |
+| Bigram/Trigram Training | `src/content/bigram_generator.rs` | ✅ Phase 2 |
+| Code Symbols | `src/content/code_generator.rs` | ✅ Phase 2 |
+| Adaptive Mode | `src/engine/analytics.rs`, `adaptive.rs` | ✅ Phase 2+ |
+| Visual Keyboard | `src/ui/keyboard.rs` | ✅ Phase 3 |
+| Finger Training | `src/content/finger_generator.rs` | ✅ Phase 3.2 |
+| Two-Level Menu | `src/content/category.rs`, `app.rs` | ✅ Phase 3.3 |
+| Statistics Dashboard | `src/ui/render.rs` | ✅ Phase 3.5 |
 
-### Steering Documents (Persistent Knowledge)
-
-Located in `docs/steering/`:
-- **product.md** - Product vision, target users, key features, success metrics
-- **tech.md** - Technology stack decisions, dependencies, rationale
-- **structure.md** - Architecture patterns, module organization, design patterns
-
-### Features Overview
-
-**Phase 1 (Completed):**
-- **typing-session/** (`src/engine/`) - Core typing engine, scoring, session management
-- **session-storage/** (`src/data/`) - Stats persistence to JSON
-- **tui-interface/** (`src/ui/`) - Terminal UI with ratatui
-- **keyboard-layout/** (`src/keyboard/`) - AZERTY layout definitions
-
-**Phase 2 (Completed):**
-- **home-row-lessons/** (`src/content/`) - All 6 progressive home row levels with menu selection
-- **bigram-training/** (`src/content/`) - French (40 with accents), English (30), Code (10) bigram practice
-- **trigram-training/** (`src/content/`) - French (25 with accents), English (20) trigram practice
-- **code-symbols/** (`src/content/`) - Programming symbols for TypeScript, Rust, Python
-
-**Phase 2+ (Completed):**
-- **adaptive-mode/** (`src/engine/analytics.rs`, `src/engine/adaptive.rs`, `src/content/adaptive_generator.rs`) - Personalized training with analytics
-  - Per-key and per-bigram statistics tracking
-  - Weakness detection (accuracy < 80%, speed > 75th percentile)
-  - Spaced repetition algorithm
-  - Adaptive content generation (60% weak, 30% moderate, 10% strong)
-  - Automatic analytics tracking after each session
-  - Appears in menu when ≥ 10 sessions completed
-
-**Phase 3 (Completed):**
-- **keyboard-display/** (`src/ui/keyboard.rs`, `src/keyboard/azerty.rs`) - Visual AZERTY keyboard layout
-  - Full 5-row keyboard rendering (Number, Top, Home, Bottom, Modifier)
-  - Real-time next-key highlighting (cyan background)
-  - Shift state indication (both shift keys highlight)
-  - Proper AZERTY layout with base characters
-  - Modifier keys (Tab, Caps, Shift, Ctrl, Cmd, Option, Alt, Fn)
-  - Enter key as arrow [←] on home row
-  - Keyboard shortcuts:
-    - Tab: Toggle keyboard visibility
-    - Ctrl+F: Toggle finger color hints
-    - Ctrl+H: Toggle accuracy heatmap overlay
-
-**Phase 3.1 (Completed):**
-- **layout-improvements/** (`src/ui/render.rs`) - Enhanced interface layout
-  - Reorganized layout: Header → Stats → Content → Keyboard → Instructions
-  - Stats block moved under header, before content
-  - Keyboard positioned after content (not fixed to bottom)
-  - Consistent margins (2 units) matching menu screens
-  - "ESC to quit" instructions at bottom
-  - Fixed keyboard shortcuts labels (Ctrl+F, Ctrl+H)
-  - Smooth keyboard toggle without layout shifts
-
-**Phase 3.2 (Completed):**
-- **finger-training/** (`src/content/finger_generator.rs`) - Finger-specific practice lessons
-  - 24 lessons: 4 finger pairs (Pinky, Ring, Middle, Index) × 6 variants
-  - 3 difficulty levels: Home Row, Extended, All Keys
-  - Base and shift variants for each level
-  - Corrected French AZERTY finger mappings (16 fixes)
-  - Auto-generated drills with 3-phase pattern
-  - Shift drills use 50% lower, 40% upper, 10% symbols
-  - Heatmap disabled by default (Ctrl+H to enable)
-
-**Phase 3.3 (Completed):**
-- **two-level-menu/** (`src/content/category.rs`, `src/app.rs`, `src/ui/render.rs`) - Hierarchical navigation system
-  - Two-screen navigation: Category selection → Lesson selection
-  - 5 lesson categories: Adaptive, Finger Training, Key Training, Languages, Code
-  - Category-based lesson filtering (simplified menu rendering)
-  - New `LessonCategoryType` enum and `LessonCategory` struct
-  - Category metadata: name, description, color coding
-  - Keyboard shortcuts: Numbers (1-5) for direct category selection
-  - Navigation flow: Category menu → Filtered lessons → Duration → Session
-  - ESC navigation: Lessons → Categories → Quit
-  - Maintains category context after session completion
-
-**Phase 3.4 (Completed):**
-- **menu-grouping/** (`src/ui/render.rs`, `src/app.rs`) - Visual lesson grouping within categories
-  - Category-aware lesson grouping with visual separators
-  - **Languages category**: Grouped by language (French, English) with cyan separators
-  - **Finger Training category**: Grouped by finger pair (Pinky, Ring, Middle, Index) with green separators
-  - **Code category**: Grouped by type/language (Code Patterns, TypeScript, Rust, Python) with magenta separators
-  - Separators use category colors for visual consistency
-  - Automatic blank line spacing between groups
-  - Lesson ordering optimized for logical grouping
-  - Improves navigation and lesson discovery within large categories
-
-**Phase 3.5 (Completed):**
-- **statistics-page/** (`src/ui/render.rs`, `src/app.rs`) - Comprehensive performance dashboard ✅ NEW
-  - Overall session statistics (sessions, keystrokes, WPM, accuracy)
-  - Mastery level breakdown (counts per classification: Mastered, Proficient, Learning, Beginner)
-  - Top 10 weaknesses list (< 80% accuracy with error details)
-  - Common mistype patterns (top 5 error patterns showing which keys are confused)
-  - Visual keyboard heatmap with accuracy-based color coding
-  - Accessible from main menu with 's' key
-  - Graceful placeholder when no analytics data exists
-  - Two-column layout optimized for terminal display (40% stats / 60% heatmap)
-
-**Complete documentation index**: See `docs/README.md` for navigation guide and feature details.
-
-### User Documentation
-- **README.md** (root) - User-facing documentation and setup
+See [docs/README.md#features-overview](docs/README.md#features-overview) for detailed feature descriptions.
 
 ## Quick Commands
 
@@ -180,71 +94,21 @@ git push origin v0.2.0 # Push tag to trigger automated release
 
 ## CI/CD Workflows
 
-### Continuous Integration (`.github/workflows/ci.yml`)
+### Continuous Integration
+Runs on every push to `main` and all PRs: formatting, linting, tests (129 passing), security audit.
 
-Runs automatically on every push to `main` and all pull requests.
-
-**Jobs:**
-- **Quality Checks**: Formatting (cargo fmt), linting (cargo clippy -D warnings), compilation (cargo check)
-- **Test Suite**: Runs 129 tests on Ubuntu and macOS
-- **Security Audit**: Scans dependencies for known vulnerabilities (non-blocking)
-
-**Status**: [![CI](https://github.com/jrollin/typer-cli/workflows/CI/badge.svg)](https://github.com/jrollin/typer-cli/actions/workflows/ci.yml)
-
-### Release Automation (`.github/workflows/release.yml`)
-
-Triggers on git tag push matching `v*.*.*` pattern.
-
-**Process:**
-1. Generate changelog using git-cliff (conventional commits)
-2. Create GitHub Release with changelog as release notes
-3. Build cross-platform binaries:
-   - Linux x86_64 (`typer-cli-linux-x86_64`)
-   - macOS Intel (`typer-cli-macos-x86_64`)
-   - macOS ARM64 (`typer-cli-macos-arm64`)
-4. Generate SHA256 checksums for all binaries
-5. Upload binaries and checksums as release assets
+### Release Automation
+Triggers on git tag `v*.*.*`:
+- Generates changelog with git-cliff (conventional commits)
+- Builds cross-platform binaries (Linux, macOS Intel/ARM64)
+- Creates GitHub Release with binaries and checksums
 
 **Creating a Release:**
 ```bash
-# 1. Ensure all changes are committed and CI passes
-git add . && git commit -m "feat: your feature description"
-
-# 2. Create and push version tag
-git tag v0.2.0
-git push origin v0.2.0
-
-# 3. Monitor release workflow at:
-# https://github.com/jrollin/typer-cli/actions
-
-# 4. Release will be available at:
-# https://github.com/jrollin/typer-cli/releases
+git tag v0.2.0 && git push origin v0.2.0
 ```
 
-### Changelog Generation (`cliff.toml`)
-
-Uses [git-cliff](https://git-cliff.org) to generate conventional commit-based changelogs.
-
-**Commit Types:**
-- `feat:` → Features section
-- `fix:` → Bug Fixes section
-- `docs:` → Documentation section
-- `perf:` → Performance section
-- `refactor:` → Refactoring section
-- `test:` → Testing section
-- `chore:`, `ci:` → Miscellaneous Tasks section
-
-**Preview changelog locally:**
-```bash
-# Install git-cliff
-cargo install git-cliff
-
-# Preview next release
-git cliff --latest --strip header
-
-# Generate full changelog
-git cliff -o CHANGELOG.md
-```
+See `.github/workflows/` for complete workflow details.
 
 ## Project Structure
 
@@ -292,54 +156,15 @@ src/
 
 Stats saved to: `~/.config/typer-cli/stats.json`
 
-**Stats Structure:**
-- `sessions`: Array of completed session records
-- `adaptive_analytics`: Optional analytics data (appears after first session)
-  - `key_stats`: Per-key performance (accuracy, speed, mistypes, mastery level)
-  - `bigram_stats`: Per-bigram performance
-  - `total_sessions`: Session counter
-  - `total_keystrokes`: Total keystrokes tracked
+Contains session history and adaptive analytics (per-key stats, bigram stats, mastery levels).
 
-## Roadmap
+See [docs/features/session-storage/](docs/features/session-storage/) for complete schema.
 
-- **Phase 1**: Home row practice (Level 1) ✅
-- **Phase 2**: All home row levels (Levels 1-6) with lesson selection menu ✅
-- **Phase 2**: Bigram training (French, English, Code patterns) ✅
-- **Phase 2**: Code symbols (TypeScript, Rust, Python) ✅
-- **Phase 2+**: Adaptive mode (personalized weak-key training) ✅
-  - Analytics engine (per-key and per-bigram tracking)
-  - Weakness detection (accuracy < 80%, speed > 75th percentile)
-  - Spaced repetition algorithm (practice intervals by mastery level)
-  - Adaptive content generation (60/30/10 distribution)
-  - Automatic tracking after each session
-  - Conditional menu appearance (≥ 10 sessions, ≥ 100 keystrokes)
-- **Phase 3**: Visual keyboard display ✅
-  - Full AZERTY keyboard layout rendering (Number, Top, Home, Bottom, Modifier rows)
-  - Real-time next-key highlighting and shift state indication
-  - Keyboard shortcuts: Tab (toggle visibility), Ctrl+F (finger colors), Ctrl+H (heatmap)
-  - Proper alignment and visual styling
-- **Phase 3.1**: Layout improvements ✅
-  - Reorganized interface layout (Header → Stats → Content → Keyboard → Instructions)
-  - Stats repositioned under header
-  - Keyboard flows after content (not fixed at bottom)
-  - Consistent margins across all screens
-  - Bottom instructions section ("ESC to quit")
-  - Fixed keyboard shortcut labels
-- **Phase 3.2**: Finger-based training ✅
-  - 24 finger lessons (4 pairs × 6 variants: 3 levels × 2 modes)
-  - Corrected French AZERTY finger mappings (16 fixes)
-  - Auto-generated drills with 3-phase pattern
-  - Shift variants with weighted distribution (50/40/10)
-  - Heatmap disabled by default
-- **Phase 3.3**: Two-level menu system ✅
-  - Hierarchical navigation with category selection
-  - 5 categories: Adaptive, Finger Training, Key Training, Languages, Code
-  - Category-based lesson filtering
-  - Improved UX with descriptions and color coding
-  - ESC navigation flow: Lessons → Categories → Quit
-- **Phase 3+**: ⏳ FUTURE
-  - Enhanced adaptive UI (pre/post-session feedback, progress indicators)
-  - Analytics visualization (performance graphs, trend charts)
-  - Data export (JSON/CSV)
-  - Gamification (achievements, streaks)
-  - Themes and customization
+## Current Status
+
+**Phase**: 3.5 Complete (Statistics Dashboard)
+**Next**: Phase 3+ (Analytics visualization, data export, gamification)
+**Tests**: 129 passing
+**Lessons**: 77 total
+
+See [docs/README.md#project-status](docs/README.md#project-status) for complete roadmap.

@@ -12,74 +12,16 @@ Typer CLI is a terminal-based keyboard typing training tool. It provides an inte
 
 ## Features
 
-### Core Features (Phase 1-2) ✅
-- ✅ **Home Row Lessons**: 6 progressive levels for AZERTY home row
-- ✅ **Bigram Training**: French (40 bigrams with accents), English (30), Code (10)
-- ✅ **Trigram Training**: French (25 trigrams with accents), English (20)
-- ✅ **Code Symbols**: TypeScript, Rust, Python practice (18 lessons)
-- ✅ **Real-time Feedback**: Green/red coloring for each character
-- ✅ **Live Metrics**: WPM (words per minute) and accuracy
-- ✅ **Session Persistence**: Automatic saving to JSON
-- ✅ **Minimal TUI**: Clean interface with ratatui
-- ✅ **AZERTY Keyboard**: Optimized for French layout
+- **Progressive Lessons**: 77 lessons from home row basics to advanced code symbols
+- **Real-time Feedback**: Instant visual feedback (green/red) and live WPM/accuracy metrics
+- **Adaptive Mode**: Personalized training targeting your weaknesses
+- **Visual Keyboard**: Full AZERTY layout with next-key highlighting and heatmaps
+- **Comprehensive Practice**: French/English bigrams, trigrams, TypeScript/Rust/Python symbols
+- **Statistics Dashboard**: Track progress with performance analytics
+- **Finger Training**: Targeted drills for each finger pair
+- **Session Persistence**: All data saved locally for privacy
 
-### Adaptive Mode (Phase 2+) ✅
-- ✅ **Analytics Tracking**: Automatic per-key and per-bigram statistics
-- ✅ **Weakness Detection**: Identifies keys < 80% accuracy or slow speed
-- ✅ **Personalized Content**: 60% weak, 30% moderate, 10% strong key distribution
-- ✅ **Spaced Repetition**: Practice intervals based on mastery level
-- ✅ **Smart Appearance**: Shows in menu after 10+ sessions
-- ✅ **Privacy-Focused**: All data stored locally
-
-### Visual Keyboard (Phase 3) ✅
-- ✅ **Full AZERTY Layout**: Complete 5-row keyboard visualization
-- ✅ **Next-Key Highlighting**: Real-time cyan highlight on next character
-- ✅ **Shift Indicators**: Visual feedback for shift state
-- ✅ **Finger Color Hints**: Toggle with Ctrl+F for learning proper finger placement
-- ✅ **Accuracy Heatmap**: Toggle with Ctrl+H to see performance overlay (disabled by default)
-- ✅ **Toggle Visibility**: Press Tab to show/hide keyboard
-- ✅ **Consistent Layout**: Clean margins matching menu screens
-
-### Finger Training (Phase 3.2) ✅
-- ✅ **24 Targeted Lessons**: 4 finger pairs (Pinky, Ring, Middle, Index) × 6 variants
-- ✅ **Progressive Difficulty**: 3 levels (Home Row, Extended, All Keys)
-- ✅ **Base + Shift Variants**: Practice both base characters and mixed case
-- ✅ **Corrected AZERTY Mappings**: 16 fixes to French keyboard finger assignments
-- ✅ **Smart Drills**: Auto-generated 3-phase patterns (repetitions, pairs, triplets)
-- ✅ **Prioritized Menu**: Finger training appears second (after adaptive mode)
-
-### Two-Level Menu System (Phase 3.3) ✅
-- ✅ **Category Navigation**: Browse lessons by type (Adaptive, Finger Training, Key Training, Languages, Code)
-- ✅ **Filtered Views**: See only relevant lessons for selected category
-- ✅ **Visual Descriptions**: Each category has a clear description and color coding
-- ✅ **Quick Selection**: Use number keys 1-5 for direct category access
-- ✅ **Intuitive Flow**: Category → Lesson → Duration → Practice
-- ✅ **Smart ESC Navigation**: Lessons → Categories → Quit
-- ✅ **Context Preservation**: Returns to same category after completing session
-
-### Menu Grouping (Phase 3.4) ✅
-- ✅ **Visual Separators**: Lessons organized with colored dividers within categories
-- ✅ **Language Grouping**: Languages category groups French and English lessons separately
-- ✅ **Finger Grouping**: Finger Training groups by finger pair (Pinky, Ring, Middle, Index)
-- ✅ **Code Grouping**: Code category groups Code Patterns, TypeScript, Rust, and Python
-- ✅ **Color-Coded**: Separators match category colors for visual consistency
-- ✅ **Improved Navigation**: Easier to find and browse lessons within large categories
-
-### Statistics Dashboard (Phase 3.5) ✅
-- ✅ **Overall Metrics**: View total sessions, keystrokes, average WPM, and accuracy
-- ✅ **Visual Keyboard Heatmap**: See per-key accuracy with color-coded visualization
-  - Green: Mastered (90%+ accuracy)
-  - Yellow: Proficient (80-90% accuracy)
-  - Light Red: Learning (70-80% accuracy)
-  - Blue: Beginner (<70% accuracy)
-  - Heatmap always shown (optimized for analytics view)
-- ✅ **Mastery Breakdown**: Colored icons (■) showing keys in each mastery level
-- ✅ **Weakness Identification**: Top 10 weakest keys with error counts (#1 = most practice needed)
-- ✅ **Error Patterns**: Top 10 common mistypes in 2-column layout
-- ✅ **Polished UI**: Enhanced padding and spacing for better readability
-- ✅ **Access**: Press `s` key from the main menu (after completing your first session)
-
-**Total Lessons**: 77 (52 standard + 24 finger training + 1 adaptive)
+See [docs/README.md#features-overview](docs/README.md#features-overview) for complete feature list and implementation details.
 
 ## Installation
 
@@ -213,188 +155,67 @@ The interface features a clean, organized layout with consistent margins:
 
 ## Technical Stack
 
-- **Language**: Rust 2021
-- **TUI**: [ratatui](https://github.com/ratatui-org/ratatui) + [crossterm](https://github.com/crossterm-rs/crossterm)
-- **Serialization**: [serde](https://serde.rs/) + serde_json
-- **Timestamps**: [chrono](https://github.com/chronotope/chrono)
-- **Randomization**: [rand](https://github.com/rust-random/rand) (for adaptive content)
-- **CLI args**: [clap](https://github.com/clap-rs/clap) (prepared for future)
+Built with **Rust** using [ratatui](https://github.com/ratatui-org/ratatui) for the terminal UI.
+
+See [docs/steering/tech.md](docs/steering/tech.md) for complete stack details.
 
 ## Architecture
 
-```
-src/
-├── main.rs           # Entry point + terminal init
-├── app.rs            # App state machine + two-level navigation + event loop
-├── ui/
-│   ├── render.rs     # Category menu, lesson menu, TUI rendering
-│   └── keyboard.rs   # Visual keyboard display
-├── engine/
-│   ├── types.rs      # TypingSession, CharInput
-│   ├── scoring.rs    # WPM and accuracy calculation
-│   ├── analytics.rs  # Per-key/bigram statistics tracking
-│   └── adaptive.rs   # Weakness detection, spaced repetition
-├── content/
-│   ├── category.rs          # Lesson categories, filtering (NEW)
-│   ├── lesson.rs            # Lesson definitions
-│   ├── generator.rs         # Home row content generation
-│   ├── bigram_generator.rs  # Bigram practice content
-│   ├── code_generator.rs    # Code symbols content
-│   └── adaptive_generator.rs # Personalized content
-├── data/
-│   ├── stats.rs      # Stats structures (with adaptive analytics)
-│   └── storage.rs    # JSON persistence
-└── keyboard/
-    └── azerty.rs     # AZERTY layout model
-```
+Modular Rust codebase organized by feature:
+- `src/engine/` - Core typing engine, analytics, adaptive algorithms
+- `src/content/` - Lesson generation and categorization
+- `src/ui/` - Terminal interface rendering
+- `src/data/` - Statistics persistence
+- `src/keyboard/` - AZERTY layout model
+
+See [docs/steering/structure.md](docs/steering/structure.md) for detailed architecture.
 
 ## Data
 
-Session statistics are saved to:
-```
-~/.config/typer-cli/stats.json
-```
+Session statistics are saved to `~/.config/typer-cli/stats.json`.
 
-JSON format:
-```json
-{
-  "sessions": [
-    {
-      "timestamp": "2024-01-01T12:00:00Z",
-      "lesson_type": "Home Row - Level 1",
-      "wpm": 45.0,
-      "accuracy": 95.5,
-      "duration": 60000
-    }
-  ],
-  "adaptive_analytics": {
-    "key_stats": {
-      "f": {
-        "key": "f",
-        "total_attempts": 100,
-        "correct_attempts": 97,
-        "error_count": 3,
-        "total_time_ms": 10000,
-        "mistype_map": {},
-        "last_practiced": "2024-01-01T12:00:00Z",
-        "mastery_level": "Mastered"
-      }
-    },
-    "bigram_stats": {},
-    "session_history": [],
-    "total_sessions": 15,
-    "total_keystrokes": 850
-  }
-}
-```
-
-**Note**: `adaptive_analytics` appears after your first session and enables personalized training after 10+ sessions.
+The file contains session history and adaptive analytics for personalized training.
+See [docs/features/session-storage/](docs/features/session-storage/) for data schema details.
 
 ## Development
 
-### Tests
-
+### Build and Run
 ```bash
-# Run all tests
-cargo test
-
-# With output
-cargo test -- --nocapture
-
-# Test adaptive mode
-cargo run --example create_test_stats  # Generate test data
-cargo run --example verify_adaptive     # Verify configuration
+cargo run              # Launch application
+cargo build --release  # Build optimized binary
 ```
 
-**81 unit tests** cover:
-- Engine (typing session, scoring, analytics, adaptive algorithms)
-- Content (lesson generation, bigrams, code symbols, adaptive content)
-- Data (stats persistence with analytics)
-- Keyboard (AZERTY layout)
-
-**Test Categories:**
-- 13 tests: typing session logic
-- 9 tests: analytics tracking
-- 9 tests: adaptive algorithms (weakness detection, spaced repetition)
-- 6 tests: adaptive content generation
-- 12 tests: bigram training
-- 12 tests: code symbols
-- 7 tests: home row lessons
-- 7 tests: session storage
-- 6 tests: additional coverage
+### Tests
+```bash
+cargo test             # Run test suite (129 passing tests)
+```
 
 ### Code Quality
-
 ```bash
-# Linter
-cargo clippy
-
-# Formatting
-cargo fmt
-
-# Check compilation
-cargo check
+cargo clippy           # Linting
+cargo fmt              # Formatting
+cargo check            # Fast compilation check
 ```
 
-### Commit Structure
+See [docs/README.md](docs/README.md) for contributor workflow and detailed test coverage.
 
-See `tasks.md` for detailed tracking of implemented tasks.
+## Status
 
-## Roadmap
+**Current Version**: Phase 3.5 Complete (Statistics Dashboard)
+**Total Lessons**: 77
+**Test Coverage**: 129 passing tests
 
-### Phase 1: MVP ✅ Completed
-- [x] Home row basics (Level 1: f, j)
-- [x] WPM + Accuracy calculations
-- [x] Minimal TUI interface
-- [x] Session persistence
-
-### Phase 2: Content Expansion ✅ Completed
-- [x] All home row lessons (Levels 1-6)
-- [x] Bigram training (French, English, Code)
-- [x] Code symbols (TypeScript, Rust, Python)
-- [x] Lesson selection menu
-- [x] Backspace support
-
-### Phase 2+: Adaptive Mode ✅ Completed
-- [x] Analytics engine (per-key/bigram tracking)
-- [x] Weakness detection (accuracy & speed)
-- [x] Spaced repetition algorithm
-- [x] Adaptive content generation (60/30/10 distribution)
-- [x] Automatic analytics after each session
-- [x] Conditional menu appearance (≥10 sessions)
-
-### Phase 3: Visual Keyboard ✅ Completed
-- [x] Full AZERTY keyboard layout rendering
-- [x] Real-time next-key highlighting
-- [x] Shift state indicators
-- [x] Toggle keyboard visibility (Tab)
-- [x] Finger color hints (Ctrl+F)
-- [x] Accuracy heatmap overlay (Ctrl+H)
-- [x] Improved layout consistency and margins
-
-### Phase 3+: Future Enhancements
-- [ ] Enhanced adaptive UI (pre/post-session feedback)
-- [ ] Progress visualization (performance graphs, trends)
-- [ ] Data export (JSON/CSV)
-- [ ] Gamification (achievements, streaks)
-- [ ] Theme customization
-- [ ] Multi-layout support (BÉPO, Dvorak)
+See [docs/README.md#project-status](docs/README.md#project-status) for detailed roadmap and planned features.
 
 ## Documentation
 
-### Workflow Documents
-- `requirements.md` - EARS format requirements (what to build)
-- `design.md` - Technical design and implementation details
-- `tasks.md` - Detailed task tracking and progress
+- **User Guide**: You're reading it (installation, usage, controls)
+- **Contributing**: See [docs/README.md](docs/README.md) for development workflow
+- **Features**: See [docs/README.md#features-overview](docs/README.md#features-overview)
+- **AI Context**: See [CLAUDE.md](CLAUDE.md)
 
-### Steering Documents
-- `product.md` - Product vision, target users, and goals
-- `tech.md` - Technology stack decisions and rationale
-- `structure.md` - Architecture and module design patterns
-
-### Project Context
-- `CLAUDE.md` - Quick reference for AI assistants
-- `README.md` - This file (user-facing documentation)
+Feature-specific documentation follows the Requirements → Design → Tasks workflow.
+See [docs/features/](docs/features/) for individual feature documentation.
 
 ## License
 

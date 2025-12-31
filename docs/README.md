@@ -1,5 +1,17 @@
 # Typer CLI Documentation
 
+> **Contributor Documentation Index**
+>
+> This documentation is for contributors and developers. If you're a new user, see [README.md](../README.md) for installation and usage.
+
+## Quick Links
+
+- 📖 **User Guide**: [README.md](../README.md) - Installation, usage, controls
+- 🤖 **AI Context**: [CLAUDE.md](../CLAUDE.md) - Quick reference for AI assistants
+- 📋 **Features**: [Features Overview](#features-overview) below
+- 🏗️ **Architecture**: [docs/steering/structure.md](steering/structure.md)
+- 🛠️ **Tech Stack**: [docs/steering/tech.md](steering/tech.md)
+
 ## Documentation Structure
 
 This documentation follows a **feature-based organization** aligned with the global CLAUDE.md workflow. Each feature has its complete lifecycle tracked in its own folder.
