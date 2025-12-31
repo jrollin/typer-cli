@@ -92,6 +92,7 @@ impl TypingSession {
     }
 
     /// Explicit session start method used in tests
+    #[allow(dead_code)]
     pub fn start(&mut self) {
         if self.start_time.is_none() {
             self.start_time = Some(Instant::now());
@@ -192,6 +193,7 @@ pub struct SessionResult {
     pub accuracy: f64,
     pub duration: Duration,
     /// Total characters typed for session statistics
+    #[allow(dead_code)]
     pub char_count: usize,
     pub error_count: usize,
 }

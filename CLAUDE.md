@@ -14,6 +14,28 @@ Quick reference for AI assistants working on this project.
 **Phase 3.4: Menu Grouping** - ✅ Completed
 **Current Focus**: Phase 3+ (Analytics visualization, data export, gamification)
 
+## Dead Code Annotations
+
+The codebase contains **28 intentional `#[allow(dead_code)]` annotations** marking Phase 3+ features that are:
+- Fully tested and ready for future implementation
+- Strategic placeholders for planned features (analytics, export, multi-layout support)
+- Preserved to avoid reimplementation work
+
+These are NOT technical debt - they represent well-architected future functionality.
+
+**Categories**:
+- Analytics & Statistics APIs (6): BigramStats methods, Stats methods, Storage.get_path()
+- Lesson Metadata (3): title, description, keys - used in menu display
+- Frequency Data (4): Linguistic research data for weighted practice
+- Code Categorization (2): SymbolCategory for future UI filtering
+- Keyboard Abstraction (3): AzertyLayout for multi-layout support
+- UI Placeholders (3): CursorWindow fields for scrolling/pagination
+- Test Utilities (3): Reusable drill generation patterns
+- Adaptive Features (2): WeaknessDetector (fully tested, ready for UI)
+- Scoring Utilities (1): calculate_accuracy() reference implementation
+
+See `~/.claude/plans/soft-wishing-mccarthy.md` for complete inventory.
+
 ## Project Overview
 
 Terminal-based typing trainer for AZERTY keyboards with real-time feedback and code-focused practice.
