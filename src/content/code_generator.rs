@@ -36,7 +36,7 @@ impl CodeSymbolGenerator {
 
         while result.len() < length {
             if !result.is_empty() {
-                result.push(' ');
+                result.push('\n');
             }
 
             let snippet = &filtered_snippets[idx % filtered_snippets.len()];

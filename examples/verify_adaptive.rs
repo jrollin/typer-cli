@@ -61,7 +61,7 @@ fn main() {
 
                 if accuracy < 80.0 && total >= 10.0 {
                     weak_keys.push((key, accuracy));
-                } else if accuracy >= 80.0 && accuracy < 95.0 {
+                } else if (80.0..95.0).contains(&accuracy) {
                     moderate_keys.push((key, accuracy));
                 } else if accuracy >= 95.0 {
                     strong_keys.push((key, accuracy));

@@ -237,6 +237,22 @@ mod tests {
     }
 
     #[test]
+    fn test_char_input_enter_key() {
+        let input = CharInput::new('\n', '\n', Duration::from_millis(100));
+        assert!(input.is_correct);
+        assert_eq!(input.expected, '\n');
+        assert_eq!(input.typed, '\n');
+    }
+
+    #[test]
+    fn test_char_input_enter_incorrect() {
+        let input = CharInput::new('\n', ' ', Duration::from_millis(100));
+        assert!(!input.is_correct);
+        assert_eq!(input.expected, '\n');
+        assert_eq!(input.typed, ' ');
+    }
+
+    #[test]
     fn test_typing_session_new() {
         let session = TypingSession::new("hello".to_string(), Duration::from_secs(60));
         assert_eq!(session.content, "hello");

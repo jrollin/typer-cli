@@ -1,6 +1,7 @@
 /// Content generator for trigram training lessons
 use super::bigram::Language;
 use super::trigram::{english_trigrams, french_trigrams, Trigram};
+use rand::Rng;
 
 pub struct TrigramGenerator {
     trigrams: Vec<Trigram>,
@@ -49,11 +50,13 @@ impl TrigramGenerator {
     /// Example: "the the the and and and"
     fn generate_drill_mode(&self, trigrams: &[&Trigram], length: usize) -> String {
         let mut result = String::new();
+        let mut rng = rand::thread_rng();
         let mut idx = 0;
 
         while result.len() < length {
             if !result.is_empty() {
-                result.push(' ');
+                let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
+                result.push(separator);
             }
 
             let trigram = trigrams[idx % trigrams.len()];
@@ -73,11 +76,13 @@ impl TrigramGenerator {
     /// Example: "the them then and hand stand"
     fn generate_word_mode(&self, trigrams: &[&Trigram], length: usize) -> String {
         let mut result = String::new();
+        let mut rng = rand::thread_rng();
         let mut trigram_idx = 0;
 
         while result.len() < length {
             if !result.is_empty() {
-                result.push(' ');
+                let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
+                result.push(separator);
             }
 
             let trigram = trigrams[trigram_idx % trigrams.len()];
@@ -97,11 +102,13 @@ impl TrigramGenerator {
     /// Combines examples into natural-looking phrases
     fn generate_mixed_mode(&self, trigrams: &[&Trigram], length: usize) -> String {
         let mut result = String::new();
+        let mut rng = rand::thread_rng();
         let mut word_count = 0;
 
         while result.len() < length {
             if word_count > 0 {
-                result.push(' ');
+                let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
+                result.push(separator);
             }
 
             // Pick a trigram
@@ -195,14 +202,17 @@ mod tests {
     }
 
     #[test]
-    fn test_deterministic_generation() {
+    fn test_random_newlines_in_generation() {
         let gen = TrigramGenerator::new(Language::French);
 
-        let content1 = gen.generate(2, 40);
-        let content2 = gen.generate(2, 40);
+        let content = gen.generate(2, 100);
 
-        // Same level and length should produce same content
-        assert_eq!(content1, content2);
+        // Content should contain both spaces and newlines (random mix)
+        assert!(content.contains(' '));
+        // Content should have expected words from top trigrams
+        assert!(content.contains("les") || content.contains("des") || content.contains("ment"));
+        // Content length should respect constraint
+        assert!(content.chars().count() <= 100);
     }
 
     #[test]

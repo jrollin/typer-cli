@@ -170,7 +170,7 @@ mod tests {
         // The slowest keys (f, g) should be identified
         // With 7 keys, 75th percentile index = 5 (0-based), value = 300
         // Keys > 300 should be returned: 'g' (350)
-        assert!(slow_keys.len() > 0);
+        assert!(!slow_keys.is_empty());
         assert!(slow_keys.contains(&'g'));
     }
 

@@ -155,6 +155,8 @@ src/
 - AZERTY keyboard only (Phase 1-2)
 - French language only (Phase 1-2)
 - Backspace support enabled (Phase 1+)
+- Enter/newline support with `↵` icon visualization
+- Random newlines in practice content (25% probability)
 - No sound effects (all phases)
 - Terminal-only (no GUI)
 

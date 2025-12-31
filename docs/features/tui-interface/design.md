@@ -144,6 +144,30 @@ fn render_cursor() -> Span {
 - Doesn't require special terminal support
 - Works consistently across terminals
 
+### Special Character Visualization
+
+**Non-printable character icons:**
+```rust
+fn display_char(ch: char) -> char {
+    match ch {
+        ' ' => '·',      // U+00B7 Middle Dot for spaces
+        '\n' => '↵',     // U+21B5 Downwards Arrow for newlines
+        c => c,
+    }
+}
+```
+
+**Design rationale:**
+- **Space (·)**: Makes whitespace visible without being distracting
+- **Newline (↵)**: Clearly indicates line breaks in multi-line content
+- Icons shown in both expected text and typed input for consistency
+- Preserves color coding (green/red/gray) to maintain feedback
+
+**Implementation notes:**
+- Icons are display-only; actual characters stored remain unchanged
+- Enter key input is validated against '\n' character
+- Newline support enables practice with code snippets and structured content
+
 ## Real-time Updates
 
 ### Render Loop

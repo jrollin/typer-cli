@@ -95,6 +95,7 @@ fn generate_two_key_drills(keys: &[char], length: usize) -> String {
     }
 
     let mut result = String::new();
+    let mut rng = rand::thread_rng();
     let pattern = [
         format!("{}{}", keys[0], keys[0]),
         format!("{}{}", keys[1], keys[1]),
@@ -103,7 +104,8 @@ fn generate_two_key_drills(keys: &[char], length: usize) -> String {
     let mut idx = 0;
     while result.len() < length {
         if !result.is_empty() {
-            result.push(' ');
+            let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
+            result.push(separator);
         }
         result.push_str(&pattern[idx % pattern.len()]);
         idx += 1;
@@ -122,6 +124,7 @@ fn generate_progressive_drills(keys: &[char], length: usize) -> String {
     }
 
     let mut result = String::new();
+    let mut rng = rand::thread_rng();
     let mut patterns = Vec::new();
 
     // Phase 1: Répétitions de chaque touche
@@ -151,7 +154,8 @@ fn generate_progressive_drills(keys: &[char], length: usize) -> String {
     let mut idx = 0;
     while result.len() < length {
         if !result.is_empty() {
-            result.push(' ');
+            let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
+            result.push(separator);
         }
         result.push_str(&patterns[idx % patterns.len()]);
         idx += 1;
@@ -172,11 +176,13 @@ fn generate_words(_keys: &[char], length: usize) -> String {
     ];
 
     let mut result = String::new();
+    let mut rng = rand::thread_rng();
     let mut idx = 0;
 
     while result.len() < length {
         if !result.is_empty() {
-            result.push(' ');
+            let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
+            result.push(separator);
         }
         result.push_str(words[idx % words.len()]);
         idx += 1;
@@ -193,6 +199,7 @@ fn generate_key_pair_drills(keys: &[char], length: usize) -> String {
     }
 
     let mut result = String::new();
+    let mut rng = rand::thread_rng();
     let mut patterns = Vec::new();
 
     // Phase 1: Single key repetitions (warm-up)
@@ -228,7 +235,8 @@ fn generate_key_pair_drills(keys: &[char], length: usize) -> String {
     let mut idx = 0;
     while result.len() < length {
         if !result.is_empty() {
-            result.push(' ');
+            let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
+            result.push(separator);
         }
         result.push_str(&patterns[idx % patterns.len()]);
         idx += 1;
@@ -331,7 +339,8 @@ fn generate_shift_variant_drills(group: &super::lesson::KeyPairGroupDef, length:
     let mut idx = 0;
     while result.len() < length {
         if !result.is_empty() {
-            result.push(' ');
+            let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
+            result.push(separator);
         }
         result.push_str(&patterns[idx % patterns.len()]);
         idx += 1;
@@ -346,9 +355,11 @@ mod tests {
 
     #[test]
     fn test_generate_two_key_drills() {
-        let result = generate_two_key_drills(&['f', 'j'], 15);
-        assert!(result.starts_with("ff jj ff jj"));
-        assert!(result.len() <= 15);
+        let result = generate_two_key_drills(&['f', 'j'], 30);
+        // Should contain both patterns (may have spaces or newlines between)
+        assert!(result.contains("ff"));
+        assert!(result.contains("jj"));
+        assert!(result.len() <= 30);
     }
 
     #[test]

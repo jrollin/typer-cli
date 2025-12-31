@@ -496,6 +496,11 @@ impl App {
                         session.add_input(c);
                     }
                 }
+                KeyCode::Enter => {
+                    if let Some(session) = &mut self.session {
+                        session.add_input('\n');
+                    }
+                }
                 KeyCode::Backspace => {
                     if let Some(session) = &mut self.session {
                         session.remove_last_input();

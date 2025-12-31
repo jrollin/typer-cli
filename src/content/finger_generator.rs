@@ -1,6 +1,7 @@
 use crate::content::lesson::FingerPairType;
 use crate::keyboard::azerty::{AzertyLayout, Finger, RowType};
 use rand::seq::SliceRandom;
+use rand::Rng;
 
 /// Extract keys assigned to a specific finger pair at a given difficulty level
 pub fn get_finger_pair_keys(
@@ -82,6 +83,7 @@ pub fn generate_finger_drills(keys: &[char], length: usize, with_shift: bool) ->
 /// Generate drills with only base characters (3-phase pattern)
 fn generate_base_drills(keys: &[char], length: usize) -> String {
     let mut result = String::new();
+    let mut rng = rand::thread_rng();
     let mut patterns = Vec::new();
 
     // Phase 1: Single key repetitions (warm-up)
@@ -117,8 +119,9 @@ fn generate_base_drills(keys: &[char], length: usize) -> String {
     let mut idx = 0;
     while result.len() < length {
         if !result.is_empty() {
-            result.push(' ');
-            // Check if adding space would exceed length
+            let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
+            result.push(separator);
+            // Check if adding separator would exceed length
             if result.len() >= length {
                 break;
             }
@@ -206,8 +209,9 @@ fn generate_shift_drills(keys: &[char], length: usize) -> String {
     let mut idx = 0;
     while result.len() < length {
         if !result.is_empty() {
-            result.push(' ');
-            // Check if adding space would exceed length
+            let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
+            result.push(separator);
+            // Check if adding separator would exceed length
             if result.len() >= length {
                 break;
             }

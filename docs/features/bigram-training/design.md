@@ -135,11 +135,14 @@ impl BigramGenerator {
 ```rust
 fn generate_drill_mode(&self, bigrams: Vec<&Bigram>, length: usize) -> String {
     let mut result = String::new();
+    let mut rng = rand::thread_rng();
     let mut idx = 0;
 
     while result.len() < length {
         if !result.is_empty() {
-            result.push(' ');
+            // Random separator: 25% newline, 75% space
+            let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
+            result.push(separator);
         }
 
         let bigram = &bigrams[idx % bigrams.len()];
@@ -153,7 +156,7 @@ fn generate_drill_mode(&self, bigrams: Vec<&Bigram>, length: usize) -> String {
     result.chars().take(length).collect()
 }
 
-// Output: "qu qu qu ou ou ou en en en qu qu qu..."
+// Output: "qu qu qu ou ou ou\nen en en qu qu qu..." (random newlines)
 ```
 
 **2. Word Mode (Level 2)**: Bigrams in word context

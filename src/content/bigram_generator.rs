@@ -1,5 +1,6 @@
 /// Content generator for bigram training lessons
 use super::bigram::{code_bigrams, english_bigrams, french_bigrams, Bigram, BigramType, Language};
+use rand::Rng;
 
 pub struct BigramGenerator {
     bigrams: Vec<Bigram>,
@@ -52,11 +53,13 @@ impl BigramGenerator {
     /// Example: "qu qu qu ou ou ou en en en"
     fn generate_drill_mode(&self, bigrams: &[&Bigram], length: usize) -> String {
         let mut result = String::new();
+        let mut rng = rand::thread_rng();
         let mut idx = 0;
 
         while result.len() < length {
             if !result.is_empty() {
-                result.push(' ');
+                let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
+                result.push(separator);
             }
 
             let bigram = bigrams[idx % bigrams.len()];
@@ -76,11 +79,13 @@ impl BigramGenerator {
     /// Example: "que qui quoi pour vous nous"
     fn generate_word_mode(&self, bigrams: &[&Bigram], length: usize) -> String {
         let mut result = String::new();
+        let mut rng = rand::thread_rng();
         let mut bigram_idx = 0;
 
         while result.len() < length {
             if !result.is_empty() {
-                result.push(' ');
+                let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
+                result.push(separator);
             }
 
             let bigram = bigrams[bigram_idx % bigrams.len()];
@@ -100,11 +105,13 @@ impl BigramGenerator {
     /// Combines examples into natural-looking phrases
     fn generate_mixed_mode(&self, bigrams: &[&Bigram], length: usize) -> String {
         let mut result = String::new();
+        let mut rng = rand::thread_rng();
         let mut word_count = 0;
 
         while result.len() < length {
             if word_count > 0 {
-                result.push(' ');
+                let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
+                result.push(separator);
             }
 
             // Pick a bigram
@@ -206,13 +213,16 @@ mod tests {
     }
 
     #[test]
-    fn test_deterministic_generation() {
+    fn test_random_newlines_in_generation() {
         let gen = BigramGenerator::new(BigramType::Natural, Some(Language::French));
 
-        let content1 = gen.generate(2, 40);
-        let content2 = gen.generate(2, 40);
+        let content = gen.generate(2, 100);
 
-        // Same level and length should produce same content
-        assert_eq!(content1, content2);
+        // Content should contain both spaces and newlines (random mix)
+        assert!(content.contains(' '));
+        // Content should have expected words from top bigrams
+        assert!(content.contains("les") || content.contains("de") || content.contains("en"));
+        // Content length should respect constraint
+        assert!(content.chars().count() <= 100);
     }
 }

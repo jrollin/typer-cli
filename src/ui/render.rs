@@ -30,24 +30,28 @@ struct VisibleWindow {
     line_start_indices: Vec<usize>,
 }
 
-/// Wrap text to fit terminal width using word boundaries
+/// Wrap text to fit terminal width, preserving newlines
 fn wrap_text(content: &str, width: usize) -> Vec<String> {
     let mut lines = Vec::new();
-    let mut current_line = String::new();
 
-    for word in content.split_whitespace() {
-        if current_line.is_empty() {
-            current_line = word.to_string();
-        } else if current_line.len() + 1 + word.len() <= width {
-            current_line.push(' ');
-            current_line.push_str(word);
-        } else {
-            lines.push(current_line);
-            current_line = word.to_string();
+    // Split by newlines first to preserve them
+    for raw_line in content.split('\n') {
+        // Wrap each line if it's too long
+        let mut current_line = String::new();
+
+        for word in raw_line.split_whitespace() {
+            if current_line.is_empty() {
+                current_line = word.to_string();
+            } else if current_line.len() + 1 + word.len() <= width {
+                current_line.push(' ');
+                current_line.push_str(word);
+            } else {
+                lines.push(current_line);
+                current_line = word.to_string();
+            }
         }
-    }
 
-    if !current_line.is_empty() {
+        // Always push the line (even if empty) to preserve blank lines
         lines.push(current_line);
     }
 
@@ -60,10 +64,19 @@ fn find_cursor_line(lines: &[String], char_pos: usize) -> (usize, usize) {
 
     for (line_idx, line) in lines.iter().enumerate() {
         let line_len = line.chars().count();
+
+        // Check if cursor is within this line's text
         if char_pos < char_count + line_len {
             return (line_idx, char_pos.saturating_sub(char_count));
         }
-        char_count += line_len + 1; // +1 for space between words
+
+        // Check if cursor is on the newline at the end of this line
+        if char_pos == char_count + line_len && line_idx < lines.len() - 1 {
+            return (line_idx, line_len);
+        }
+
+        // Move to next line: add line length + 1 for newline character
+        char_count += line_len + 1;
     }
 
     // If not found, return last line
@@ -128,6 +141,7 @@ fn create_styled_expected_text(
         let mut spans = Vec::new();
         let line_start_index = window.line_start_indices[line_idx];
 
+        // Render each character in the line
         for (char_offset, ch) in line.chars().enumerate() {
             let absolute_index = line_start_index + char_offset;
 
@@ -157,6 +171,37 @@ fn create_styled_expected_text(
             };
 
             spans.push(Span::styled(ch.to_string(), style));
+        }
+
+        // Add newline icon at the end of each line (except the very last line in content)
+        let newline_index = line_start_index + line.chars().count();
+        if newline_index < session.content.chars().count() {
+            // Determine if this position represents a newline in the original content
+            if session.content.chars().nth(newline_index) == Some('\n') {
+                let style = if newline_index < session.current_index {
+                    // Already typed - check if correct or incorrect
+                    if newline_index < session.inputs.len() {
+                        let input = &session.inputs[newline_index];
+                        if input.is_correct {
+                            Style::default().fg(Color::DarkGray)
+                        } else {
+                            Style::default().fg(Color::Red)
+                        }
+                    } else {
+                        Style::default().fg(Color::DarkGray)
+                    }
+                } else if newline_index == session.current_index {
+                    // Next character to type - highlight
+                    Style::default()
+                        .fg(Color::White)
+                        .add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
+                } else {
+                    // Remaining
+                    Style::default().fg(Color::White)
+                };
+
+                spans.push(Span::styled("↵".to_string(), style));
+            }
         }
 
         result_lines.push(Line::from(spans));
@@ -309,6 +354,8 @@ fn create_colored_input_multiline(session: &TypingSession, width: usize) -> Vec<
         };
         let display_char = if input.typed == ' ' {
             '·'
+        } else if input.typed == '\n' {
+            '↵'
         } else {
             input.typed
         };
