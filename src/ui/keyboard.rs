@@ -221,22 +221,6 @@ fn render_keyboard_row<'a>(
                 }
                 _ => {}
             }
-        }
-        // Special handling for space bar (legacy, now in modifier row)
-        else if row.row_type == RowType::Space && key.base == ' ' {
-            let is_highlighted = next_char == Some(' ');
-            let style = if is_highlighted {
-                Style::default()
-                    .fg(Color::Black)
-                    .bg(Color::Cyan)
-                    .add_modifier(Modifier::BOLD)
-            } else {
-                Style::default().fg(Color::White)
-            };
-            // Space bar: 7 keys width, moved left by 2 keys from previous position
-            // 12 - 8 = 4 spaces offset
-            spans.push(Span::raw("    ")); // 4 additional spaces (moved left by 2 keys)
-            spans.push(Span::styled("[        Space        ]", style)); // ~7 key widths
         } else if key.base == '\n' {
             // Special handling for Enter key - show arrow [←] on home row only
             if row.row_type == RowType::Home {

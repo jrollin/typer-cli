@@ -46,12 +46,10 @@ impl SessionDuration {
 /// Représente une frappe de caractère individuelle
 #[derive(Debug, Clone)]
 pub struct CharInput {
-    /// Public API: Expected character for analytics comparison and error analysis
-    #[allow(dead_code)]
+    /// Expected character for analytics comparison and error analysis
     pub expected: char,
     pub typed: char,
-    /// Public API: Input timestamp for future session playback and latency profiling
-    #[allow(dead_code)]
+    /// Input timestamp for analytics timing calculations
     pub timestamp: Duration,
     pub is_correct: bool,
 }
@@ -93,8 +91,7 @@ impl TypingSession {
         }
     }
 
-    /// Public API: Explicit session start method used in tests (line 249) and future pre-session setup
-    #[allow(dead_code)]
+    /// Explicit session start method used in tests
     pub fn start(&mut self) {
         if self.start_time.is_none() {
             self.start_time = Some(Instant::now());
@@ -194,8 +191,7 @@ pub struct SessionResult {
     pub wpm: f64,
     pub accuracy: f64,
     pub duration: Duration,
-    /// Public API: Total characters typed for detailed session statistics and debugging
-    #[allow(dead_code)]
+    /// Total characters typed for session statistics
     pub char_count: usize,
     pub error_count: usize,
 }

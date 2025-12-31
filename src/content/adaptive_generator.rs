@@ -3,7 +3,7 @@
 use rand::{thread_rng, Rng};
 
 use crate::engine::adaptive::WeaknessDetector;
-use crate::engine::analytics::AdaptiveAnalytics;
+use crate::engine::analytics::{AdaptiveAnalytics, MasteryLevel};
 
 /// Adaptive lesson generator that creates personalized content
 pub struct AdaptiveLessonGenerator<'a> {
@@ -37,37 +37,48 @@ impl<'a> AdaptiveLessonGenerator<'a> {
         self.generate_weighted_content(&focus_keys, length)
     }
 
-    /// Generate content with 60% weak, 30% moderate, 10% strong distribution
-    fn generate_weighted_content(&self, focus_keys: &[char], length: usize) -> String {
+    /// Generate content with mastery-based distribution using practice_weight()
+    fn generate_weighted_content(&self, _focus_keys: &[char], length: usize) -> String {
         let mut result = String::new();
         let mut rng = thread_rng();
 
-        let moderate_keys = self.get_moderate_keys();
-        let strong_keys = self.get_strong_keys();
+        // Classify keys by mastery level
+        let beginner_keys = self.get_keys_by_mastery(MasteryLevel::Beginner);
+        let learning_keys = self.get_keys_by_mastery(MasteryLevel::Learning);
+        let proficient_keys = self.get_keys_by_mastery(MasteryLevel::Proficient);
+        let mastered_keys = self.get_keys_by_mastery(MasteryLevel::Mastered);
+
+        // Calculate cumulative thresholds from practice weights
+        let beginner_threshold = MasteryLevel::Beginner.practice_weight(); // 0.6
+        let learning_threshold = beginner_threshold + MasteryLevel::Learning.practice_weight(); // 0.9
+        let proficient_threshold = learning_threshold + MasteryLevel::Proficient.practice_weight(); // 1.0
 
         while result.len() < length {
             if !result.is_empty() {
                 result.push(' ');
             }
 
-            // Weighted random selection: 60% weak, 30% moderate, 10% strong
+            // Weighted random selection based on mastery levels
             let r: f32 = rng.gen();
 
-            let keys = if r < 0.6 && !focus_keys.is_empty() {
-                // 60%: Weak keys
-                focus_keys
-            } else if r < 0.9 && !moderate_keys.is_empty() {
-                // 30%: Moderate keys
-                &moderate_keys
-            } else if !strong_keys.is_empty() {
-                // 10%: Strong keys (retention)
-                &strong_keys
-            } else if !focus_keys.is_empty() {
-                // Fallback to weak keys if others not available
-                focus_keys
+            let keys = if r < beginner_threshold && !beginner_keys.is_empty() {
+                // 60%: Beginner keys
+                &beginner_keys
+            } else if r < learning_threshold && !learning_keys.is_empty() {
+                // 30%: Learning keys
+                &learning_keys
+            } else if r < proficient_threshold && !proficient_keys.is_empty() {
+                // 10%: Proficient keys
+                &proficient_keys
+            } else if !mastered_keys.is_empty() {
+                // 5%: Mastered keys (retention practice)
+                &mastered_keys
+            } else if !beginner_keys.is_empty() {
+                // Fallback to beginner keys if others not available
+                &beginner_keys
             } else {
                 // Should not happen, but handle gracefully
-                &moderate_keys
+                &learning_keys
             };
 
             if keys.is_empty() {
@@ -127,25 +138,14 @@ impl<'a> AdaptiveLessonGenerator<'a> {
         }
     }
 
-    /// Get keys with moderate difficulty (80-90% accuracy)
-    fn get_moderate_keys(&self) -> Vec<char> {
+    /// Get keys classified at a specific mastery level
+    fn get_keys_by_mastery(&self, level: MasteryLevel) -> Vec<char> {
         self.analytics
             .key_stats
             .iter()
             .filter(|(_, stats)| {
-                let acc = stats.accuracy();
-                stats.total_attempts >= 10 && (80.0..90.0).contains(&acc)
+                stats.total_attempts >= 10 && MasteryLevel::from_stats(stats) == level
             })
-            .map(|(key, _)| *key)
-            .collect()
-    }
-
-    /// Get strong keys (>= 95% accuracy)
-    fn get_strong_keys(&self) -> Vec<char> {
-        self.analytics
-            .key_stats
-            .iter()
-            .filter(|(_, stats)| stats.total_attempts >= 10 && stats.accuracy() >= 95.0)
             .map(|(key, _)| *key)
             .collect()
     }
@@ -226,32 +226,44 @@ mod tests {
     }
 
     #[test]
-    fn test_get_moderate_keys() {
+    fn test_get_keys_by_mastery_beginner() {
         let analytics = create_test_analytics();
         let generator = AdaptiveLessonGenerator::new(&analytics);
 
-        let moderate = generator.get_moderate_keys();
+        let beginner = generator.get_keys_by_mastery(MasteryLevel::Beginner);
 
-        // 's' is moderate (84% accuracy)
-        assert!(moderate.contains(&'s'));
-        // 'd' is weak (70% accuracy), not moderate
-        assert!(!moderate.contains(&'d'));
-        // 'f' is strong (96% accuracy), not moderate
-        assert!(!moderate.contains(&'f'));
+        // No keys are beginner in test data (d: 70%, s: 84%, f: 96%)
+        // Beginner is < 70% accuracy
+        assert!(beginner.is_empty());
     }
 
     #[test]
-    fn test_get_strong_keys() {
+    fn test_get_keys_by_mastery_learning() {
         let analytics = create_test_analytics();
         let generator = AdaptiveLessonGenerator::new(&analytics);
 
-        let strong = generator.get_strong_keys();
+        let learning = generator.get_keys_by_mastery(MasteryLevel::Learning);
 
-        // 'f' is strong (96% accuracy)
-        assert!(strong.contains(&'f'));
-        // 'd' and 's' are not strong
-        assert!(!strong.contains(&'d'));
-        assert!(!strong.contains(&'s'));
+        // 'd' is learning (70% accuracy, range is 70-85%)
+        // 's' is learning (84% accuracy, range is 70-85%)
+        assert!(learning.contains(&'d'));
+        assert!(learning.contains(&'s'));
+        // 'f' is mastered
+        assert!(!learning.contains(&'f'));
+    }
+
+    #[test]
+    fn test_get_keys_by_mastery_mastered() {
+        let analytics = create_test_analytics();
+        let generator = AdaptiveLessonGenerator::new(&analytics);
+
+        let mastered = generator.get_keys_by_mastery(MasteryLevel::Mastered);
+
+        // 'f' is mastered (96% accuracy with 48 correct attempts >= 20)
+        assert!(mastered.contains(&'f'));
+        // 'd' and 's' are not mastered
+        assert!(!mastered.contains(&'d'));
+        assert!(!mastered.contains(&'s'));
     }
 
     #[test]
