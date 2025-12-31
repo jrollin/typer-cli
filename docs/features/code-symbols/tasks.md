@@ -81,9 +81,9 @@
 - [ ] Config files (JSON, YAML, TOML)
 
 ### Symbol Hints
-- [ ] Visual keyboard layout overlay
-- [ ] Highlight symbol location on AZERTY
-- [ ] Show finger positioning for AltGr symbols
+- [x] Visual keyboard layout overlay (Phase 3 ✓)
+- [x] Highlight symbol location on AZERTY (Phase 3 ✓)
+- [x] Show finger positioning for AltGr symbols (Phase 3.6 ✓)
 - [ ] Practice mode for difficult symbol combinations
 
 ## Implementation Notes
@@ -113,15 +113,17 @@
 - Integration tests for menu flow
 - User testing with developers from each language community
 
-### AZERTY Considerations
-**Critical symbols requiring AltGr:**
-- `{` `}` - AltGr + 4, AltGr + =
-- `[` `]` - AltGr + 5, AltGr + °
-- `@` - AltGr + 0
-- `#` - AltGr + 3
-- `|` - AltGr + 6
-- `` ` `` - AltGr + 7
-- `\` - AltGr + 8
+### AZERTY Considerations (Phase 3.6 ✓)
+**AltGr symbols now fully supported with keyboard highlighting:**
+- `{` `}` - AltGr + ', AltGr + = ✓
+- `[` `]` - AltGr + (, AltGr + ) ✓
+- `@` - AltGr + à ✓
+- `#` - AltGr + " ✓
+- `|` - AltGr + - ✓
+- `` ` `` - AltGr + è ✓
+- `\` - AltGr + _ ✓
+- `^` - AltGr + ç ✓
+- `~` - AltGr + é ✓
 
 **High-difficulty combinations:**
 - `->`  : - then >

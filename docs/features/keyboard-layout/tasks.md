@@ -36,7 +36,7 @@
 ### French-Specific Keys
 - [ ] Accented characters (é, è, à, ù, etc.)
 - [ ] Special symbols (ç, ê, ô, etc.)
-- [ ] AltGr combinations
+- [x] AltGr combinations (Phase 3.6 ✓)
 - [ ] Dead keys handling
 
 ### Lesson Integration
@@ -48,7 +48,7 @@
 ## Phase 3: Visual Keyboard Display ✓
 
 ### AZERTY Visual Layout (src/ui/keyboard.rs)
-- [x] Number row display ([E] [&] [é] ["] [']... with Escape key prefix)
+- [x] Number row display ([²] [&] [é] ["] [']... with ² key as first key)
 - [x] Top row with Tab key box ([Tab] [a] [z] [e]...)
 - [x] Home row with Caps Lock key box ([Caps] [q] [s] [d]...)
 - [x] Enter key as arrow ([←]) on home row right end
@@ -72,6 +72,43 @@
 - [x] Tab key toggle (show/hide keyboard)
 - [x] Real-time next key indication
 - [x] Shift state detection and display
+
+## Phase 3.6: AltGr Modifier Support ✓
+
+Standard French AZERTY AltGr layout implemented
+
+### Data Model (src/keyboard/azerty.rs)
+- [x] Add missing ² key (replaces Esc) with ³ shift variant
+- [x] Extend Key struct with altgr_variant field
+- [x] Add altgr_mappings HashMap (11 mappings)
+- [x] Implement build_altgr_mappings() function
+- [x] Add requires_altgr() detection method
+- [x] Update get_base_key() to handle AltGr variants
+- [x] Add 7 comprehensive tests (18 total keyboard tests)
+
+### UI Integration (src/ui/keyboard.rs)
+- [x] Highlight AltGr key when needed (cyan background)
+- [x] Add should_highlight_altgr() function
+- [x] Update render_key() to check AltGr variants
+- [x] Update render_keyboard_row() with requires_altgr parameter
+- [x] Update render_keyboard_compact() for AltGr display
+
+### AltGr Mappings (Standard French AZERTY)
+- é (2) + AltGr = ~
+- " (3) + AltGr = #
+- ' (4) + AltGr = {
+- ( (5) + AltGr = [
+- - (6) + AltGr = |
+- è (7) + AltGr = `
+- _ (8) + AltGr = \
+- ç (9) + AltGr = ^
+- à (0) + AltGr = @
+- ) (-) + AltGr = ]
+- = (=) + AltGr = }
+
+### Test Results
+- All 132 tests passing (was 129, added 7 new tests, updated 4 existing)
+- Number row now has 13 keys (was 12)
 
 ## Phase 4: Multi-Layout Support (FUTURE)
 

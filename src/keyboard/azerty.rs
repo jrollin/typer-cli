@@ -69,16 +69,23 @@ pub enum RowType {
 pub struct Key {
     pub base: char,
     pub shift_variant: Option<char>,
+    pub altgr_variant: Option<char>,
     #[allow(dead_code)]
     pub display_width: u8,
     pub finger: Finger,
 }
 
 impl Key {
-    pub fn new(base: char, shift_variant: Option<char>, finger: Finger) -> Self {
+    pub fn new(
+        base: char,
+        shift_variant: Option<char>,
+        altgr_variant: Option<char>,
+        finger: Finger,
+    ) -> Self {
         Self {
             base,
             shift_variant,
+            altgr_variant,
             display_width: 1,
             finger,
         }
@@ -100,6 +107,7 @@ pub struct AzertyLayout {
     pub home_row: Vec<char>,
     pub rows: Vec<KeyboardRow>,
     pub shift_mappings: HashMap<char, char>,
+    pub altgr_mappings: HashMap<char, char>,
 }
 
 /// Phase 3+: Keyboard layout abstraction for future QWERTY/other layout support
@@ -107,6 +115,7 @@ pub struct AzertyLayout {
 impl AzertyLayout {
     pub fn new() -> Self {
         let shift_mappings = Self::build_shift_mappings();
+        let altgr_mappings = Self::build_altgr_mappings();
 
         Self {
             home_row: vec!['q', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm'], // Keep original for backward compatibility
@@ -118,6 +127,7 @@ impl AzertyLayout {
                 Self::modifier_row(), // Replace space_row with modifier_row
             ],
             shift_mappings,
+            altgr_mappings,
         }
     }
 
@@ -134,18 +144,19 @@ impl AzertyLayout {
         KeyboardRow {
             row_type: RowType::Number,
             keys: vec![
-                Key::new('&', Some('1'), Finger::LeftPinky),
-                Key::new('é', Some('2'), Finger::LeftPinky),
-                Key::new('"', Some('3'), Finger::LeftRing),
-                Key::new('\'', Some('4'), Finger::LeftMiddle),
-                Key::new('(', Some('5'), Finger::LeftIndex),
-                Key::new('-', Some('6'), Finger::LeftIndex),
-                Key::new('è', Some('7'), Finger::RightIndex),
-                Key::new('_', Some('8'), Finger::RightMiddle),
-                Key::new('ç', Some('9'), Finger::RightRing),
-                Key::new('à', Some('0'), Finger::RightPinky),
-                Key::new(')', Some('°'), Finger::RightPinky),
-                Key::new('=', Some('+'), Finger::RightPinky),
+                Key::new('²', Some('³'), None, Finger::LeftPinky), // ² key (replaces Esc)
+                Key::new('&', Some('1'), None, Finger::LeftPinky), // No AltGr in standard
+                Key::new('é', Some('2'), Some('~'), Finger::LeftPinky),
+                Key::new('"', Some('3'), Some('#'), Finger::LeftRing),
+                Key::new('\'', Some('4'), Some('{'), Finger::LeftMiddle),
+                Key::new('(', Some('5'), Some('['), Finger::LeftIndex),
+                Key::new('-', Some('6'), Some('|'), Finger::LeftIndex),
+                Key::new('è', Some('7'), Some('`'), Finger::RightIndex),
+                Key::new('_', Some('8'), Some('\\'), Finger::RightMiddle),
+                Key::new('ç', Some('9'), Some('^'), Finger::RightRing),
+                Key::new('à', Some('0'), Some('@'), Finger::RightPinky),
+                Key::new(')', Some('°'), Some(']'), Finger::RightPinky),
+                Key::new('=', Some('+'), Some('}'), Finger::RightPinky),
             ],
         }
     }
@@ -155,19 +166,19 @@ impl AzertyLayout {
         KeyboardRow {
             row_type: RowType::Top,
             keys: vec![
-                Key::new('a', Some('A'), Finger::LeftPinky),
-                Key::new('z', Some('Z'), Finger::LeftRing),
-                Key::new('e', Some('E'), Finger::LeftMiddle),
-                Key::new('r', Some('R'), Finger::LeftIndex),
-                Key::new('t', Some('T'), Finger::LeftIndex),
-                Key::new('y', Some('Y'), Finger::RightIndex),
-                Key::new('u', Some('U'), Finger::RightIndex),
-                Key::new('i', Some('I'), Finger::RightMiddle),
-                Key::new('o', Some('O'), Finger::RightRing),
-                Key::new('p', Some('P'), Finger::RightPinky),
-                Key::new('^', Some('¨'), Finger::RightPinky),
-                Key::new('$', Some('£'), Finger::RightPinky),
-                Key::new('\n', None, Finger::RightPinky), // Enter key (newline character)
+                Key::new('a', Some('A'), None, Finger::LeftPinky),
+                Key::new('z', Some('Z'), None, Finger::LeftRing),
+                Key::new('e', Some('E'), None, Finger::LeftMiddle),
+                Key::new('r', Some('R'), None, Finger::LeftIndex),
+                Key::new('t', Some('T'), None, Finger::LeftIndex),
+                Key::new('y', Some('Y'), None, Finger::RightIndex),
+                Key::new('u', Some('U'), None, Finger::RightIndex),
+                Key::new('i', Some('I'), None, Finger::RightMiddle),
+                Key::new('o', Some('O'), None, Finger::RightRing),
+                Key::new('p', Some('P'), None, Finger::RightPinky),
+                Key::new('^', Some('¨'), None, Finger::RightPinky),
+                Key::new('$', Some('£'), None, Finger::RightPinky),
+                Key::new('\n', None, None, Finger::RightPinky), // Enter key (newline character)
             ],
         }
     }
@@ -177,19 +188,19 @@ impl AzertyLayout {
         KeyboardRow {
             row_type: RowType::Home,
             keys: vec![
-                Key::new('q', Some('Q'), Finger::LeftPinky),
-                Key::new('s', Some('S'), Finger::LeftRing),
-                Key::new('d', Some('D'), Finger::LeftMiddle),
-                Key::new('f', Some('F'), Finger::LeftIndex),
-                Key::new('g', Some('G'), Finger::LeftIndex),
-                Key::new('h', Some('H'), Finger::RightIndex),
-                Key::new('j', Some('J'), Finger::RightIndex),
-                Key::new('k', Some('K'), Finger::RightMiddle),
-                Key::new('l', Some('L'), Finger::RightRing),
-                Key::new('m', Some('M'), Finger::RightPinky),
-                Key::new('ù', Some('%'), Finger::RightPinky),
-                Key::new('*', Some('µ'), Finger::RightPinky),
-                Key::new('\n', None, Finger::RightPinky), // Enter key continuation (same as top row Enter)
+                Key::new('q', Some('Q'), None, Finger::LeftPinky),
+                Key::new('s', Some('S'), None, Finger::LeftRing),
+                Key::new('d', Some('D'), None, Finger::LeftMiddle),
+                Key::new('f', Some('F'), None, Finger::LeftIndex),
+                Key::new('g', Some('G'), None, Finger::LeftIndex),
+                Key::new('h', Some('H'), None, Finger::RightIndex),
+                Key::new('j', Some('J'), None, Finger::RightIndex),
+                Key::new('k', Some('K'), None, Finger::RightMiddle),
+                Key::new('l', Some('L'), None, Finger::RightRing),
+                Key::new('m', Some('M'), None, Finger::RightPinky),
+                Key::new('ù', Some('%'), None, Finger::RightPinky),
+                Key::new('*', Some('µ'), None, Finger::RightPinky),
+                Key::new('\n', None, None, Finger::RightPinky), // Enter key continuation (same as top row Enter)
             ],
         }
     }
@@ -199,18 +210,18 @@ impl AzertyLayout {
         KeyboardRow {
             row_type: RowType::Bottom,
             keys: vec![
-                Key::new('<', Some('>'), Finger::LeftPinky),
-                Key::new('w', Some('W'), Finger::LeftPinky),
-                Key::new('x', Some('X'), Finger::LeftRing),
-                Key::new('c', Some('C'), Finger::LeftMiddle),
-                Key::new('v', Some('V'), Finger::LeftIndex),
-                Key::new('b', Some('B'), Finger::LeftIndex),
-                Key::new('n', Some('N'), Finger::RightIndex),
-                Key::new(',', Some('?'), Finger::RightIndex),
-                Key::new(';', Some('.'), Finger::RightMiddle),
-                Key::new(':', Some('/'), Finger::RightRing),
-                Key::new('!', Some('§'), Finger::RightPinky),
-                Key::new('\0', None, Finger::RightPinky), // Right Shift placeholder (null character)
+                Key::new('<', Some('>'), None, Finger::LeftPinky),
+                Key::new('w', Some('W'), None, Finger::LeftPinky),
+                Key::new('x', Some('X'), None, Finger::LeftRing),
+                Key::new('c', Some('C'), None, Finger::LeftMiddle),
+                Key::new('v', Some('V'), None, Finger::LeftIndex),
+                Key::new('b', Some('B'), None, Finger::LeftIndex),
+                Key::new('n', Some('N'), None, Finger::RightIndex),
+                Key::new(',', Some('?'), None, Finger::RightIndex),
+                Key::new(';', Some('.'), None, Finger::RightMiddle),
+                Key::new(':', Some('/'), None, Finger::RightRing),
+                Key::new('!', Some('§'), None, Finger::RightPinky),
+                Key::new('\0', None, None, Finger::RightPinky), // Right Shift placeholder (null character)
             ],
         }
     }
@@ -220,7 +231,7 @@ impl AzertyLayout {
         KeyboardRow {
             row_type: RowType::Space,
             keys: vec![
-                Key::new(' ', None, Finger::Thumb), // Space bar - no shift variant
+                Key::new(' ', None, None, Finger::Thumb), // Space bar - no shift variant
             ],
         }
     }
@@ -230,13 +241,13 @@ impl AzertyLayout {
         KeyboardRow {
             row_type: RowType::Modifier,
             keys: vec![
-                Key::new('\0', None, Finger::LeftPinky),  // Ctrl placeholder
-                Key::new('⌘', None, Finger::RightPinky),  // Cmd
-                Key::new('⌥', None, Finger::RightPinky),  // Option
-                Key::new(' ', None, Finger::Thumb),       // Space
-                Key::new('\0', None, Finger::RightPinky), // Alt placeholder
-                Key::new('\0', None, Finger::RightPinky), // Fn1 placeholder
-                Key::new('\0', None, Finger::RightPinky), // Fn2 placeholder
+                Key::new('\0', None, None, Finger::LeftPinky), // Ctrl placeholder
+                Key::new('⌘', None, None, Finger::RightPinky), // Cmd
+                Key::new('⌥', None, None, Finger::RightPinky), // Option
+                Key::new(' ', None, None, Finger::Thumb),      // Space
+                Key::new('\0', None, None, Finger::RightPinky), // Alt placeholder
+                Key::new('\0', None, None, Finger::RightPinky), // Fn1 placeholder
+                Key::new('\0', None, None, Finger::RightPinky), // Fn2 placeholder
             ],
         }
     }
@@ -253,18 +264,18 @@ impl AzertyLayout {
         // Superscript keys
         map.insert('²', '³');
 
-        // Number row symbols
-        map.insert('1', '&');
-        map.insert('2', 'é');
-        map.insert('3', '"');
-        map.insert('4', '\'');
-        map.insert('5', '(');
-        map.insert('6', '-');
-        map.insert('7', 'è');
-        map.insert('8', '_');
-        map.insert('9', 'ç');
-        map.insert('0', 'à');
-        map.insert('°', ')');
+        // Number row symbols (base -> shift variant)
+        map.insert('&', '1');
+        map.insert('é', '2');
+        map.insert('"', '3');
+        map.insert('\'', '4');
+        map.insert('(', '5');
+        map.insert('-', '6');
+        map.insert('è', '7');
+        map.insert('_', '8');
+        map.insert('ç', '9');
+        map.insert('à', '0');
+        map.insert(')', '°');
         map.insert('=', '+');
 
         // Punctuation and special characters
@@ -281,7 +292,29 @@ impl AzertyLayout {
         map
     }
 
-    /// Find the base key for a given character (handles shift variants)
+    /// Build AltGr mappings for number row keys (standard French AZERTY)
+    fn build_altgr_mappings() -> HashMap<char, char> {
+        let mut map = HashMap::new();
+
+        // Standard French AZERTY AltGr mappings (number row only)
+        // ² key has no AltGr mapping
+        // & (1 key) has no AltGr mapping in standard layout
+        map.insert('é', '~'); // 2 key
+        map.insert('"', '#'); // 3 key
+        map.insert('\'', '{'); // 4 key
+        map.insert('(', '['); // 5 key
+        map.insert('-', '|'); // 6 key
+        map.insert('è', '`'); // 7 key
+        map.insert('_', '\\'); // 8 key
+        map.insert('ç', '^'); // 9 key
+        map.insert('à', '@'); // 0 key
+        map.insert(')', ']'); // - key
+        map.insert('=', '}'); // = key
+
+        map
+    }
+
+    /// Find the base key for a given character (handles shift and AltGr variants)
     pub fn get_base_key(&self, c: char) -> Option<char> {
         // Direct match
         for row in &self.rows {
@@ -292,6 +325,9 @@ impl AzertyLayout {
                 if key.shift_variant == Some(c) {
                     return Some(key.base);
                 }
+                if key.altgr_variant == Some(c) {
+                    return Some(key.base);
+                }
             }
         }
         None
@@ -300,6 +336,11 @@ impl AzertyLayout {
     /// Check if character requires shift
     pub fn requires_shift(&self, c: char) -> bool {
         self.shift_mappings.values().any(|&v| v == c)
+    }
+
+    /// Check if character requires AltGr
+    pub fn requires_altgr(&self, c: char) -> bool {
+        self.altgr_mappings.values().any(|&v| v == c)
     }
 
     /// Find the Key object for a given base character (for smart shift highlighting)
@@ -357,16 +398,19 @@ mod tests {
     #[test]
     fn test_number_row_has_13_keys() {
         let layout = AzertyLayout::new();
-        assert_eq!(layout.rows[0].keys.len(), 12);
-        // First key should be &
-        assert_eq!(layout.rows[0].keys[0].base, '&');
-        assert_eq!(layout.rows[0].keys[0].shift_variant, Some('1'));
-        // 11th key (index 10) - French AZERTY: ) is base, ° is shift
-        assert_eq!(layout.rows[0].keys[10].base, ')');
-        assert_eq!(layout.rows[0].keys[10].shift_variant, Some('°'));
+        assert_eq!(layout.rows[0].keys.len(), 13);
+        // First key should be ²
+        assert_eq!(layout.rows[0].keys[0].base, '²');
+        assert_eq!(layout.rows[0].keys[0].shift_variant, Some('³'));
+        // Second key should be &
+        assert_eq!(layout.rows[0].keys[1].base, '&');
+        assert_eq!(layout.rows[0].keys[1].shift_variant, Some('1'));
+        // 12th key (index 11) - French AZERTY: ) is base, ° is shift
+        assert_eq!(layout.rows[0].keys[11].base, ')');
+        assert_eq!(layout.rows[0].keys[11].shift_variant, Some('°'));
         // Last key should be =
-        assert_eq!(layout.rows[0].keys[11].base, '=');
-        assert_eq!(layout.rows[0].keys[11].shift_variant, Some('+'));
+        assert_eq!(layout.rows[0].keys[12].base, '=');
+        assert_eq!(layout.rows[0].keys[12].shift_variant, Some('+'));
     }
 
     #[test]
@@ -381,9 +425,10 @@ mod tests {
     #[test]
     fn test_shift_mapping_numbers() {
         let layout = AzertyLayout::new();
-        assert_eq!(layout.shift_mappings.get(&'1'), Some(&'&'));
-        assert_eq!(layout.shift_mappings.get(&'5'), Some(&'('));
-        assert_eq!(layout.shift_mappings.get(&'0'), Some(&'à'));
+        // On AZERTY: base -> shift variant (symbol -> number)
+        assert_eq!(layout.shift_mappings.get(&'&'), Some(&'1'));
+        assert_eq!(layout.shift_mappings.get(&'('), Some(&'5'));
+        assert_eq!(layout.shift_mappings.get(&'à'), Some(&'0'));
     }
 
     #[test]
@@ -423,24 +468,30 @@ mod tests {
         assert!(layout.requires_shift('A'));
         assert!(layout.requires_shift('Z'));
         assert!(layout.requires_shift('Q'));
-        // Number symbols require shift
+        // Numbers require shift on AZERTY (shift variants of symbols)
+        assert!(layout.requires_shift('1'));
+        assert!(layout.requires_shift('2'));
+        assert!(layout.requires_shift('3'));
+        assert!(layout.requires_shift('5'));
+        assert!(layout.requires_shift('0'));
         assert!(layout.requires_shift('³'));
-        assert!(layout.requires_shift('&'));
-        assert!(layout.requires_shift('('));
-        assert!(layout.requires_shift('é'));
         // Special character shift variants
         assert!(layout.requires_shift('>'));
         assert!(layout.requires_shift('%'));
         assert!(layout.requires_shift('µ'));
+        assert!(layout.requires_shift('+'));
+        assert!(layout.requires_shift('°'));
         // Base characters don't require shift
         assert!(!layout.requires_shift('²'));
         assert!(!layout.requires_shift('a'));
-        assert!(!layout.requires_shift('1'));
         assert!(!layout.requires_shift('q'));
         assert!(!layout.requires_shift('<'));
         assert!(!layout.requires_shift('ù'));
         assert!(!layout.requires_shift('*'));
-        assert!(!layout.requires_shift('°'));
+        assert!(!layout.requires_shift('&'));
+        assert!(!layout.requires_shift('é'));
+        assert!(!layout.requires_shift('('));
+        assert!(!layout.requires_shift('='));
     }
 
     #[test]
@@ -506,5 +557,165 @@ mod tests {
         // Test non-existent key
         let key_none = layout.find_key('€');
         assert!(key_none.is_none());
+    }
+
+    #[test]
+    fn test_altgr_mapping_number_row() {
+        let layout = AzertyLayout::new();
+        // Standard French AZERTY AltGr mappings
+        // ² and & keys have no AltGr mapping
+        assert_eq!(layout.altgr_mappings.get(&'é'), Some(&'~'));
+        assert_eq!(layout.altgr_mappings.get(&'"'), Some(&'#'));
+        assert_eq!(layout.altgr_mappings.get(&'\''), Some(&'{'));
+        assert_eq!(layout.altgr_mappings.get(&'('), Some(&'['));
+        assert_eq!(layout.altgr_mappings.get(&'-'), Some(&'|'));
+        assert_eq!(layout.altgr_mappings.get(&'è'), Some(&'`'));
+        assert_eq!(layout.altgr_mappings.get(&'_'), Some(&'\\'));
+        assert_eq!(layout.altgr_mappings.get(&'ç'), Some(&'^'));
+        assert_eq!(layout.altgr_mappings.get(&'à'), Some(&'@'));
+        assert_eq!(layout.altgr_mappings.get(&')'), Some(&']'));
+        assert_eq!(layout.altgr_mappings.get(&'='), Some(&'}'));
+    }
+
+    #[test]
+    fn test_requires_altgr() {
+        let layout = AzertyLayout::new();
+        // AltGr characters (standard French AZERTY)
+        assert!(layout.requires_altgr('@'));
+        assert!(layout.requires_altgr('#'));
+        assert!(layout.requires_altgr('{'));
+        assert!(layout.requires_altgr('['));
+        assert!(layout.requires_altgr('|'));
+        assert!(layout.requires_altgr('`'));
+        assert!(layout.requires_altgr('\\'));
+        assert!(layout.requires_altgr('^'));
+        assert!(layout.requires_altgr('~'));
+        assert!(layout.requires_altgr(']'));
+        assert!(layout.requires_altgr('}'));
+        // Non-AltGr characters
+        assert!(!layout.requires_altgr('a'));
+        assert!(!layout.requires_altgr('&'));
+        assert!(!layout.requires_altgr('1'));
+        assert!(!layout.requires_altgr('²'));
+        assert!(!layout.requires_altgr('³'));
+    }
+
+    #[test]
+    fn test_get_base_key_with_altgr() {
+        let layout = AzertyLayout::new();
+        assert_eq!(layout.get_base_key('@'), Some('à'));
+        assert_eq!(layout.get_base_key('#'), Some('"'));
+        assert_eq!(layout.get_base_key('{'), Some('\''));
+        assert_eq!(layout.get_base_key('['), Some('('));
+        assert_eq!(layout.get_base_key('|'), Some('-'));
+        assert_eq!(layout.get_base_key('`'), Some('è'));
+        assert_eq!(layout.get_base_key('\\'), Some('_'));
+        assert_eq!(layout.get_base_key('^'), Some('ç'));
+        assert_eq!(layout.get_base_key('~'), Some('é'));
+        assert_eq!(layout.get_base_key(']'), Some(')'));
+        assert_eq!(layout.get_base_key('}'), Some('='));
+    }
+
+    #[test]
+    fn test_number_row_has_altgr_variants() {
+        let layout = AzertyLayout::new();
+        let number_row = &layout.rows[0];
+        // ² key (position 0) has no AltGr
+        assert_eq!(number_row.keys[0].altgr_variant, None);
+        // & key (position 1) has no AltGr in standard layout
+        assert_eq!(number_row.keys[1].altgr_variant, None);
+        // é key (position 2) has ~ with AltGr
+        assert_eq!(number_row.keys[2].altgr_variant, Some('~'));
+        // à key (position 10) has @ with AltGr
+        assert_eq!(number_row.keys[10].altgr_variant, Some('@'));
+        // = key (position 12) has } with AltGr
+        assert_eq!(number_row.keys[12].altgr_variant, Some('}'));
+    }
+
+    #[test]
+    fn test_number_row_has_superscript_key() {
+        let layout = AzertyLayout::new();
+        let number_row = &layout.rows[0];
+        // First key should be ² with shift variant ³
+        assert_eq!(number_row.keys[0].base, '²');
+        assert_eq!(number_row.keys[0].shift_variant, Some('³'));
+    }
+
+    #[test]
+    fn test_number_row_count() {
+        let layout = AzertyLayout::new();
+        let number_row = &layout.rows[0];
+        // Should have 13 keys now (was 12)
+        assert_eq!(number_row.keys.len(), 13);
+    }
+
+    #[test]
+    fn test_other_rows_no_altgr() {
+        let layout = AzertyLayout::new();
+        for key in &layout.rows[1].keys {
+            assert_eq!(key.altgr_variant, None);
+        }
+    }
+
+    #[test]
+    fn test_shift_character_highlighting() {
+        let layout = AzertyLayout::new();
+
+        // Test that '/' (shift variant of ':') is correctly detected
+        let next_char = '/';
+        let requires_shift = layout.requires_shift(next_char);
+        assert!(requires_shift, "'/' should require shift");
+
+        // Find the ':' key
+        let base_key = layout.get_base_key(next_char);
+        assert_eq!(base_key, Some(':'), "Base key for '/' should be ':'");
+
+        // Verify the ':' key has '/' as shift variant
+        let colon_key = layout.find_key(':').unwrap();
+        assert_eq!(colon_key.shift_variant, Some('/'));
+    }
+
+    #[test]
+    fn test_altgr_character_highlighting() {
+        let layout = AzertyLayout::new();
+
+        // Test that '{' (altgr variant of ''') is correctly detected
+        let next_char = '{';
+        let requires_altgr = layout.requires_altgr(next_char);
+        assert!(requires_altgr, "'{{' should require AltGr");
+
+        // Find the ''' key
+        let base_key = layout.get_base_key(next_char);
+        assert_eq!(base_key, Some('\''), "Base key for '{{' should be '''");
+
+        // Verify the ''' key has '{' as altgr variant
+        let apostrophe_key = layout.find_key('\'').unwrap();
+        assert_eq!(apostrophe_key.altgr_variant, Some('{'));
+    }
+
+    #[test]
+    fn test_number_highlighting() {
+        let layout = AzertyLayout::new();
+
+        // Test that '3' (shift variant of '"') is correctly detected
+        let next_char = '3';
+        let requires_shift = layout.requires_shift(next_char);
+        assert!(requires_shift, "'3' should require shift on AZERTY");
+
+        // Find the '"' key
+        let base_key = layout.get_base_key(next_char);
+        assert_eq!(base_key, Some('"'), "Base key for '3' should be '\"'");
+
+        // Verify the '"' key has '3' as shift variant
+        let quote_key = layout.find_key('"').unwrap();
+        assert_eq!(quote_key.shift_variant, Some('3'));
+
+        // Test another number
+        let next_char2 = '5';
+        let base_key2 = layout.get_base_key(next_char2);
+        assert_eq!(base_key2, Some('('), "Base key for '5' should be '('");
+
+        let paren_key = layout.find_key('(').unwrap();
+        assert_eq!(paren_key.shift_variant, Some('5'));
     }
 }

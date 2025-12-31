@@ -86,21 +86,13 @@ fn render_key(
     _row_type: RowType,
     next_char: Option<char>,
     requires_shift: bool,
+    requires_altgr: bool,
     analytics: &Option<AdaptiveAnalytics>,
     config: &KeyboardConfig,
 ) -> Span<'static> {
     let is_highlighted = Some(key.base) == next_char
-        || (requires_shift
-            && key.shift_variant.is_some()
-            && Some(key.base)
-                == next_char.and_then(|c| {
-                    // Check if this is the base key for the shift variant
-                    if key.shift_variant == Some(c) {
-                        Some(key.base)
-                    } else {
-                        None
-                    }
-                }));
+        || (requires_shift && key.shift_variant == next_char)
+        || (requires_altgr && key.altgr_variant == next_char);
 
     // Determine display character
     // Always show base character (e.g., [1] [2] [3], NOT [&] [é] ["])
@@ -141,6 +133,7 @@ fn render_keyboard_row<'a>(
     row: &crate::keyboard::KeyboardRow,
     next_char: Option<char>,
     requires_shift: bool,
+    requires_altgr: bool,
     analytics: &Option<AdaptiveAnalytics>,
     config: &KeyboardConfig,
     layout: &AzertyLayout,
@@ -150,10 +143,10 @@ fn render_keyboard_row<'a>(
     // Add center padding
     spans.push(Span::raw("              ")); // 14 spaces
 
-    // Add modifier key box at start of row (E, Tab, Caps, Shift)
+    // Add modifier key box at start of row (Tab, Caps, Shift)
     match row.row_type {
         RowType::Number => {
-            spans.push(Span::styled("[E] ", Style::default().fg(Color::DarkGray)));
+            // No modifier key - ² is the first actual key
         }
         RowType::Top => {
             spans.push(Span::styled("[Tab] ", Style::default().fg(Color::DarkGray)));
@@ -211,7 +204,16 @@ fn render_keyboard_row<'a>(
                     spans.push(Span::styled("[        Space        ] ", style));
                 }
                 4 => {
-                    spans.push(Span::styled("[Alt] ", Style::default().fg(Color::DarkGray)));
+                    // AltGr key - highlight if next char requires AltGr
+                    let altgr_style = if requires_altgr {
+                        Style::default()
+                            .fg(Color::Black)
+                            .bg(Color::Cyan)
+                            .add_modifier(Modifier::BOLD)
+                    } else {
+                        Style::default().fg(Color::DarkGray)
+                    };
+                    spans.push(Span::styled("[AltGr] ", altgr_style));
                 }
                 5 => {
                     spans.push(Span::styled("[Fn1] ", Style::default().fg(Color::DarkGray)));
@@ -245,6 +247,7 @@ fn render_keyboard_row<'a>(
                 row.row_type,
                 next_char,
                 requires_shift,
+                requires_altgr,
                 analytics,
                 config,
             );
@@ -286,12 +289,21 @@ pub fn render_keyboard(
     config: &KeyboardConfig,
 ) {
     let requires_shift = next_char.map(|c| layout.requires_shift(c)).unwrap_or(false);
+    let requires_altgr = next_char.map(|c| layout.requires_altgr(c)).unwrap_or(false);
 
     let mut lines = Vec::new();
 
     // Build keyboard rows
     for row in &layout.rows {
-        let line = render_keyboard_row(row, next_char, requires_shift, analytics, config, layout);
+        let line = render_keyboard_row(
+            row,
+            next_char,
+            requires_shift,
+            requires_altgr,
+            analytics,
+            config,
+            layout,
+        );
         lines.push(line);
     }
 
@@ -380,8 +392,11 @@ pub fn render_keyboard_compact(
 ) {
     let text = if let Some(c) = next_char {
         let requires_shift = layout.requires_shift(c);
+        let requires_altgr = layout.requires_altgr(c);
 
-        if requires_shift {
+        if requires_altgr {
+            format!(" Next key: [{}] (AltGr)                (Tab to expand)", c)
+        } else if requires_shift {
             format!(" Next key: [{}] (⇧ Shift)              (Tab to expand)", c)
         } else {
             format!(" Next key: [{}]                     (Tab to expand)", c)

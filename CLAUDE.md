@@ -18,6 +18,7 @@ Quick reference for AI assistants working on this project.
 **Phase 3.2: Finger Training** - ✅ Completed
 **Phase 3.3: Two-Level Menu System** - ✅ Completed
 **Phase 3.4: Menu Grouping** - ✅ Completed
+**Phase 3.6: AltGr Modifier Support** - ✅ Completed
 **Current Focus**: Phase 3+ (Analytics visualization, data export, gamification)
 
 ## Dead Code Annotations
@@ -60,7 +61,7 @@ This project uses feature-based documentation. See [docs/README.md](docs/README.
 | Bigram/Trigram Training | `src/content/bigram_generator.rs` | ✅ Phase 2 |
 | Code Symbols | `src/content/code_generator.rs` | ✅ Phase 2 |
 | Adaptive Mode | `src/engine/analytics.rs`, `adaptive.rs` | ✅ Phase 2+ |
-| Visual Keyboard | `src/ui/keyboard.rs` | ✅ Phase 3 |
+| Visual Keyboard | `src/ui/keyboard.rs` | ✅ Phase 3.6 (with AltGr) |
 | Finger Training | `src/content/finger_generator.rs` | ✅ Phase 3.2 |
 | Two-Level Menu | `src/content/category.rs`, `app.rs` | ✅ Phase 3.3 |
 | Statistics Dashboard | `src/ui/render.rs` | ✅ Phase 3.5 |
