@@ -375,6 +375,10 @@ pub enum LessonType {
         level: u8,        // 1=Home Row, 2=Extended, 3=All Keys
         with_shift: bool, // false=base chars, true=mixed case+symbols
     },
+    /// User-provided custom markdown lessons
+    Custom {
+        content: String,
+    },
 }
 
 /// Représente une leçon de typing

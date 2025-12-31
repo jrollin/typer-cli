@@ -178,6 +178,58 @@ Session statistics are saved to `~/.config/typer-cli/stats.json`.
 The file contains session history and adaptive analytics for personalized training.
 See [docs/features/session-storage/](docs/features/session-storage/) for data schema details.
 
+## Custom Lessons
+
+Create your own typing lessons by placing markdown files in `~/.config/typer-cli/custom/` or `./custom/` (current directory).
+
+### Markdown Format
+
+Custom lessons use markdown files with optional YAML front matter:
+
+```markdown
+---
+title: My Custom Lesson
+description: Practice domain-specific vocabulary
+---
+
+Your custom content to practice goes here.
+Line breaks and spacing are preserved.
+Multiple lines are supported.
+```
+
+### Features
+
+- **Two locations**: Config directory (`~/.config/typer-cli/custom/`) or current directory (`./custom/`)
+- **YAML front matter**: Optional metadata with `title` and `description` fields
+- **Title fallback**: If no front matter, filename (without .md) is used as title
+- **Preserved formatting**: Line breaks, spacing, and indentation are maintained during practice
+- **Automatic deduplication**: Duplicate titles get (1), (2) suffix
+- **Statistics tracking**: Session stats saved using lesson title as identifier
+- **Error handling**: Invalid files show warnings but don't crash the application
+
+### Example
+
+1. Create `~/.config/typer-cli/custom/git-commands.md`:
+   ```markdown
+   ---
+   title: Git Commands Practice
+   description: Common git operations
+   ---
+
+   git status
+   git add .
+   git commit -m "feat: add feature"
+   git push origin main
+   git pull --rebase
+   git branch -d feature-branch
+   ```
+
+2. Launch Typer CLI and select "Custom" category
+3. Choose "Git Commands Practice" from the lesson list
+4. Practice with preserved formatting and line breaks
+
+See [docs/features/custom-lessons/](docs/features/custom-lessons/) for complete documentation.
+
 ## Development
 
 ### Build and Run
@@ -188,7 +240,7 @@ cargo build --release  # Build optimized binary
 
 ### Tests
 ```bash
-cargo test             # Run test suite (129 passing tests)
+cargo test             # Run test suite (146 passing tests)
 ```
 
 ### Code Quality

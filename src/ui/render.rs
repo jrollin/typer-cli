@@ -662,6 +662,83 @@ pub fn render_menu(
                 all_items.push(ListItem::new(Line::from(Span::styled(content, style))));
             }
         }
+        Some("Custom") => {
+            // Custom lessons with helpful message when empty
+            if lessons.is_empty() {
+                // Display instruction message when no custom lessons found
+                all_items.push(ListItem::new(Line::from("")));
+                all_items.push(ListItem::new(Line::from(Span::styled(
+                    "No custom lessons found.",
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                ))));
+                all_items.push(ListItem::new(Line::from("")));
+                all_items.push(ListItem::new(Line::from(Span::styled(
+                    "Create custom lessons by adding markdown files to:",
+                    Style::default().fg(Color::White),
+                ))));
+                all_items.push(ListItem::new(Line::from("")));
+                all_items.push(ListItem::new(Line::from(Span::styled(
+                    "  • ~/.config/typer-cli/custom/",
+                    Style::default().fg(Color::Cyan),
+                ))));
+                all_items.push(ListItem::new(Line::from(Span::styled(
+                    "  • ./custom/ (current directory)",
+                    Style::default().fg(Color::Cyan),
+                ))));
+                all_items.push(ListItem::new(Line::from("")));
+                all_items.push(ListItem::new(Line::from(Span::styled(
+                    "Example file format:",
+                    Style::default().fg(Color::White),
+                ))));
+                all_items.push(ListItem::new(Line::from("")));
+                all_items.push(ListItem::new(Line::from(Span::styled(
+                    "  ---",
+                    Style::default().fg(Color::Gray),
+                ))));
+                all_items.push(ListItem::new(Line::from(Span::styled(
+                    "  title: My Lesson",
+                    Style::default().fg(Color::Gray),
+                ))));
+                all_items.push(ListItem::new(Line::from(Span::styled(
+                    "  description: Practice custom content",
+                    Style::default().fg(Color::Gray),
+                ))));
+                all_items.push(ListItem::new(Line::from(Span::styled(
+                    "  ---",
+                    Style::default().fg(Color::Gray),
+                ))));
+                all_items.push(ListItem::new(Line::from("")));
+                all_items.push(ListItem::new(Line::from(Span::styled(
+                    "  Your custom text to practice goes here.",
+                    Style::default().fg(Color::Gray),
+                ))));
+                all_items.push(ListItem::new(Line::from("")));
+                all_items.push(ListItem::new(Line::from(Span::styled(
+                    "Restart the app after adding files.",
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::ITALIC),
+                ))));
+            } else {
+                // Display custom lessons normally
+                for (i, lesson) in lessons.iter().enumerate() {
+                    let style = if i == selected {
+                        Style::default()
+                            .fg(Color::Yellow)
+                            .add_modifier(Modifier::BOLD)
+                    } else {
+                        Style::default().fg(Color::White)
+                    };
+
+                    let prefix = if i == selected { "▶ " } else { "  " };
+                    let content = format!("{}{}. {}", prefix, i + 1, lesson.title);
+
+                    all_items.push(ListItem::new(Line::from(Span::styled(content, style))));
+                }
+            }
+        }
         _ => {
             // Standard rendering for other categories (Key Training, Adaptive)
             for (i, lesson) in lessons.iter().enumerate() {

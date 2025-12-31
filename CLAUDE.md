@@ -18,12 +18,14 @@ Quick reference for AI assistants working on this project.
 **Phase 3.2: Finger Training** - ✅ Completed
 **Phase 3.3: Two-Level Menu System** - ✅ Completed
 **Phase 3.4: Menu Grouping** - ✅ Completed
+**Phase 3.5: Statistics Dashboard** - ✅ Completed
 **Phase 3.6: AltGr Modifier Support** - ✅ Completed
+**Phase 3.7: Custom Lessons** - ✅ Completed
 **Current Focus**: Phase 3+ (Analytics visualization, data export, gamification)
 
 ## Dead Code Annotations
 
-The codebase contains **28 intentional `#[allow(dead_code)]` annotations** marking Phase 3+ features that are:
+The codebase contains **29 intentional `#[allow(dead_code)]` annotations** marking Phase 3+ features that are:
 - Fully tested and ready for future implementation
 - Strategic placeholders for planned features (analytics, export, multi-layout support)
 - Preserved to avoid reimplementation work
@@ -40,6 +42,7 @@ These are NOT technical debt - they represent well-architected future functional
 - Test Utilities (3): Reusable drill generation patterns
 - Adaptive Features (2): WeaknessDetector (fully tested, ready for UI)
 - Scoring Utilities (1): calculate_accuracy() reference implementation
+- Custom Lesson Validation (1): ParseError::InvalidFrontMatter for future strict YAML validation
 
 ## Project Overview
 
@@ -52,7 +55,7 @@ This project uses feature-based documentation. See [docs/README.md](docs/README.
 - Steering documents (product, tech, structure)
 - Feature documentation organization
 
-**77 lessons** across 5 categories: Adaptive, Finger Training, Key Training, Languages, Code
+**77 lessons** across 6 categories: Adaptive, Finger Training, Key Training, Languages, Code, Custom
 
 | Feature | Module | Status |
 |---------|--------|--------|
@@ -65,6 +68,7 @@ This project uses feature-based documentation. See [docs/README.md](docs/README.
 | Finger Training | `src/content/finger_generator.rs` | ✅ Phase 3.2 |
 | Two-Level Menu | `src/content/category.rs`, `app.rs` | ✅ Phase 3.3 |
 | Statistics Dashboard | `src/ui/render.rs` | ✅ Phase 3.5 |
+| Custom Lessons | `src/content/custom.rs` | ✅ Phase 3.7 |
 
 See [docs/README.md#features-overview](docs/README.md#features-overview) for detailed feature descriptions.
 
@@ -73,7 +77,7 @@ See [docs/README.md#features-overview](docs/README.md#features-overview) for det
 ```bash
 # Development
 cargo run              # Launch application
-cargo test             # Run test suite (129 tests)
+cargo test             # Run test suite (146 tests)
 cargo check            # Fast compilation check
 
 # Testing Adaptive Mode
@@ -96,7 +100,7 @@ git push origin v0.2.0 # Push tag to trigger automated release
 ## CI/CD Workflows
 
 ### Continuous Integration
-Runs on every push to `main` and all PRs: formatting, linting, tests (129 passing), security audit.
+Runs on every push to `main` and all PRs: formatting, linting, tests (146 passing), security audit.
 
 ### Release Automation
 Triggers on git tag `v*.*.*`:
@@ -130,6 +134,7 @@ src/
 │   ├── adaptive_generator.rs  # Personalized content
 │   ├── bigram_generator.rs    # Bigram practice
 │   ├── code_generator.rs      # Code symbols
+│   ├── custom.rs              # User-provided markdown lessons
 │   ├── finger_generator.rs    # Finger-based drills
 │   ├── lesson.rs              # Lesson types, definitions
 │   └── generator.rs           # Home row drills
@@ -163,9 +168,9 @@ See [docs/features/session-storage/](docs/features/session-storage/) for complet
 
 ## Current Status
 
-**Phase**: 3.5 Complete (Statistics Dashboard)
+**Phase**: 3.7 Complete (Custom Lessons)
 **Next**: Phase 3+ (Analytics visualization, data export, gamification)
-**Tests**: 129 passing
-**Lessons**: 77 total
+**Tests**: 146 passing
+**Lessons**: 77 built-in + user custom lessons
 
 See [docs/README.md#project-status](docs/README.md#project-status) for complete roadmap.

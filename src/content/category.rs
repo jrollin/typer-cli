@@ -10,6 +10,7 @@ pub enum LessonCategoryType {
     KeyTraining,
     Languages,
     Code,
+    Custom,
 }
 
 #[derive(Debug, Clone)]
@@ -58,6 +59,12 @@ impl LessonCategory {
                 description: "Programming symbols for TypeScript, Rust, Python",
                 color: Color::Magenta,
             },
+            Self {
+                category_type: LessonCategoryType::Custom,
+                name: "Custom",
+                description: "User-provided markdown lessons",
+                color: Color::Blue,
+            },
         ]);
 
         categories
@@ -92,6 +99,9 @@ impl LessonCategory {
                         ..
                     }
             ),
+            LessonCategoryType::Custom => {
+                matches!(lesson.lesson_type, LessonType::Custom { .. })
+            }
         }
     }
 }

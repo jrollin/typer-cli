@@ -210,6 +210,20 @@ Performance analytics dashboard with visual keyboard heatmap.
 - Accessible via 's' key from main menu
 - Graceful placeholder when no analytics data exists
 
+#### [custom-lessons/](features/custom-lessons/) ✅ COMPLETED
+User-provided markdown lessons for personalized typing practice.
+
+**Module**: `src/content/custom.rs`
+
+- Load from `~/.config/typer-cli/custom/` and `./custom/`
+- YAML front matter support (title, description)
+- Automatic deduplication of titles with (1), (2) suffix
+- Preserved formatting (line breaks, spacing, indentation)
+- New "Custom" category in menu
+- Stats tracking with lesson title as identifier
+- Graceful error handling with warning messages
+- No external dependencies (uses std library only)
+
 ### Future Features (Phase 3+)
 
 - **Enhanced analytics** - Trend graphs, progress charts over time, session history visualization
@@ -283,9 +297,9 @@ Module locations are documented in each feature's design.md:
 
 ## Project Status
 
-**Current Phase**: Phase 3.5 Complete (Statistics Dashboard) ✓
+**Current Phase**: Phase 3.6 Complete (Custom Lessons) ✓
 
-**Total Tests**: 129 passing
+**Total Tests**: 146 passing
 - 13 tests: typing-session
 - 7 tests: home-row-lessons
 - 12 tests: bigram-training
@@ -297,6 +311,8 @@ Module locations are documented in each feature's design.md:
 - 2 tests: keyboard-layout
 - 3 tests: content generation
 - 1 test: data structures
+- 11 tests: custom lessons
+- 54 tests: other features (trigrams, common words, finger training, etc.)
 
 **Completed Features**:
 - Phase 1: Home row Level 1 ✓
@@ -312,6 +328,7 @@ Module locations are documented in each feature's design.md:
 - Phase 3.3: Two-level menu system ✓
 - Phase 3.4: Menu grouping ✓
 - Phase 3.5: Statistics dashboard ✓
+- Phase 3.6: Custom lessons ✓
 
 **Total Lessons**: 77 (52 standard + 24 finger training + 1 adaptive)
 

@@ -4,8 +4,8 @@ use std::io;
 use std::time::Duration;
 
 use crate::content::{
-    AdaptiveLessonGenerator, BigramType, ContentGenerator, Language, Lesson, LessonCategory,
-    LessonCategoryType, ProgrammingLanguage,
+    AdaptiveLessonGenerator, BigramType, ContentGenerator, CustomLessonLoader, Language, Lesson,
+    LessonCategory, LessonCategoryType, ProgrammingLanguage,
 };
 use crate::data::{SessionRecord, Stats, Storage};
 use crate::engine::{calculate_results, SessionAnalyzer, TypingSession};
@@ -163,6 +163,9 @@ impl App {
         lessons.extend(Lesson::code_symbol_lessons(ProgrammingLanguage::Rust));
         // Python Code Symbols (6 lessons)
         lessons.extend(Lesson::code_symbol_lessons(ProgrammingLanguage::Python));
+
+        // --- CUSTOM LESSONS ---
+        lessons.extend(CustomLessonLoader::load_all());
 
         // Build category list
         let has_adaptive = should_show_adaptive_mode(&stats);

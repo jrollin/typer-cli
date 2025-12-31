@@ -76,6 +76,11 @@ impl ContentGenerator for Lesson {
                 let keys = get_finger_pair_keys(&layout, *finger_pair, *level, *with_shift);
                 generate_finger_drills(&keys, length, *with_shift)
             }
+            LessonType::Custom { content } => {
+                // Return content as-is, truncated to requested length
+                // Preserves formatting: line breaks, spacing, indentation
+                content.chars().take(length).collect()
+            }
         }
     }
 }
