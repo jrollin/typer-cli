@@ -263,9 +263,8 @@ mod tests {
         let layout = AzertyLayout::new();
         let keys = get_finger_pair_keys(&layout, FingerPairType::Middle, 3, false);
 
-        // Should include numbers: 4 (base '), 8 (base _)
+        // Should include numbers: 4 (base ')
         assert!(keys.contains(&'\''));
-        assert!(keys.contains(&'_'));
         // Plus all level 2 keys
         assert!(keys.len() >= 8);
     }
@@ -280,8 +279,6 @@ mod tests {
         assert!(keys.contains(&'D'));
         assert!(keys.contains(&'\''));
         assert!(keys.contains(&'4')); // shift of '
-        assert!(keys.contains(&'_'));
-        assert!(keys.contains(&'8')); // shift of _
     }
 
     #[test]

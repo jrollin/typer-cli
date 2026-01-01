@@ -111,8 +111,9 @@ fdk dfk kfd dkf fkd kdf
 | 5 | ( | 5 | LeftIndex |
 | 6 | - | 6 | LeftIndex |
 | 7 | è | 7 | RightIndex |
-| 8 | _ | 8 | RightMiddle |
-| 9 | ç | 9 | RightRing |
+| 8 | _ | 8 | RightIndex |
+| 9 | ç | 9 | RightMiddle |
+| 0 | à | 0 | RightRing |
 
 #### Bottom Row Corrections
 
@@ -169,17 +170,17 @@ let secondary_index = if has_adaptive { 50 } else { 49 }
 **Ring Fingers** (6 lessons):
 - L1: s, l (2 keys)
 - L2: + z, o, x, ; (6 keys)
-- L3: + ", ç (8 keys) + shift: 3, 9
+- L3: + ", ç, à (9 keys) + shift: 3, 9, 0
 
 **Middle Fingers** (6 lessons):
 - L1: d, k (2 keys)
 - L2: + e, i, c, ; (6 keys)
-- L3: + ', _ (8 keys) + shift: 4, 8
+- L3: + ', ç (8 keys) + shift: 4, 9
 
 **Index Fingers** (6 lessons):
 - L1: f, g, h, j (4 keys)
 - L2: + r, t, y, u, v, c, b, n (12 keys)
-- L3: + (, -, è (16 keys) + shift: 5, 6, 7
+- L3: + (, -, è, _ (17 keys) + shift: 5, 6, 7, 8
 
 ### Configuration
 
