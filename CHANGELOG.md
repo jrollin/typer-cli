@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Standardize requirements files to US-X naming convention
 
+### Miscellaneous Tasks
+
+- Sync Cargo.toml to v0.7.0 and add historical CHANGELOG
+- Add release automation script and documentation
+
 ## [0.7.0] - 2025-12-31
 
 ### Documentation
