@@ -71,7 +71,7 @@ cargo check --quiet
 
 # Generate CHANGELOG.md
 echo "→ Generating CHANGELOG.md"
-git cliff -o CHANGELOG.md
+git cliff --tag "v$VERSION" -o CHANGELOG.md
 
 # Show what changed
 echo ""
