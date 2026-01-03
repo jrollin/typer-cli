@@ -11,6 +11,7 @@
 - 📋 **Features**: [Features Overview](#features-overview) below
 - 🏗️ **Architecture**: [docs/steering/structure.md](steering/structure.md)
 - 🛠️ **Tech Stack**: [docs/steering/tech.md](steering/tech.md)
+- 🚀 **Releases**: [docs/steering/release-process.md](steering/release-process.md)
 
 ## Documentation Structure
 

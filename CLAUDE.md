@@ -91,10 +91,9 @@ cargo fmt              # Code formatting
 # Release
 cargo build --release  # Optimized build
 
-# CI/CD
-git cliff --latest     # Preview changelog for next release
-git tag v0.2.0         # Create version tag (triggers release workflow)
-git push origin v0.2.0 # Push tag to trigger automated release
+# Release (use automated script)
+./scripts/release.sh 0.8.0                           # Bumps version, updates changelog, creates tag
+git push origin main && git push origin v0.8.0       # Push to trigger automated release workflow
 ```
 
 ## CI/CD Workflows
@@ -110,8 +109,21 @@ Triggers on git tag `v*.*.*`:
 
 **Creating a Release:**
 ```bash
-git tag v0.2.0 && git push origin v0.2.0
+# Use the automated release script
+./scripts/release.sh 0.8.0
+
+# Then push to trigger the release workflow
+git push origin main && git push origin v0.8.0
 ```
+
+The script handles:
+- Version validation and duplicate tag checking
+- Cargo.toml and Cargo.lock updates
+- Complete CHANGELOG.md regeneration
+- Commit with conventional message
+- Tag creation
+
+See [docs/steering/release-process.md](docs/steering/release-process.md) for detailed instructions.
 
 See `.github/workflows/` for complete workflow details.
 
