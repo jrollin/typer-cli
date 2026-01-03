@@ -6,7 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [0.8.1] - 2026-01-03
+
+### Bug Fixes
+
+- Use --tag flag in git-cliff to assign commits to version section
+
+## [0.8.0] - 2026-01-03
 
 ### Bug Fixes
 
@@ -21,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Sync Cargo.toml to v0.7.0 and add historical CHANGELOG
 - Add release automation script and documentation
+- Bump version to 0.8.0
 
 ## [0.7.0] - 2025-12-31
 
