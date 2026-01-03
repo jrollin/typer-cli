@@ -170,7 +170,18 @@ fn create_styled_expected_text(
                 Style::default().fg(Color::White)
             };
 
-            spans.push(Span::styled(ch.to_string(), style));
+            // Display spaces as dots when they have errors, for visibility
+            let display_char = if ch == ' '
+                && absolute_index < session.current_index
+                && absolute_index < session.inputs.len()
+                && !session.inputs[absolute_index].is_correct
+            {
+                '·' // Show dot for space errors
+            } else {
+                ch
+            };
+
+            spans.push(Span::styled(display_char.to_string(), style));
         }
 
         // Add newline icon at the end of each line (except the very last line in content)
