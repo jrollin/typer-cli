@@ -6,7 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.9.0] - 2026-01-06
+
+### Documentation
+
+- Update documentation for Row Training feature
+
 ## [0.8.2] - 2026-01-03
+
+### Miscellaneous Tasks
+
+- Bump version to 0.8.2
 
 ### Performance
 
