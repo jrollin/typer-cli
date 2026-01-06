@@ -248,9 +248,10 @@ pub struct SessionResult {
 pub enum LessonCategoryType {
     Adaptive,
     FingerTraining,
-    KeyTraining,
+    RowTraining,
     Languages,
     Code,
+    Custom,
 }
 
 pub struct LessonCategory {
@@ -262,7 +263,7 @@ pub struct LessonCategory {
 ```
 
 **What it does:**
-- Defines 5 lesson categories with metadata
+- Defines 6 lesson categories with metadata
 - Provides filtering logic via `contains_lesson()`
 - Generates category list with `all(has_adaptive: bool)`
 - Maps lesson types to categories
@@ -270,9 +271,10 @@ pub struct LessonCategory {
 **Category Filtering:**
 - Adaptive: `LessonType::Adaptive`
 - FingerTraining: `LessonType::FingerPair { .. }`
-- KeyTraining: `LessonType::KeyPair { .. } | LessonType::KeyPairGroup { .. }`
+- RowTraining: `LessonType::RowProgression { .. }`
 - Languages: `BigramType::Natural | Trigram | CommonWords`
 - Code: `CodeSymbols | BigramType::Code`
+- Custom: `LessonType::Custom { .. }`
 
 #### `content/lesson.rs`
 **Responsibility**: Lesson type definitions

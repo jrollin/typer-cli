@@ -55,7 +55,7 @@ This project uses feature-based documentation. See [docs/README.md](docs/README.
 - Steering documents (product, tech, structure)
 - Feature documentation organization
 
-**77 lessons** across 6 categories: Adaptive, Finger Training, Key Training, Languages, Code, Custom
+**60 lessons** across 6 categories: Adaptive, Finger Training, Row Training, Languages, Code, Custom
 
 | Feature | Module | Status |
 |---------|--------|--------|
@@ -77,7 +77,7 @@ See [docs/README.md#features-overview](docs/README.md#features-overview) for det
 ```bash
 # Development
 cargo run              # Launch application
-cargo test             # Run test suite (146 tests)
+cargo test             # Run test suite (145 tests)
 cargo check            # Fast compilation check
 
 # Testing Adaptive Mode
@@ -99,7 +99,7 @@ git push origin main && git push origin v0.8.0       # Push to trigger automated
 ## CI/CD Workflows
 
 ### Continuous Integration
-Runs on every push to `main` and all PRs: formatting, linting, tests (146 passing), security audit.
+Runs on every push to `main` and all PRs: formatting, linting, tests (145 passing), security audit.
 
 ### Release Automation
 Triggers on git tag `v*.*.*`:
@@ -184,7 +184,7 @@ See [docs/features/session-storage/](docs/features/session-storage/) for complet
 
 **Phase**: 3.7 Complete (Custom Lessons)
 **Next**: Phase 3+ (Analytics visualization, data export, gamification)
-**Tests**: 146 passing
-**Lessons**: 77 built-in + user custom lessons
+**Tests**: 145 passing
+**Lessons**: 60 built-in + user custom lessons
 
 See [docs/README.md#project-status](docs/README.md#project-status) for complete roadmap.

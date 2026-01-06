@@ -122,7 +122,7 @@ pub enum LessonType {
 pub enum LessonCategoryType {
     Adaptive,
     FingerTraining,
-    KeyTraining,
+    RowTraining,
     Languages,
     Code,
     Custom,  // NEW

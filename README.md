@@ -12,7 +12,7 @@ Typer CLI is a terminal-based keyboard typing training tool. It provides an inte
 
 ## Features
 
-- **Progressive Lessons**: 77 lessons from home row basics to advanced code symbols
+- **Progressive Lessons**: 60 lessons from home row basics to advanced code symbols
 - **Real-time Feedback**: Instant visual feedback (green/red) and live WPM/accuracy metrics
 - **Adaptive Mode**: Personalized training targeting your weaknesses
 - **Visual Keyboard**: Full AZERTY layout with next-key highlighting, AltGr support, and heatmaps
@@ -255,8 +255,8 @@ See [docs/README.md](docs/README.md) for contributor workflow and detailed test 
 ## Status
 
 **Current Version**: Phase 3.5 Complete (Statistics Dashboard)
-**Total Lessons**: 77
-**Test Coverage**: 129 passing tests
+**Total Lessons**: 60
+**Test Coverage**: 145 passing tests
 
 See [docs/README.md#project-status](docs/README.md#project-status) for detailed roadmap and planned features.
 

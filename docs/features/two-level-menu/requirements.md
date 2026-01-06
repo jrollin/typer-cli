@@ -11,9 +11,9 @@ Hierarchical navigation system to organize lessons into categories for improved 
 WHEN a user launches the application
 THE SYSTEM SHALL display a category selection menu as the first screen
 
-### US-2 Show Five Categories
+### US-2 Show Six Categories
 WHEN a user views the category menu
-THE SYSTEM SHALL display 5 lesson categories: Adaptive, Finger Training, Key Training, Languages, and Code
+THE SYSTEM SHALL display 6 lesson categories: Adaptive, Finger Training, Row Training, Languages, Code, and Custom
 
 ### US-3 Display Category Details
 WHEN a user views a category in the menu
@@ -69,7 +69,7 @@ THE SYSTEM SHALL return to the filtered lesson menu for the same category
 
 ### US-14 Color Coding for Categories
 WHEN a user views a category
-THE SYSTEM SHALL display categories with color coding: Adaptive (Cyan), Finger Training (Green), Key Training (Cyan), Languages (Yellow), Code (Magenta)
+THE SYSTEM SHALL display categories with color coding: Adaptive (Cyan), Finger Training (Green), Row Training (Cyan), Languages (Yellow), Code (Magenta), Custom (Blue)
 
 ### US-15 Highlight Selected Category
 WHEN a user views a selected category
@@ -86,7 +86,7 @@ WHEN the system filters lessons by category
 THE SYSTEM SHALL include lessons where:
 - Adaptive category: lesson type is Adaptive
 - Finger Training category: lesson type is FingerPair
-- Key Training category: lesson type is KeyPair or KeyPairGroup
+- Row Training category: lesson type is RowProgression
 - Languages category: lesson type is Bigram (Natural), Trigram, or CommonWords
 - Code category: lesson type is CodeSymbols or Bigram (Code)
 

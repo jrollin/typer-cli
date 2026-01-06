@@ -110,8 +110,8 @@ A lightweight, terminal-based typing trainer that:
 ### First-Time User
 1. Install/compile typer-cli
 2. Run `cargo run` or `./typer-cli`
-3. See category selection menu with 5 lesson types
-4. Select a category (e.g., "Key Training")
+3. See category selection menu with 6 lesson types
+4. Select a category (e.g., "Row Training")
 5. Choose a lesson from filtered list
 6. Select practice duration (1-10 minutes)
 7. Receive instant feedback on each keystroke

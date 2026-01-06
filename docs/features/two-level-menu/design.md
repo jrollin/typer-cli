@@ -25,9 +25,10 @@ LessonTypeMenu → LessonMenu (filtered) → DurationMenu → Running → Comple
 pub enum LessonCategoryType {
     Adaptive,
     FingerTraining,
-    KeyTraining,
+    RowTraining,
     Languages,
     Code,
+    Custom,
 }
 ```
 
@@ -55,9 +56,10 @@ current_category: Option<LessonCategoryType>, // Active filter
 |----------|------|-------------|-------|--------------|
 | Adaptive | "Adaptive" | "Personalized training based on your weak areas" | Cyan | `LessonType::Adaptive` |
 | FingerTraining | "Finger Training" | "Bilateral finger-based drills (24 lessons)" | Green | `LessonType::FingerPair { .. }` |
-| KeyTraining | "Key Training" | "Progressive key pair exercises (25 lessons)" | Cyan | `LessonType::KeyPair { .. } \| LessonType::KeyPairGroup { .. }` |
+| RowTraining | "Row Training" | "Progressive row-based exercises (8 lessons)" | Cyan | `LessonType::RowProgression { .. }` |
 | Languages | "Languages" | "French & English bigrams, trigrams, and words" | Yellow | `BigramType::Natural \| Trigram \| CommonWords` |
 | Code | "Code" | "Programming symbols for TypeScript, Rust, Python" | Magenta | `CodeSymbols \| BigramType::Code` |
+| Custom | "Custom" | "User-provided markdown lessons" | Blue | `LessonType::Custom { .. }` |
 
 ## Filtering Algorithm
 
@@ -97,8 +99,8 @@ fn absolute_lesson_index(&self, relative_index: usize) -> Option<usize> {
 │    2. Finger Training               │  ← Unselected (Green)
 │     Bilateral finger-based drills...│
 │                                     │
-│    3. Key Training                  │  ← Unselected (Cyan)
-│     Progressive key pair exercises..│
+│    3. Row Training                  │  ← Unselected (Cyan)
+│     Progressive row-based exercises.│
 │  ...                                │
 ├─────────────────────────────────────┤
 │  ↑/↓ or j/k • Enter/1-5 • ESC quit  │  ← Instructions
@@ -133,7 +135,7 @@ fn absolute_lesson_index(&self, relative_index: usize) -> Option<usize> {
 - Code: Grouped by type/language (Code Patterns, TypeScript, Rust, Python) - magenta separators
 - Separators use category colors for visual consistency
 - Blank line spacing between groups for readability
-- Key Training and Adaptive categories use standard rendering (no grouping)
+- Row Training and Adaptive categories use standard rendering (no grouping)
 
 ## Event Handling
 
@@ -187,7 +189,7 @@ KeyCode::Esc/q           → Return to LessonMenu
 - Analytics integration unchanged
 
 ### Performance
-- Filtering is O(n) where n = total lessons (~77)
+- Filtering is O(n) where n = total lessons (~60)
 - Category lookup is O(1) with enum matching
 - Index conversion is O(n) but only on lesson start
 - No performance impact on typing session

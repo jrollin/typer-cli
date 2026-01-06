@@ -190,7 +190,7 @@ Hierarchical navigation system for improved lesson discovery.
 **Module**: `src/content/category.rs`, `src/app.rs`, `src/ui/render.rs`
 
 - Two-screen navigation: Category selection → Lesson selection
-- 5 lesson categories: Adaptive, Finger Training, Key Training, Languages, Code
+- 6 lesson categories: Adaptive, Finger Training, Row Training, Languages, Code, Custom
 - Category-based lesson filtering
 - Visual descriptions and color coding
 - Number shortcuts (1-5 for categories, 1-9 for lessons)
@@ -331,7 +331,7 @@ Module locations are documented in each feature's design.md:
 - Phase 3.5: Statistics dashboard ✓
 - Phase 3.6: Custom lessons ✓
 
-**Total Lessons**: 77 (52 standard + 24 finger training + 1 adaptive)
+**Total Lessons**: 60 (27 standard + 24 finger training + 8 row training + 1 adaptive)
 
 **Next Phase**: Enhanced analytics (trend graphs, data export) and gamification (Phase 3+)
 

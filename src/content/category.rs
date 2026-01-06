@@ -7,7 +7,7 @@ use super::lesson::{Lesson, LessonType};
 pub enum LessonCategoryType {
     Adaptive,
     FingerTraining,
-    KeyTraining,
+    RowTraining,
     Languages,
     Code,
     Custom,
@@ -42,9 +42,9 @@ impl LessonCategory {
                 color: Color::Green,
             },
             Self {
-                category_type: LessonCategoryType::KeyTraining,
-                name: "Key Training",
-                description: "Progressive key pair exercises (25 lessons)",
+                category_type: LessonCategoryType::RowTraining,
+                name: "Row Training",
+                description: "Progressive row-based exercises (8 lessons)",
                 color: Color::Cyan,
             },
             Self {
@@ -79,10 +79,9 @@ impl LessonCategory {
             LessonCategoryType::FingerTraining => {
                 matches!(lesson.lesson_type, LessonType::FingerPair { .. })
             }
-            LessonCategoryType::KeyTraining => matches!(
-                lesson.lesson_type,
-                LessonType::KeyPair { .. } | LessonType::KeyPairGroup { .. }
-            ),
+            LessonCategoryType::RowTraining => {
+                matches!(lesson.lesson_type, LessonType::RowProgression { .. })
+            }
             LessonCategoryType::Languages => matches!(
                 lesson.lesson_type,
                 LessonType::Bigram {
