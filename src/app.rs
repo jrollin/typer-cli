@@ -18,6 +18,9 @@ use crate::ui::keyboard::KeyboardConfig;
 enum AppState {
     LessonTypeMenu,
     Statistics,
+    AnalyticsHistory,
+    AnalyticsDetails,
+    AnalyticsExport,
     LessonMenu,
     DurationMenu,
     Running,
@@ -43,6 +46,7 @@ pub struct App {
     selected_category: usize,
     categories: Vec<LessonCategory>,
     current_category: Option<LessonCategoryType>,
+    export_message: Option<String>,
 }
 
 impl App {
@@ -121,6 +125,7 @@ impl App {
             selected_category: 0,
             categories,
             current_category: None,
+            export_message: None,
         })
     }
 
@@ -186,6 +191,15 @@ impl App {
                         &self.keyboard_layout,
                         &self.keyboard_config,
                     );
+                }
+                AppState::AnalyticsHistory => {
+                    ui::render_analytics_history(f, &self.stats);
+                }
+                AppState::AnalyticsDetails => {
+                    ui::render_analytics_details(f, &self.stats);
+                }
+                AppState::AnalyticsExport => {
+                    ui::render_analytics_export(f, &self.stats, self.export_message.as_deref());
                 }
                 AppState::LessonMenu => {
                     let filtered_lessons: Vec<_> =
@@ -458,9 +472,38 @@ impl App {
                     _ => {}
                 }
             }
-            AppState::Statistics => match key.code {
+            AppState::Statistics
+            | AppState::AnalyticsHistory
+            | AppState::AnalyticsDetails
+            | AppState::AnalyticsExport => match key.code {
                 KeyCode::Esc | KeyCode::Char('q') => {
+                    self.export_message = None;
                     self.state = AppState::LessonTypeMenu;
+                }
+                KeyCode::Char('h') | KeyCode::Char('H') => {
+                    self.export_message = None;
+                    self.state = AppState::AnalyticsHistory;
+                }
+                KeyCode::Char('d') | KeyCode::Char('D') => {
+                    self.export_message = None;
+                    self.state = AppState::AnalyticsDetails;
+                }
+                KeyCode::Char('e') | KeyCode::Char('E') => {
+                    self.state = AppState::AnalyticsExport;
+                }
+                KeyCode::Char('o') | KeyCode::Char('O') => {
+                    self.export_message = None;
+                    self.state = AppState::Statistics;
+                }
+                KeyCode::Char('1') if self.state == AppState::AnalyticsExport => {
+                    match self.export_analytics_json() {
+                        Ok(path) => {
+                            self.export_message = Some(format!("Exported to: {}", path.display()));
+                        }
+                        Err(e) => {
+                            self.export_message = Some(format!("Export failed: {}", e));
+                        }
+                    }
                 }
                 _ => {}
             },
@@ -522,6 +565,41 @@ impl App {
         filtered
             .get(relative_index)
             .and_then(|lesson| self.lessons.iter().position(|l| std::ptr::eq(*lesson, l)))
+    }
+
+    /// Export analytics data to JSON file, returns the export path on success
+    fn export_analytics_json(&self) -> io::Result<std::path::PathBuf> {
+        use std::fs;
+
+        let export_data = serde_json::json!({
+            "export_timestamp": chrono::Utc::now().to_rfc3339(),
+            "version": env!("CARGO_PKG_VERSION"),
+            "data": {
+                "sessions": self.stats.sessions,
+                "adaptive_analytics": self.stats.adaptive_analytics,
+                "export_metadata": {
+                    "total_sessions": self.stats.sessions.len(),
+                    "date_range": {
+                        "start": self.stats.sessions.first().map(|s| s.timestamp.clone()),
+                        "end": self.stats.sessions.last().map(|s| s.timestamp.clone())
+                    }
+                }
+            }
+        });
+
+        let config_dir =
+            self.storage.get_path().parent().ok_or_else(|| {
+                io::Error::new(io::ErrorKind::NotFound, "Config directory not found")
+            })?;
+
+        let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
+        let filename = format!("export_{}.json", timestamp);
+        let export_path = config_dir.join(&filename);
+
+        let json_string = serde_json::to_string_pretty(&export_data)?;
+        fs::write(&export_path, &json_string)?;
+
+        Ok(export_path)
     }
 }
 

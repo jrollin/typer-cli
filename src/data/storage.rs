@@ -66,9 +66,7 @@ impl Storage {
         Ok(())
     }
 
-    /// Obtenir le chemin du fichier de stats
     /// Public API: Path accessor for debugging, data export/migration, and future admin features
-    #[allow(dead_code)]
     pub fn get_path(&self) -> &PathBuf {
         &self.file_path
     }
