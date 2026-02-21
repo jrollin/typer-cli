@@ -13,24 +13,19 @@ use keyboard::LayoutVariant;
 #[derive(Parser)]
 #[command(name = "typer-cli", version, about)]
 struct Cli {
-    /// Keyboard layout variant: "pc" (default) or "mac"
+    /// Keyboard layout variant
     #[arg(short, long, default_value = "pc")]
-    layout: String,
+    layout: LayoutVariant,
 }
 
 fn main() -> std::io::Result<()> {
     let cli = Cli::parse();
 
-    let layout_variant = match cli.layout.to_lowercase().as_str() {
-        "mac" => LayoutVariant::Mac,
-        _ => LayoutVariant::Pc,
-    };
-
     // Initialiser le terminal
     let mut terminal = ratatui::init();
 
     // Créer et lancer l'app
-    let result = run_app(&mut terminal, layout_variant);
+    let result = run_app(&mut terminal, cli.layout);
 
     // Restaurer le terminal
     ratatui::restore();

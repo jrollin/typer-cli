@@ -65,7 +65,7 @@ pub enum RowType {
 }
 
 /// Layout variant: PC (standard) or Mac (Apple)
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, clap::ValueEnum)]
 pub enum LayoutVariant {
     Pc,
     Mac,
