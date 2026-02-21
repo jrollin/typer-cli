@@ -7,7 +7,7 @@ use ratatui::{
 };
 
 use crate::engine::analytics::AdaptiveAnalytics;
-use crate::keyboard::{AzertyLayout, Hand, Key, RowType};
+use crate::keyboard::{AzertyLayout, Hand, Key, LayoutVariant, RowType};
 
 /// Keyboard display configuration
 #[derive(Clone)]
@@ -177,51 +177,109 @@ fn render_keyboard_row<'a>(
     for (i, key) in row.keys.iter().enumerate() {
         // Special handling for modifier row keys
         if row.row_type == RowType::Modifier {
-            match i {
-                0 => {
-                    spans.push(Span::styled(
-                        "[Ctrl] ",
-                        Style::default().fg(Color::DarkGray),
-                    ));
+            let is_mac = layout.variant == LayoutVariant::Mac;
+            if is_mac {
+                // Mac modifier row: [Fn] [⌃] [⌥] [⌘] [Space] [⌘] [⌥]
+                match i {
+                    0 => {
+                        spans.push(Span::styled("[Fn] ", Style::default().fg(Color::DarkGray)));
+                    }
+                    1 => {
+                        spans.push(Span::styled("[⌃] ", Style::default().fg(Color::DarkGray)));
+                    }
+                    2 => {
+                        // Left Option - highlight if next char requires Option
+                        let opt_style = if requires_altgr {
+                            Style::default()
+                                .fg(Color::Black)
+                                .bg(Color::Cyan)
+                                .add_modifier(Modifier::BOLD)
+                        } else {
+                            Style::default().fg(Color::DarkGray)
+                        };
+                        spans.push(Span::styled("[⌥] ", opt_style));
+                    }
+                    3 => {
+                        spans.push(Span::styled("[⌘] ", Style::default().fg(Color::DarkGray)));
+                    }
+                    4 => {
+                        // Space key - can be highlighted
+                        let is_highlighted = next_char == Some(' ');
+                        let style = if is_highlighted {
+                            Style::default()
+                                .fg(Color::Black)
+                                .bg(Color::Cyan)
+                                .add_modifier(Modifier::BOLD)
+                        } else {
+                            Style::default().fg(Color::White)
+                        };
+                        spans.push(Span::styled("[        Space        ] ", style));
+                    }
+                    5 => {
+                        spans.push(Span::styled("[⌘] ", Style::default().fg(Color::DarkGray)));
+                    }
+                    6 => {
+                        // Right Option - highlight if next char requires Option
+                        let opt_style = if requires_altgr {
+                            Style::default()
+                                .fg(Color::Black)
+                                .bg(Color::Cyan)
+                                .add_modifier(Modifier::BOLD)
+                        } else {
+                            Style::default().fg(Color::DarkGray)
+                        };
+                        spans.push(Span::styled("[⌥]", opt_style));
+                    }
+                    _ => {}
                 }
-                1 => {
-                    spans.push(Span::styled("[⌘] ", Style::default().fg(Color::DarkGray)));
+            } else {
+                // PC modifier row: [Ctrl] [⌘] [⌥] [Space] [AltGr] [Fn1] [Fn2]
+                match i {
+                    0 => {
+                        spans.push(Span::styled(
+                            "[Ctrl] ",
+                            Style::default().fg(Color::DarkGray),
+                        ));
+                    }
+                    1 => {
+                        spans.push(Span::styled("[⌘] ", Style::default().fg(Color::DarkGray)));
+                    }
+                    2 => {
+                        spans.push(Span::styled("[⌥] ", Style::default().fg(Color::DarkGray)));
+                    }
+                    3 => {
+                        // Space key - can be highlighted
+                        let is_highlighted = next_char == Some(' ');
+                        let style = if is_highlighted {
+                            Style::default()
+                                .fg(Color::Black)
+                                .bg(Color::Cyan)
+                                .add_modifier(Modifier::BOLD)
+                        } else {
+                            Style::default().fg(Color::White)
+                        };
+                        spans.push(Span::styled("[        Space        ] ", style));
+                    }
+                    4 => {
+                        // AltGr key - highlight if next char requires AltGr
+                        let altgr_style = if requires_altgr {
+                            Style::default()
+                                .fg(Color::Black)
+                                .bg(Color::Cyan)
+                                .add_modifier(Modifier::BOLD)
+                        } else {
+                            Style::default().fg(Color::DarkGray)
+                        };
+                        spans.push(Span::styled("[AltGr] ", altgr_style));
+                    }
+                    5 => {
+                        spans.push(Span::styled("[Fn1] ", Style::default().fg(Color::DarkGray)));
+                    }
+                    6 => {
+                        spans.push(Span::styled("[Fn2]", Style::default().fg(Color::DarkGray)));
+                    }
+                    _ => {}
                 }
-                2 => {
-                    spans.push(Span::styled("[⌥] ", Style::default().fg(Color::DarkGray)));
-                }
-                3 => {
-                    // Space key - can be highlighted
-                    let is_highlighted = next_char == Some(' ');
-                    let style = if is_highlighted {
-                        Style::default()
-                            .fg(Color::Black)
-                            .bg(Color::Cyan)
-                            .add_modifier(Modifier::BOLD)
-                    } else {
-                        Style::default().fg(Color::White)
-                    };
-                    spans.push(Span::styled("[        Space        ] ", style));
-                }
-                4 => {
-                    // AltGr key - highlight if next char requires AltGr
-                    let altgr_style = if requires_altgr {
-                        Style::default()
-                            .fg(Color::Black)
-                            .bg(Color::Cyan)
-                            .add_modifier(Modifier::BOLD)
-                    } else {
-                        Style::default().fg(Color::DarkGray)
-                    };
-                    spans.push(Span::styled("[AltGr] ", altgr_style));
-                }
-                5 => {
-                    spans.push(Span::styled("[Fn1] ", Style::default().fg(Color::DarkGray)));
-                }
-                6 => {
-                    spans.push(Span::styled("[Fn2]", Style::default().fg(Color::DarkGray)));
-                }
-                _ => {}
             }
         } else if key.base == '\n' {
             // Special handling for Enter key - show arrow [←] on home row only
@@ -393,9 +451,17 @@ pub fn render_keyboard_compact(
     let text = if let Some(c) = next_char {
         let requires_shift = layout.requires_shift(c);
         let requires_altgr = layout.requires_altgr(c);
+        let modifier_name = if layout.variant == LayoutVariant::Mac {
+            "⌥ Option"
+        } else {
+            "AltGr"
+        };
 
         if requires_altgr {
-            format!(" Next key: [{}] (AltGr)                (Tab to expand)", c)
+            format!(
+                " Next key: [{}] ({})                (Tab to expand)",
+                c, modifier_name
+            )
         } else if requires_shift {
             format!(" Next key: [{}] (⇧ Shift)              (Tab to expand)", c)
         } else {

@@ -64,6 +64,13 @@ pub enum RowType {
     Modifier, // Ctrl, Cmd, Option, Space, Alt, Fn1, Fn2
 }
 
+/// Layout variant: PC (standard) or Mac (Apple)
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum LayoutVariant {
+    Pc,
+    Mac,
+}
+
 /// Single key representation
 #[derive(Debug, Clone)]
 pub struct Key {
@@ -108,6 +115,7 @@ pub struct AzertyLayout {
     pub rows: Vec<KeyboardRow>,
     pub shift_mappings: HashMap<char, char>,
     pub altgr_mappings: HashMap<char, char>,
+    pub variant: LayoutVariant,
 }
 
 /// Phase 3+: Keyboard layout abstraction for future QWERTY/other layout support
@@ -128,6 +136,27 @@ impl AzertyLayout {
             ],
             shift_mappings,
             altgr_mappings,
+            variant: LayoutVariant::Pc,
+        }
+    }
+
+    /// Create a Mac French AZERTY layout (Apple keyboard)
+    pub fn new_mac() -> Self {
+        let shift_mappings = Self::build_mac_shift_mappings();
+        let altgr_mappings = Self::build_mac_option_mappings();
+
+        Self {
+            home_row: vec!['q', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm'],
+            rows: vec![
+                Self::mac_number_row(),
+                Self::mac_top_row(),
+                Self::mac_home_row_keys(),
+                Self::mac_bottom_row(),
+                Self::mac_modifier_row(),
+            ],
+            shift_mappings,
+            altgr_mappings,
+            variant: LayoutVariant::Mac,
         }
     }
 
@@ -250,6 +279,181 @@ impl AzertyLayout {
                 Key::new('\0', None, None, Finger::RightPinky), // Fn2 placeholder
             ],
         }
+    }
+
+    // ── Mac French AZERTY row builders ──────────────────────────────────
+
+    /// Build Mac number row - @ replaces ², § replaces -, ! replaces _, - replaces =
+    fn mac_number_row() -> KeyboardRow {
+        KeyboardRow {
+            row_type: RowType::Number,
+            keys: vec![
+                Key::new('@', Some('#'), None, Finger::LeftPinky), // @ key (replaces ²/³)
+                Key::new('&', Some('1'), None, Finger::LeftPinky),
+                Key::new('é', Some('2'), Some('ë'), Finger::LeftPinky),
+                Key::new('"', Some('3'), None, Finger::LeftRing),
+                Key::new('\'', Some('4'), None, Finger::LeftMiddle),
+                Key::new('(', Some('5'), Some('{'), Finger::LeftIndex),
+                Key::new('§', Some('6'), None, Finger::LeftIndex), // § replaces -
+                Key::new('è', Some('7'), Some('«'), Finger::RightIndex),
+                Key::new('!', Some('8'), None, Finger::RightIndex), // ! replaces _
+                Key::new('ç', Some('9'), None, Finger::RightMiddle),
+                Key::new('à', Some('0'), None, Finger::RightRing),
+                Key::new(')', Some('°'), Some('}'), Finger::RightPinky),
+                Key::new('-', Some('_'), None, Finger::RightPinky), // - replaces =
+            ],
+        }
+    }
+
+    /// Build Mac top row (azertyuiop^$ + Enter) - $ shift is * (not £)
+    fn mac_top_row() -> KeyboardRow {
+        KeyboardRow {
+            row_type: RowType::Top,
+            keys: vec![
+                Key::new('a', Some('A'), Some('æ'), Finger::LeftPinky),
+                Key::new('z', Some('Z'), None, Finger::LeftRing),
+                Key::new('e', Some('E'), Some('ê'), Finger::LeftMiddle),
+                Key::new('r', Some('R'), Some('®'), Finger::LeftIndex),
+                Key::new('t', Some('T'), Some('†'), Finger::LeftIndex),
+                Key::new('y', Some('Y'), None, Finger::RightIndex),
+                Key::new('u', Some('U'), None, Finger::RightIndex),
+                Key::new('i', Some('I'), Some('î'), Finger::RightMiddle),
+                Key::new('o', Some('O'), Some('œ'), Finger::RightRing),
+                Key::new('p', Some('P'), Some('π'), Finger::RightPinky),
+                Key::new('^', Some('¨'), None, Finger::RightPinky),
+                Key::new('$', Some('*'), Some('€'), Finger::RightPinky), // Shift=* (not £), Option=€
+                Key::new('\n', None, None, Finger::RightPinky),
+            ],
+        }
+    }
+
+    /// Build Mac home row (qsdfghjklmù` + Enter) - ` replaces *
+    fn mac_home_row_keys() -> KeyboardRow {
+        KeyboardRow {
+            row_type: RowType::Home,
+            keys: vec![
+                Key::new('q', Some('Q'), None, Finger::LeftPinky),
+                Key::new('s', Some('S'), None, Finger::LeftRing),
+                Key::new('d', Some('D'), None, Finger::LeftMiddle),
+                Key::new('f', Some('F'), None, Finger::LeftIndex),
+                Key::new('g', Some('G'), None, Finger::LeftIndex),
+                Key::new('h', Some('H'), None, Finger::RightIndex),
+                Key::new('j', Some('J'), None, Finger::RightIndex),
+                Key::new('k', Some('K'), None, Finger::RightMiddle),
+                Key::new('l', Some('L'), None, Finger::RightRing),
+                Key::new('m', Some('M'), Some('µ'), Finger::RightPinky),
+                Key::new('ù', Some('%'), None, Finger::RightPinky),
+                Key::new('`', Some('£'), None, Finger::RightPinky), // ` replaces * on Mac
+                Key::new('\n', None, None, Finger::RightPinky),
+            ],
+        }
+    }
+
+    /// Build Mac bottom row (<wxcvbn,;:= + Right Shift) - = replaces !
+    fn mac_bottom_row() -> KeyboardRow {
+        KeyboardRow {
+            row_type: RowType::Bottom,
+            keys: vec![
+                Key::new('<', Some('>'), None, Finger::LeftPinky),
+                Key::new('w', Some('W'), None, Finger::LeftPinky),
+                Key::new('x', Some('X'), None, Finger::LeftRing),
+                Key::new('c', Some('C'), Some('©'), Finger::LeftMiddle),
+                Key::new('v', Some('V'), None, Finger::LeftIndex),
+                Key::new('b', Some('B'), Some('ß'), Finger::LeftIndex),
+                Key::new('n', Some('N'), None, Finger::RightIndex),
+                Key::new(',', Some('?'), None, Finger::RightIndex),
+                Key::new(';', Some('.'), None, Finger::RightMiddle),
+                Key::new(':', Some('/'), None, Finger::RightRing),
+                Key::new('=', Some('+'), None, Finger::RightPinky), // = replaces ! on Mac
+                Key::new('\0', None, None, Finger::RightPinky),
+            ],
+        }
+    }
+
+    /// Build Mac modifier row (Fn, Ctrl, Option, Command, Space, Command, Option)
+    fn mac_modifier_row() -> KeyboardRow {
+        KeyboardRow {
+            row_type: RowType::Modifier,
+            keys: vec![
+                Key::new('\0', None, None, Finger::LeftPinky), // Fn placeholder
+                Key::new('\0', None, None, Finger::LeftPinky), // Ctrl placeholder
+                Key::new('⌥', None, None, Finger::LeftPinky),  // Left Option
+                Key::new('⌘', None, None, Finger::LeftPinky),  // Left Command
+                Key::new(' ', None, None, Finger::Thumb),      // Space
+                Key::new('⌘', None, None, Finger::RightPinky), // Right Command
+                Key::new('⌥', None, None, Finger::RightPinky), // Right Option
+            ],
+        }
+    }
+
+    // ── Mac-specific mapping builders ────────────────────────────────────
+
+    /// Build shift mappings for Mac AZERTY
+    fn build_mac_shift_mappings() -> HashMap<char, char> {
+        let mut map = HashMap::new();
+
+        // Letter mappings (same as PC)
+        for c in 'a'..='z' {
+            map.insert(c, c.to_ascii_uppercase());
+        }
+
+        // Number row symbols → numbers (Mac layout)
+        map.insert('@', '#');
+        map.insert('&', '1');
+        map.insert('é', '2');
+        map.insert('"', '3');
+        map.insert('\'', '4');
+        map.insert('(', '5');
+        map.insert('§', '6'); // § replaces - on Mac
+        map.insert('è', '7');
+        map.insert('!', '8'); // ! replaces _ on Mac
+        map.insert('ç', '9');
+        map.insert('à', '0');
+        map.insert(')', '°');
+        map.insert('-', '_'); // - replaces = on Mac
+
+        // Punctuation and special characters
+        map.insert(',', '?');
+        map.insert(';', '.');
+        map.insert(':', '/');
+        map.insert('=', '+'); // = is in bottom row on Mac
+        map.insert('<', '>');
+        map.insert('^', '¨');
+        map.insert('$', '*'); // $ shift is * on Mac (not £)
+        map.insert('ù', '%');
+        map.insert('`', '£'); // ` shift is £ on Mac (replaces */µ key)
+
+        map
+    }
+
+    /// Build Option (⌥) mappings for Mac AZERTY
+    fn build_mac_option_mappings() -> HashMap<char, char> {
+        let mut map = HashMap::new();
+
+        // Number row Option mappings
+        map.insert('é', 'ë'); // 2 key
+        map.insert('(', '{'); // 5 key → left brace
+        map.insert('è', '«'); // 7 key → guillemet
+        map.insert(')', '}'); // ) key → right brace
+
+        // Top row Option mappings
+        map.insert('a', 'æ');
+        map.insert('e', 'ê');
+        map.insert('r', '®');
+        map.insert('t', '†');
+        map.insert('i', 'î');
+        map.insert('o', 'œ');
+        map.insert('p', 'π');
+        map.insert('$', '€'); // Option+$ = €
+
+        // Home row Option mappings
+        map.insert('m', 'µ');
+
+        // Bottom row Option mappings
+        map.insert('c', '©');
+        map.insert('b', 'ß');
+
+        map
     }
 
     /// Build shift mappings for all keys
@@ -717,5 +921,186 @@ mod tests {
 
         let paren_key = layout.find_key('(').unwrap();
         assert_eq!(paren_key.shift_variant, Some('5'));
+    }
+
+    // ── Mac AZERTY layout tests ──────────────────────────────────────────
+
+    #[test]
+    fn test_mac_layout_variant() {
+        let layout = AzertyLayout::new_mac();
+        assert_eq!(layout.variant, LayoutVariant::Mac);
+
+        let pc_layout = AzertyLayout::new();
+        assert_eq!(pc_layout.variant, LayoutVariant::Pc);
+    }
+
+    #[test]
+    fn test_mac_number_row() {
+        let layout = AzertyLayout::new_mac();
+        let number_row = &layout.rows[0];
+        assert_eq!(number_row.keys.len(), 13);
+
+        // First key: @ (Mac) instead of ² (PC)
+        assert_eq!(number_row.keys[0].base, '@');
+        assert_eq!(number_row.keys[0].shift_variant, Some('#'));
+
+        // Position 6: § (Mac) instead of - (PC)
+        assert_eq!(number_row.keys[6].base, '§');
+        assert_eq!(number_row.keys[6].shift_variant, Some('6'));
+
+        // Position 8: ! (Mac) instead of _ (PC)
+        assert_eq!(number_row.keys[8].base, '!');
+        assert_eq!(number_row.keys[8].shift_variant, Some('8'));
+
+        // Last key: - (Mac) instead of = (PC)
+        assert_eq!(number_row.keys[12].base, '-');
+        assert_eq!(number_row.keys[12].shift_variant, Some('_'));
+    }
+
+    #[test]
+    fn test_mac_top_row_dollar_shift() {
+        let layout = AzertyLayout::new_mac();
+        let top_row = &layout.rows[1];
+
+        // $ key: shift is * on Mac (not £)
+        let dollar_key = &top_row.keys[11];
+        assert_eq!(dollar_key.base, '$');
+        assert_eq!(dollar_key.shift_variant, Some('*'));
+        assert_eq!(dollar_key.altgr_variant, Some('€'));
+    }
+
+    #[test]
+    fn test_mac_home_row_backtick() {
+        let layout = AzertyLayout::new_mac();
+        let home_row = &layout.rows[2];
+
+        // Position 11: ` (Mac) instead of * (PC)
+        let backtick_key = &home_row.keys[11];
+        assert_eq!(backtick_key.base, '`');
+        assert_eq!(backtick_key.shift_variant, Some('£'));
+    }
+
+    #[test]
+    fn test_mac_bottom_row_equals() {
+        let layout = AzertyLayout::new_mac();
+        let bottom_row = &layout.rows[3];
+
+        // Position 10: = (Mac) instead of ! (PC)
+        let equals_key = &bottom_row.keys[10];
+        assert_eq!(equals_key.base, '=');
+        assert_eq!(equals_key.shift_variant, Some('+'));
+    }
+
+    #[test]
+    fn test_mac_shift_mappings() {
+        let layout = AzertyLayout::new_mac();
+
+        // Mac-specific shift mappings
+        assert_eq!(layout.shift_mappings.get(&'@'), Some(&'#'));
+        assert_eq!(layout.shift_mappings.get(&'§'), Some(&'6'));
+        assert_eq!(layout.shift_mappings.get(&'!'), Some(&'8'));
+        assert_eq!(layout.shift_mappings.get(&'-'), Some(&'_'));
+        assert_eq!(layout.shift_mappings.get(&'$'), Some(&'*'));
+        assert_eq!(layout.shift_mappings.get(&'`'), Some(&'£'));
+        assert_eq!(layout.shift_mappings.get(&'='), Some(&'+'));
+
+        // Common mappings (same as PC)
+        assert_eq!(layout.shift_mappings.get(&'a'), Some(&'A'));
+        assert_eq!(layout.shift_mappings.get(&'&'), Some(&'1'));
+        assert_eq!(layout.shift_mappings.get(&','), Some(&'?'));
+    }
+
+    #[test]
+    fn test_mac_option_mappings() {
+        let layout = AzertyLayout::new_mac();
+
+        // Mac Option key mappings
+        assert_eq!(layout.altgr_mappings.get(&'('), Some(&'{'));
+        assert_eq!(layout.altgr_mappings.get(&')'), Some(&'}'));
+        assert_eq!(layout.altgr_mappings.get(&'$'), Some(&'€'));
+        assert_eq!(layout.altgr_mappings.get(&'m'), Some(&'µ'));
+        assert_eq!(layout.altgr_mappings.get(&'a'), Some(&'æ'));
+        assert_eq!(layout.altgr_mappings.get(&'o'), Some(&'œ'));
+        assert_eq!(layout.altgr_mappings.get(&'c'), Some(&'©'));
+    }
+
+    #[test]
+    fn test_mac_requires_shift() {
+        let layout = AzertyLayout::new_mac();
+
+        // Mac-specific: # requires shift (shift of @)
+        assert!(layout.requires_shift('#'));
+        // Mac-specific: * requires shift (shift of $)
+        assert!(layout.requires_shift('*'));
+        // Mac-specific: _ requires shift (shift of -)
+        assert!(layout.requires_shift('_'));
+        // Mac-specific: £ requires shift (shift of `)
+        assert!(layout.requires_shift('£'));
+
+        // Numbers still require shift
+        assert!(layout.requires_shift('1'));
+        assert!(layout.requires_shift('8'));
+
+        // Base chars don't require shift
+        assert!(!layout.requires_shift('@'));
+        assert!(!layout.requires_shift('§'));
+        assert!(!layout.requires_shift('!'));
+    }
+
+    #[test]
+    fn test_mac_requires_option() {
+        let layout = AzertyLayout::new_mac();
+
+        // Option characters
+        assert!(layout.requires_altgr('{'));
+        assert!(layout.requires_altgr('}'));
+        assert!(layout.requires_altgr('€'));
+        assert!(layout.requires_altgr('µ'));
+        assert!(layout.requires_altgr('æ'));
+        assert!(layout.requires_altgr('œ'));
+
+        // Non-Option characters
+        assert!(!layout.requires_altgr('@'));
+        assert!(!layout.requires_altgr('#'));
+        assert!(!layout.requires_altgr('a'));
+    }
+
+    #[test]
+    fn test_mac_home_row_same() {
+        let layout = AzertyLayout::new_mac();
+        // Home row letters are the same on Mac and PC
+        assert_eq!(
+            layout.home_row,
+            vec!['q', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm']
+        );
+        assert!(layout.is_home_row_key('f'));
+        assert!(layout.is_home_row_key('j'));
+    }
+
+    #[test]
+    fn test_mac_all_rows_populated() {
+        let layout = AzertyLayout::new_mac();
+        assert_eq!(layout.rows.len(), 5);
+        assert_eq!(layout.rows[0].row_type, RowType::Number);
+        assert_eq!(layout.rows[1].row_type, RowType::Top);
+        assert_eq!(layout.rows[2].row_type, RowType::Home);
+        assert_eq!(layout.rows[3].row_type, RowType::Bottom);
+        assert_eq!(layout.rows[4].row_type, RowType::Modifier);
+    }
+
+    #[test]
+    fn test_mac_get_base_key() {
+        let layout = AzertyLayout::new_mac();
+
+        // Mac-specific: # is shift of @
+        assert_eq!(layout.get_base_key('#'), Some('@'));
+        // Mac-specific: * is shift of $
+        assert_eq!(layout.get_base_key('*'), Some('$'));
+        // Mac-specific: { is option of (
+        assert_eq!(layout.get_base_key('{'), Some('('));
+        // Mac-specific: } is option of )
+        assert_eq!(layout.get_base_key('}'), Some(')'));
+        // Mac-specific: € is option of $
+        assert_eq!(layout.get_base_key('€'), Some('$'));
     }
 }

@@ -9,7 +9,7 @@ use crate::content::{
 };
 use crate::data::{SessionRecord, Stats, Storage};
 use crate::engine::{calculate_results, SessionAnalyzer, TypingSession};
-use crate::keyboard::AzertyLayout;
+use crate::keyboard::{AzertyLayout, LayoutVariant};
 use crate::ui;
 use crate::ui::keyboard::KeyboardConfig;
 
@@ -50,7 +50,7 @@ pub struct App {
 }
 
 impl App {
-    pub fn new() -> io::Result<Self> {
+    pub fn new(layout_variant: LayoutVariant) -> io::Result<Self> {
         let storage = Storage::new()?;
         let stats = storage.load()?;
 
@@ -120,7 +120,10 @@ impl App {
             selected_duration: 2, // Default to 5 minutes (index 2)
             selected_duration_value: crate::engine::SessionDuration::FiveMinutes,
             keyboard_visible: true, // Default visible
-            keyboard_layout: AzertyLayout::new(),
+            keyboard_layout: match layout_variant {
+                LayoutVariant::Mac => AzertyLayout::new_mac(),
+                LayoutVariant::Pc => AzertyLayout::new(),
+            },
             keyboard_config: KeyboardConfig::default(),
             selected_category: 0,
             categories,
@@ -143,7 +146,7 @@ impl App {
                     "Insufficient data for adaptive mode. Complete more sessions first.".to_string()
                 }
             }
-            _ => lesson.generate(500), // Standard content generation
+            _ => lesson.generate_for_layout(500, &self.keyboard_layout),
         };
 
         let session = TypingSession::new(content, self.selected_duration_value.as_duration());
@@ -167,7 +170,7 @@ impl App {
                         String::new()
                     }
                 }
-                _ => lesson.generate(300),
+                _ => lesson.generate_for_layout(300, &self.keyboard_layout),
             };
 
             if !more_content.is_empty() {

@@ -7,11 +7,20 @@ use crate::keyboard::{AzertyLayout, RowType};
 
 /// Trait pour générer du contenu de leçon
 pub trait ContentGenerator {
+    #[allow(dead_code)] // Used by tests; binary uses generate_for_layout
     fn generate(&self, length: usize) -> String;
+    fn generate_for_layout(&self, length: usize, layout: &AzertyLayout) -> String;
 }
 
 impl ContentGenerator for Lesson {
+    /// Generate content using the default PC layout
     fn generate(&self, length: usize) -> String {
+        let layout = AzertyLayout::new();
+        self.generate_for_layout(length, &layout)
+    }
+
+    /// Generate content using a specific keyboard layout
+    fn generate_for_layout(&self, length: usize, layout: &AzertyLayout) -> String {
         match &self.lesson_type {
             LessonType::Bigram {
                 bigram_type,
@@ -46,18 +55,14 @@ impl ContentGenerator for Lesson {
                 use crate::content::finger_generator::{
                     generate_finger_drills, get_finger_pair_keys,
                 };
-                use crate::keyboard::azerty::AzertyLayout;
 
-                let layout = AzertyLayout::new();
-                let keys = get_finger_pair_keys(&layout, *finger_pair, *level, *with_shift);
+                let keys = get_finger_pair_keys(layout, *finger_pair, *level, *with_shift);
                 generate_finger_drills(&keys, length, *with_shift)
             }
             LessonType::RowProgression { level, with_shift } => {
                 use crate::content::finger_generator::generate_finger_drills;
-                use crate::keyboard::azerty::AzertyLayout;
 
-                let layout = AzertyLayout::new();
-                let keys = get_keys_for_row_level(&layout, *level, *with_shift);
+                let keys = get_keys_for_row_level(layout, *level, *with_shift);
                 generate_finger_drills(&keys, length, *with_shift)
             }
             LessonType::Custom { content } => {
