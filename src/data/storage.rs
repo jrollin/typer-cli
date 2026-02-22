@@ -166,4 +166,13 @@ mod tests {
         let loaded = storage.load_config().unwrap();
         assert_eq!(loaded.layout_variant, crate::keyboard::LayoutVariant::Pc);
     }
+
+    #[test]
+    fn test_load_config_invalid_json_returns_error() {
+        let (storage, temp_dir) = create_test_storage();
+        let config_path = temp_dir.path().join("config.json");
+        fs::write(&config_path, b"not valid json").unwrap();
+        let result = storage.load_config();
+        assert!(result.is_err());
+    }
 }
