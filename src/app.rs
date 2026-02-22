@@ -385,7 +385,9 @@ impl App {
                         LayoutVariant::Pc => AzertyLayout::new(),
                     };
                     self.layout_variant = variant;
-                    let config = crate::data::Config { layout_variant: variant };
+                    let config = crate::data::Config {
+                        layout_variant: variant,
+                    };
                     self.storage.save_config(&config)?;
                     self.state = AppState::LessonTypeMenu;
                 }

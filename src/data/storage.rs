@@ -73,13 +73,19 @@ impl Storage {
         }
         let content = fs::read_to_string(&config_path)?;
         serde_json::from_str(&content).map_err(|e| {
-            io::Error::new(io::ErrorKind::InvalidData, format!("Failed to parse config: {}", e))
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("Failed to parse config: {}", e),
+            )
         })
     }
 
     pub fn save_config(&self, config: &crate::data::Config) -> io::Result<()> {
         let content = serde_json::to_string_pretty(config).map_err(|e| {
-            io::Error::new(io::ErrorKind::InvalidData, format!("Failed to serialize config: {}", e))
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("Failed to serialize config: {}", e),
+            )
         })?;
         fs::write(self.config_path(), content)?;
         Ok(())
