@@ -942,6 +942,7 @@ pub fn render_lesson_type_menu(
     f: &mut Frame,
     categories: &[crate::content::LessonCategory],
     selected: usize,
+    layout_variant: crate::keyboard::LayoutVariant,
 ) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -1013,12 +1014,17 @@ pub fn render_lesson_type_menu(
     f.render_widget(list, chunks[1]);
 
     // Instructions
+    let layout_name = match layout_variant {
+        crate::keyboard::LayoutVariant::Mac => "Mac",
+        crate::keyboard::LayoutVariant::Pc => "PC",
+    };
+    let hint = format!(
+        "↑/↓ j/k navigate  •  Enter/1-5 select  •  [s] Statistics  •  [p] Preferences (Layout: {})  •  ESC quit",
+        layout_name
+    );
     let instructions = vec![
         Line::from(""),
-        Line::from(Span::styled(
-            "Use ↑/↓ or j/k to navigate  •  Press Enter/Space or 1-5 to select  •  Press 's' for Statistics  •  ESC to quit",
-            Style::default().fg(Color::Gray),
-        )),
+        Line::from(Span::styled(hint, Style::default().fg(Color::Gray))),
     ];
 
     let instructions_widget = Paragraph::new(instructions).alignment(Alignment::Center);
@@ -1831,4 +1837,80 @@ pub fn render_analytics_export(f: &mut Frame, stats: &Stats, export_message: Opt
             )
             .alignment(Alignment::Center);
     f.render_widget(instructions, chunks[2]);
+}
+
+/// Render the settings screen for layout selection
+pub fn render_settings(
+    f: &mut Frame,
+    selected_layout: usize,
+    current_variant: crate::keyboard::LayoutVariant,
+) {
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .margin(2)
+        .constraints([
+            Constraint::Length(3),
+            Constraint::Min(6),
+            Constraint::Length(3),
+        ])
+        .split(f.area());
+
+    let header = Paragraph::new("TYPER CLI - Settings")
+        .style(
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        )
+        .alignment(Alignment::Center)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .padding(ratatui::widgets::Padding::horizontal(1)),
+        );
+    f.render_widget(header, chunks[0]);
+
+    let layouts = [
+        ("AZERTY Mac", crate::keyboard::LayoutVariant::Mac),
+        ("AZERTY PC", crate::keyboard::LayoutVariant::Pc),
+    ];
+
+    let items: Vec<ListItem> = layouts
+        .iter()
+        .enumerate()
+        .map(|(i, (name, variant))| {
+            let is_selected = i == selected_layout;
+            let is_active = *variant == current_variant;
+            let prefix = if is_selected { "▶ " } else { "  " };
+            let check = if is_active { " [✓]" } else { "" };
+            let label = format!("{}{}{}", prefix, name, check);
+            let style = if is_selected {
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::White)
+            };
+            ListItem::new(Line::from(Span::styled(label, style)))
+        })
+        .collect();
+
+    let list = List::new(items).block(
+        Block::default()
+            .title("Keyboard Layout")
+            .borders(Borders::ALL)
+            .padding(ratatui::widgets::Padding::new(1, 1, 1, 0)),
+    );
+    f.render_widget(list, chunks[1]);
+
+    let instructions = vec![
+        Line::from(""),
+        Line::from(Span::styled(
+            "Use ↑/↓ or j/k to navigate  •  Enter to apply and save  •  ESC to cancel",
+            Style::default().fg(Color::Gray),
+        )),
+    ];
+    f.render_widget(
+        Paragraph::new(instructions).alignment(Alignment::Center),
+        chunks[2],
+    );
 }

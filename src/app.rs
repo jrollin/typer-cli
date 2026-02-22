@@ -17,6 +17,7 @@ use crate::ui::keyboard::KeyboardConfig;
 #[derive(Debug, PartialEq)]
 enum AppState {
     LessonTypeMenu,
+    Settings,
     Statistics,
     AnalyticsHistory,
     AnalyticsDetails,
@@ -42,8 +43,8 @@ pub struct App {
     keyboard_visible: bool,
     keyboard_layout: AzertyLayout,
     keyboard_config: KeyboardConfig,
-    #[allow(dead_code)]
     layout_variant: LayoutVariant,
+    selected_layout: usize,
     // Category selection fields
     selected_category: usize,
     categories: Vec<LessonCategory>,
@@ -129,6 +130,10 @@ impl App {
             },
             keyboard_config: KeyboardConfig::default(),
             layout_variant: config.layout_variant,
+            selected_layout: match config.layout_variant {
+                LayoutVariant::Mac => 0,
+                LayoutVariant::Pc => 1,
+            },
             selected_category: 0,
             categories,
             current_category: None,
@@ -189,7 +194,15 @@ impl App {
             // Render
             terminal.draw(|f| match self.state {
                 AppState::LessonTypeMenu => {
-                    ui::render_lesson_type_menu(f, &self.categories, self.selected_category);
+                    ui::render_lesson_type_menu(
+                        f,
+                        &self.categories,
+                        self.selected_category,
+                        self.layout_variant,
+                    );
+                }
+                AppState::Settings => {
+                    ui::render_settings(f, self.selected_layout, self.layout_variant);
                 }
                 AppState::Statistics => {
                     ui::render_statistics(
@@ -313,6 +326,9 @@ impl App {
                 KeyCode::Char('s') | KeyCode::Char('S') => {
                     self.state = AppState::Statistics;
                 }
+                KeyCode::Char('p') | KeyCode::Char('P') => {
+                    self.state = AppState::Settings;
+                }
                 KeyCode::Up | KeyCode::Char('k') => {
                     if self.selected_category > 0 {
                         self.selected_category -= 1;
@@ -341,6 +357,37 @@ impl App {
                             self.state = AppState::LessonMenu;
                         }
                     }
+                }
+                _ => {}
+            },
+            AppState::Settings => match key.code {
+                KeyCode::Esc | KeyCode::Char('q') => {
+                    self.state = AppState::LessonTypeMenu;
+                }
+                KeyCode::Up | KeyCode::Char('k') => {
+                    if self.selected_layout > 0 {
+                        self.selected_layout -= 1;
+                    }
+                }
+                KeyCode::Down | KeyCode::Char('j') => {
+                    if self.selected_layout < 1 {
+                        self.selected_layout += 1;
+                    }
+                }
+                KeyCode::Enter | KeyCode::Char(' ') => {
+                    let variant = if self.selected_layout == 0 {
+                        LayoutVariant::Mac
+                    } else {
+                        LayoutVariant::Pc
+                    };
+                    self.keyboard_layout = match variant {
+                        LayoutVariant::Mac => AzertyLayout::new_mac(),
+                        LayoutVariant::Pc => AzertyLayout::new(),
+                    };
+                    self.layout_variant = variant;
+                    let config = crate::data::Config { layout_variant: variant };
+                    self.storage.save_config(&config)?;
+                    self.state = AppState::LessonTypeMenu;
                 }
                 _ => {}
             },
