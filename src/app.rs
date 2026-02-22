@@ -42,6 +42,8 @@ pub struct App {
     keyboard_visible: bool,
     keyboard_layout: AzertyLayout,
     keyboard_config: KeyboardConfig,
+    #[allow(dead_code)]
+    layout_variant: LayoutVariant,
     // Category selection fields
     selected_category: usize,
     categories: Vec<LessonCategory>,
@@ -50,8 +52,9 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(layout_variant: LayoutVariant) -> io::Result<Self> {
+    pub fn new() -> io::Result<Self> {
         let storage = Storage::new()?;
+        let config = storage.load_config()?;
         let stats = storage.load()?;
 
         // Build complete lesson list with reordered organization
@@ -120,11 +123,12 @@ impl App {
             selected_duration: 2, // Default to 5 minutes (index 2)
             selected_duration_value: crate::engine::SessionDuration::FiveMinutes,
             keyboard_visible: true, // Default visible
-            keyboard_layout: match layout_variant {
+            keyboard_layout: match config.layout_variant {
                 LayoutVariant::Mac => AzertyLayout::new_mac(),
                 LayoutVariant::Pc => AzertyLayout::new(),
             },
             keyboard_config: KeyboardConfig::default(),
+            layout_variant: config.layout_variant,
             selected_category: 0,
             categories,
             current_category: None,
