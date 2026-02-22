@@ -66,6 +66,32 @@ impl Storage {
         Ok(())
     }
 
+    pub fn load_config(&self) -> io::Result<crate::data::Config> {
+        let config_path = self.config_path();
+        if !config_path.exists() {
+            return Ok(crate::data::Config::default());
+        }
+        let content = fs::read_to_string(&config_path)?;
+        serde_json::from_str(&content).map_err(|e| {
+            io::Error::new(io::ErrorKind::InvalidData, format!("Failed to parse config: {}", e))
+        })
+    }
+
+    pub fn save_config(&self, config: &crate::data::Config) -> io::Result<()> {
+        let content = serde_json::to_string_pretty(config).map_err(|e| {
+            io::Error::new(io::ErrorKind::InvalidData, format!("Failed to serialize config: {}", e))
+        })?;
+        fs::write(self.config_path(), content)?;
+        Ok(())
+    }
+
+    fn config_path(&self) -> std::path::PathBuf {
+        self.file_path
+            .parent()
+            .expect("stats path always has a parent dir")
+            .join("config.json")
+    }
+
     /// Public API: Path accessor for debugging, data export/migration, and future admin features
     pub fn get_path(&self) -> &PathBuf {
         &self.file_path
@@ -121,5 +147,23 @@ mod tests {
         // Charger
         let loaded_stats = storage.load().unwrap();
         assert_eq!(loaded_stats.session_count(), 1);
+    }
+
+    #[test]
+    fn test_load_config_defaults_when_missing() {
+        let (storage, _temp_dir) = create_test_storage();
+        let config = storage.load_config().unwrap();
+        assert_eq!(config.layout_variant, crate::keyboard::LayoutVariant::Mac);
+    }
+
+    #[test]
+    fn test_save_and_load_config() {
+        let (storage, _temp_dir) = create_test_storage();
+        let config = crate::data::Config {
+            layout_variant: crate::keyboard::LayoutVariant::Pc,
+        };
+        storage.save_config(&config).unwrap();
+        let loaded = storage.load_config().unwrap();
+        assert_eq!(loaded.layout_variant, crate::keyboard::LayoutVariant::Pc);
     }
 }
