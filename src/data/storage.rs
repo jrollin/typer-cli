@@ -77,7 +77,6 @@ impl Storage {
         })
     }
 
-    #[allow(dead_code)]
     pub fn save_config(&self, config: &crate::data::Config) -> io::Result<()> {
         let content = serde_json::to_string_pretty(config).map_err(|e| {
             io::Error::new(io::ErrorKind::InvalidData, format!("Failed to serialize config: {}", e))
