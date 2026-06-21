@@ -1,7 +1,7 @@
 /// Content generator for trigram training lessons
 use super::bigram::Language;
+use super::ngram_generator::{generate_drill_mode, generate_mixed_mode, generate_word_mode};
 use super::trigram::{english_trigrams, french_trigrams, Trigram};
-use rand::Rng;
 
 pub struct TrigramGenerator {
     trigrams: Vec<Trigram>,
@@ -26,9 +26,9 @@ impl TrigramGenerator {
         let selected_trigrams = self.select_trigrams_for_level(level);
 
         match level {
-            1 => self.generate_drill_mode(&selected_trigrams, length),
-            2 => self.generate_word_mode(&selected_trigrams, length),
-            3 | 4 => self.generate_mixed_mode(&selected_trigrams, length),
+            1 => generate_drill_mode(&selected_trigrams, length),
+            2 => generate_word_mode(&selected_trigrams, length),
+            3 | 4 => generate_mixed_mode(&selected_trigrams, length),
             _ => String::new(),
         }
     }
@@ -44,85 +44,6 @@ impl TrigramGenerator {
         };
 
         self.trigrams.iter().take(count).collect()
-    }
-
-    /// Level 1: Pure trigram repetition
-    /// Example: "the the the and and and"
-    fn generate_drill_mode(&self, trigrams: &[&Trigram], length: usize) -> String {
-        let mut result = String::new();
-        let mut rng = rand::thread_rng();
-        let mut idx = 0;
-
-        while result.chars().count() < length {
-            if !result.is_empty() {
-                let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
-                result.push(separator);
-            }
-
-            let trigram = trigrams[idx % trigrams.len()];
-            // Repeat the trigram 3 times
-            result.push_str(&format!(
-                "{} {} {}",
-                trigram.pattern, trigram.pattern, trigram.pattern
-            ));
-
-            idx += 1;
-        }
-
-        result.chars().take(length).collect()
-    }
-
-    /// Level 2: Trigrams in word context
-    /// Example: "the them then and hand stand"
-    fn generate_word_mode(&self, trigrams: &[&Trigram], length: usize) -> String {
-        let mut result = String::new();
-        let mut rng = rand::thread_rng();
-        let mut trigram_idx = 0;
-
-        while result.chars().count() < length {
-            if !result.is_empty() {
-                let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
-                result.push(separator);
-            }
-
-            let trigram = trigrams[trigram_idx % trigrams.len()];
-
-            // Cycle through examples for this trigram
-            let example_idx = (trigram_idx / trigrams.len()) % trigram.examples.len();
-            let word = &trigram.examples[example_idx];
-
-            result.push_str(word);
-            trigram_idx += 1;
-        }
-
-        result.chars().take(length).collect()
-    }
-
-    /// Level 3-4: Realistic sentences with target trigrams
-    /// Combines examples into natural-looking phrases
-    fn generate_mixed_mode(&self, trigrams: &[&Trigram], length: usize) -> String {
-        let mut result = String::new();
-        let mut rng = rand::thread_rng();
-        let mut word_count = 0;
-
-        while result.chars().count() < length {
-            if word_count > 0 {
-                let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
-                result.push(separator);
-            }
-
-            // Pick a trigram
-            let trigram = trigrams[word_count % trigrams.len()];
-
-            // Pick an example
-            let example_idx = (word_count / trigrams.len()) % trigram.examples.len();
-            let word = &trigram.examples[example_idx];
-
-            result.push_str(word);
-            word_count += 1;
-        }
-
-        result.chars().take(length).collect()
     }
 }
 

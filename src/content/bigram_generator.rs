@@ -1,6 +1,6 @@
 /// Content generator for bigram training lessons
 use super::bigram::{code_bigrams, english_bigrams, french_bigrams, Bigram, BigramType, Language};
-use rand::Rng;
+use super::ngram_generator::{generate_drill_mode, generate_mixed_mode, generate_word_mode};
 
 pub struct BigramGenerator {
     bigrams: Vec<Bigram>,
@@ -29,9 +29,9 @@ impl BigramGenerator {
         let selected_bigrams = self.select_bigrams_for_level(level);
 
         match level {
-            1 => self.generate_drill_mode(&selected_bigrams, length),
-            2 => self.generate_word_mode(&selected_bigrams, length),
-            3 | 4 => self.generate_mixed_mode(&selected_bigrams, length),
+            1 => generate_drill_mode(&selected_bigrams, length),
+            2 => generate_word_mode(&selected_bigrams, length),
+            3 | 4 => generate_mixed_mode(&selected_bigrams, length),
             _ => String::new(),
         }
     }
@@ -47,85 +47,6 @@ impl BigramGenerator {
         };
 
         self.bigrams.iter().take(count).collect()
-    }
-
-    /// Level 1: Pure bigram repetition
-    /// Example: "qu qu qu ou ou ou en en en"
-    fn generate_drill_mode(&self, bigrams: &[&Bigram], length: usize) -> String {
-        let mut result = String::new();
-        let mut rng = rand::thread_rng();
-        let mut idx = 0;
-
-        while result.chars().count() < length {
-            if !result.is_empty() {
-                let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
-                result.push(separator);
-            }
-
-            let bigram = bigrams[idx % bigrams.len()];
-            // Repeat the bigram 3 times
-            result.push_str(&format!(
-                "{} {} {}",
-                bigram.pattern, bigram.pattern, bigram.pattern
-            ));
-
-            idx += 1;
-        }
-
-        result.chars().take(length).collect()
-    }
-
-    /// Level 2: Bigrams in word context
-    /// Example: "que qui quoi pour vous nous"
-    fn generate_word_mode(&self, bigrams: &[&Bigram], length: usize) -> String {
-        let mut result = String::new();
-        let mut rng = rand::thread_rng();
-        let mut bigram_idx = 0;
-
-        while result.chars().count() < length {
-            if !result.is_empty() {
-                let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
-                result.push(separator);
-            }
-
-            let bigram = bigrams[bigram_idx % bigrams.len()];
-
-            // Cycle through examples for this bigram
-            let example_idx = (bigram_idx / bigrams.len()) % bigram.examples.len();
-            let word = &bigram.examples[example_idx];
-
-            result.push_str(word);
-            bigram_idx += 1;
-        }
-
-        result.chars().take(length).collect()
-    }
-
-    /// Level 3: Realistic sentences with target bigrams
-    /// Combines examples into natural-looking phrases
-    fn generate_mixed_mode(&self, bigrams: &[&Bigram], length: usize) -> String {
-        let mut result = String::new();
-        let mut rng = rand::thread_rng();
-        let mut word_count = 0;
-
-        while result.chars().count() < length {
-            if word_count > 0 {
-                let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
-                result.push(separator);
-            }
-
-            // Pick a bigram
-            let bigram = bigrams[word_count % bigrams.len()];
-
-            // Pick an example
-            let example_idx = (word_count / bigrams.len()) % bigram.examples.len();
-            let word = &bigram.examples[example_idx];
-
-            result.push_str(word);
-            word_count += 1;
-        }
-
-        result.chars().take(length).collect()
     }
 }
 
