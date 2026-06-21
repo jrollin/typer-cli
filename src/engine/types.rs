@@ -330,6 +330,32 @@ mod tests {
     }
 
     #[test]
+    fn test_typing_session_accented_content() {
+        // AZERTY/French content is multibyte; indexing and completion must be char-based.
+        let mut session = TypingSession::new("déjà".to_string(), Duration::from_secs(60));
+        assert_eq!(session.content_buffer_size, 4); // 4 chars, not 6 bytes
+
+        assert!(session.add_input('d'));
+        assert!(session.add_input('é')); // multibyte, compared as a single char
+        assert!(session.add_input('j'));
+        assert!(!session.is_complete());
+        assert!(session.add_input('à'));
+        assert!(session.is_complete());
+        assert_eq!(session.current_index, 4);
+    }
+
+    #[test]
+    fn test_typing_session_accented_mismatch() {
+        let mut session = TypingSession::new("café".to_string(), Duration::from_secs(60));
+        session.add_input('c');
+        session.add_input('a');
+        session.add_input('f');
+        assert!(!session.add_input('e')); // expected 'é', typed 'e' -> incorrect
+        assert!(!session.inputs[3].is_correct);
+        assert_eq!(session.inputs[3].expected, 'é');
+    }
+
+    #[test]
     fn test_typing_session_backspace_after_completion() {
         let mut session = TypingSession::new("ab".to_string(), Duration::from_secs(60));
 

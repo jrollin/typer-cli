@@ -167,11 +167,26 @@ mod tests {
         // Get keys slower than 75th percentile (top 25% slowest)
         let slow_keys = WeaknessDetector::identify_slow_keys(&analytics, 0.75);
 
-        // The slowest keys (f, g) should be identified
-        // With 7 keys, 75th percentile index = 5 (0-based), value = 300
-        // Keys > 300 should be returned: 'g' (350)
-        assert!(!slow_keys.is_empty());
-        assert!(slow_keys.contains(&'g'));
+        // With 7 keys, threshold_idx = (7 * 0.75) = 5, value = 300.
+        // Strict `>` means only keys slower than 300 are returned: exactly {'g'} (350).
+        // 'f' (300) sits at the boundary and is excluded.
+        assert_eq!(slow_keys, vec!['g']);
+    }
+
+    #[test]
+    fn test_identify_slow_keys_excludes_boundary_ties() {
+        let mut analytics = AdaptiveAnalytics::default();
+        // Two keys share the threshold value; neither is strictly slower than it.
+        for (key, time_ms) in [('a', 100), ('b', 200), ('c', 200), ('d', 200)] {
+            let mut stats = KeyStats::new(key);
+            stats.correct_attempts = 10;
+            stats.total_time_ms = time_ms;
+            analytics.key_stats.insert(key, stats);
+        }
+
+        // threshold_idx = (4 * 0.5) = 2, value = 200; nothing is > 200.
+        let slow_keys = WeaknessDetector::identify_slow_keys(&analytics, 0.5);
+        assert!(slow_keys.is_empty());
     }
 
     #[test]

@@ -383,6 +383,41 @@ mod tests {
     }
 
     #[test]
+    fn test_session_analyzer_accented_bigram() {
+        use std::time::Instant;
+
+        // "ré" -> per-key 'r' and 'é' plus the bigram "ré".
+        let session = TypingSession {
+            content: "ré".to_string(),
+            current_index: 2,
+            duration_limit: Duration::from_secs(300),
+            content_buffer_size: 2,
+            inputs: vec![
+                CharInput {
+                    expected: 'r',
+                    typed: 'r',
+                    timestamp: Duration::from_millis(100),
+                    is_correct: true,
+                },
+                CharInput {
+                    expected: 'é',
+                    typed: 'é',
+                    timestamp: Duration::from_millis(250),
+                    is_correct: true,
+                },
+            ],
+            start_time: Some(Instant::now()),
+            end_time: Some(Instant::now()),
+        };
+
+        let analysis = SessionAnalyzer::new().analyze_session(&session);
+
+        assert_eq!(analysis.key_performance[&'é'].total_attempts, 1);
+        assert_eq!(analysis.key_performance[&'é'].correct_attempts, 1);
+        assert!(analysis.bigram_performance.contains_key("ré"));
+    }
+
+    #[test]
     fn test_per_key_timings_are_intervals_not_absolute_timestamps() {
         use std::time::Instant;
 
