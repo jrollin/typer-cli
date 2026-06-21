@@ -412,8 +412,8 @@ impl App {
                         }
                     }
                     KeyCode::Down | KeyCode::Char('j') => {
-                        if self.selected_lesson < filtered_count - 1 {
-                            self.selected_lesson += 1;
+                        if let Some(next) = next_menu_index(self.selected_lesson, filtered_count) {
+                            self.selected_lesson = next;
                             // Scroll down if selection goes below viewport (using conservative estimate of 20)
                             let viewport_height = 20;
                             if self.selected_lesson >= self.lesson_scroll_offset + viewport_height {
@@ -600,16 +600,20 @@ impl App {
     /// Get lessons filtered by current category
     fn filtered_lessons(&self) -> Vec<&Lesson> {
         if let Some(category_type) = self.current_category {
-            let category = self
+            // A state desync (category not in the list) degrades to an empty menu
+            // rather than panicking mid-session.
+            match self
                 .categories
                 .iter()
                 .find(|c| c.category_type == category_type)
-                .expect("Current category must exist");
-
-            self.lessons
-                .iter()
-                .filter(|lesson| category.contains_lesson(lesson))
-                .collect()
+            {
+                Some(category) => self
+                    .lessons
+                    .iter()
+                    .filter(|lesson| category.contains_lesson(lesson))
+                    .collect(),
+                None => Vec::new(),
+            }
         } else {
             Vec::new()
         }
@@ -659,11 +663,43 @@ impl App {
     }
 }
 
+/// Next menu selection when navigating down, or None at the end / when the list is empty.
+/// Returning Option avoids underflowing `count` for an empty category (e.g. Custom with no files).
+fn next_menu_index(current: usize, count: usize) -> Option<usize> {
+    if current + 1 < count {
+        Some(current + 1)
+    } else {
+        None
+    }
+}
+
 /// Check if adaptive mode should be shown in the menu
 fn should_show_adaptive_mode(stats: &Stats) -> bool {
     if let Some(analytics) = &stats.adaptive_analytics {
         analytics.total_sessions >= 10 && analytics.total_keystrokes >= 100
     } else {
         false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn next_menu_index_empty_list_stays_put() {
+        // Regression: pressing Down in an empty Custom lesson menu must not underflow.
+        assert_eq!(next_menu_index(0, 0), None);
+    }
+
+    #[test]
+    fn next_menu_index_advances_within_bounds() {
+        assert_eq!(next_menu_index(0, 3), Some(1));
+        assert_eq!(next_menu_index(1, 3), Some(2));
+    }
+
+    #[test]
+    fn next_menu_index_stops_at_last_item() {
+        assert_eq!(next_menu_index(2, 3), None);
     }
 }
