@@ -146,7 +146,14 @@ fn scan_directory(dir: &Path) -> Vec<Lesson> {
     // Read directory entries
     let entries = match fs::read_dir(dir) {
         Ok(entries) => entries,
-        Err(_) => return Vec::new(),
+        Err(e) => {
+            eprintln!(
+                "Warning: cannot read custom lesson directory {}: {}",
+                dir.display(),
+                e
+            );
+            return Vec::new();
+        }
     };
 
     for entry in entries.flatten() {
@@ -341,6 +348,46 @@ mod tests {
 
         let result = parse_markdown_file(&temp_file).unwrap();
         assert_eq!(result.content, "Line 1\n  Indented line\nLine 3");
+
+        fs::remove_file(temp_file).unwrap();
+    }
+
+    #[test]
+    fn test_parse_missing_closing_delimiter_falls_back_to_body() {
+        // No closing `---`: by design the whole file is treated as body content.
+        let content = "---\ntitle: Test\nstill front matter, no close";
+        let temp_file = std::env::temp_dir().join("test_no_close.md");
+        fs::write(&temp_file, content).unwrap();
+
+        let result = parse_markdown_file(&temp_file).unwrap();
+        assert_eq!(result.metadata.title, None); // not parsed as front matter
+        assert_eq!(result.content, content.trim());
+
+        fs::remove_file(temp_file).unwrap();
+    }
+
+    #[test]
+    fn test_parse_crlf_front_matter() {
+        // str::lines() strips the trailing \r, so CRLF front matter parses correctly.
+        let content = "---\r\ntitle: Test\r\n---\r\n\r\nContent here";
+        let temp_file = std::env::temp_dir().join("test_crlf.md");
+        fs::write(&temp_file, content).unwrap();
+
+        let result = parse_markdown_file(&temp_file).unwrap();
+        assert_eq!(result.metadata.title, Some("Test".to_string()));
+        assert_eq!(result.content, "Content here");
+
+        fs::remove_file(temp_file).unwrap();
+    }
+
+    #[test]
+    fn test_parse_file_too_large_rejected() {
+        let big = "a".repeat(MAX_FILE_SIZE + 1);
+        let temp_file = std::env::temp_dir().join("test_too_large.md");
+        fs::write(&temp_file, &big).unwrap();
+
+        let result = parse_markdown_file(&temp_file);
+        assert!(matches!(result, Err(ParseError::FileTooLarge(_))));
 
         fs::remove_file(temp_file).unwrap();
     }

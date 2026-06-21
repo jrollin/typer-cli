@@ -69,6 +69,10 @@ impl CharInput {
 #[derive(Debug)]
 pub struct TypingSession {
     pub content: String,
+    /// Parallel char view of `content` for O(1) indexing on the per-keystroke and
+    /// per-frame hot paths (content can grow long via append_content). Kept in sync
+    /// with `content` by new() and append_content().
+    pub chars: Vec<char>,
     pub current_index: usize,
     pub inputs: Vec<CharInput>,
     pub start_time: Option<Instant>,
@@ -79,9 +83,11 @@ pub struct TypingSession {
 
 impl TypingSession {
     pub fn new(content: String, duration: Duration) -> Self {
-        let buffer_size = content.chars().count();
+        let chars: Vec<char> = content.chars().collect();
+        let buffer_size = chars.len();
         Self {
             content,
+            chars,
             current_index: 0,
             inputs: Vec::new(),
             start_time: None,
@@ -89,6 +95,11 @@ impl TypingSession {
             duration_limit: duration,
             content_buffer_size: buffer_size,
         }
+    }
+
+    /// Expected character at a content index, or None past the end. O(1).
+    pub fn char_at(&self, index: usize) -> Option<char> {
+        self.chars.get(index).copied()
     }
 
     /// Explicit session start method used in tests
@@ -109,7 +120,7 @@ impl TypingSession {
             return false;
         }
 
-        let expected = self.content.chars().nth(self.current_index).unwrap_or('\0');
+        let expected = self.char_at(self.current_index).unwrap_or('\0');
         let elapsed = self
             .start_time
             .map(|start| start.elapsed())
@@ -147,8 +158,9 @@ impl TypingSession {
             }
         }
 
-        // Fallback: content-based completion
-        self.current_index >= self.content.chars().count()
+        // Fallback: content-based completion. chars.len() is the cached char count,
+        // kept in sync by new()/append_content(), so this avoids an O(n) rescan per keystroke.
+        self.current_index >= self.chars.len()
     }
 
     pub fn duration(&self) -> Duration {
@@ -182,7 +194,9 @@ impl TypingSession {
     pub fn append_content(&mut self, new_content: String) {
         self.content.push(' ');
         self.content.push_str(&new_content);
-        self.content_buffer_size = self.content.chars().count();
+        self.chars.push(' ');
+        self.chars.extend(new_content.chars());
+        self.content_buffer_size = self.chars.len();
     }
 }
 
@@ -326,6 +340,32 @@ mod tests {
         assert!(!session.remove_last_input());
         assert_eq!(session.current_index, 0);
         assert_eq!(session.inputs.len(), 0);
+    }
+
+    #[test]
+    fn test_typing_session_accented_content() {
+        // AZERTY/French content is multibyte; indexing and completion must be char-based.
+        let mut session = TypingSession::new("déjà".to_string(), Duration::from_secs(60));
+        assert_eq!(session.content_buffer_size, 4); // 4 chars, not 6 bytes
+
+        assert!(session.add_input('d'));
+        assert!(session.add_input('é')); // multibyte, compared as a single char
+        assert!(session.add_input('j'));
+        assert!(!session.is_complete());
+        assert!(session.add_input('à'));
+        assert!(session.is_complete());
+        assert_eq!(session.current_index, 4);
+    }
+
+    #[test]
+    fn test_typing_session_accented_mismatch() {
+        let mut session = TypingSession::new("café".to_string(), Duration::from_secs(60));
+        session.add_input('c');
+        session.add_input('a');
+        session.add_input('f');
+        assert!(!session.add_input('e')); // expected 'é', typed 'e' -> incorrect
+        assert!(!session.inputs[3].is_correct);
+        assert_eq!(session.inputs[3].expected, 'é');
     }
 
     #[test]

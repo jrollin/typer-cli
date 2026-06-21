@@ -205,6 +205,17 @@ impl SessionAnalyzer {
             let expected = input.expected;
             let typed = input.typed;
 
+            // timestamp is cumulative elapsed time since session start, so per-keystroke
+            // latency is the delta from the previous input (or from start for the first key).
+            let prev_timestamp = i
+                .checked_sub(1)
+                .map(|p| session.inputs[p].timestamp)
+                .unwrap_or_default();
+            let keystroke_time = input
+                .timestamp
+                .checked_sub(prev_timestamp)
+                .unwrap_or_default();
+
             // Update per-key statistics
             let perf = key_performance.entry(expected).or_default();
 
@@ -212,7 +223,7 @@ impl SessionAnalyzer {
 
             if input.is_correct {
                 perf.correct_attempts += 1;
-                perf.timings.push(input.timestamp);
+                perf.timings.push(keystroke_time);
             } else {
                 perf.errors.push(typed);
             }
@@ -229,14 +240,8 @@ impl SessionAnalyzer {
                     bigram_perf.total_attempts += 1;
                     bigram_perf.correct_attempts += 1;
 
-                    // Bigram timing is the difference between the two keystrokes
-                    if let Some(prev_time) =
-                        prev_input.timestamp.checked_sub(Duration::from_secs(0))
-                    {
-                        if let Some(time_diff) = input.timestamp.checked_sub(prev_time) {
-                            bigram_perf.timings.push(time_diff);
-                        }
-                    }
+                    // Bigram timing is the interval between the two keystrokes.
+                    bigram_perf.timings.push(keystroke_time);
                 }
             }
         }
@@ -333,6 +338,7 @@ mod tests {
 
         let session = TypingSession {
             content: "test".to_string(),
+            chars: "test".chars().collect(),
             current_index: 4,
             duration_limit: Duration::from_secs(300),
             content_buffer_size: 4,
@@ -375,5 +381,94 @@ mod tests {
         assert_eq!(analysis.key_performance[&'t'].correct_attempts, 2);
         assert_eq!(analysis.key_performance[&'e'].total_attempts, 1);
         assert_eq!(analysis.key_performance[&'s'].total_attempts, 1);
+    }
+
+    #[test]
+    fn test_session_analyzer_accented_bigram() {
+        use std::time::Instant;
+
+        // "ré" -> per-key 'r' and 'é' plus the bigram "ré".
+        let session = TypingSession {
+            content: "ré".to_string(),
+            chars: "ré".chars().collect(),
+            current_index: 2,
+            duration_limit: Duration::from_secs(300),
+            content_buffer_size: 2,
+            inputs: vec![
+                CharInput {
+                    expected: 'r',
+                    typed: 'r',
+                    timestamp: Duration::from_millis(100),
+                    is_correct: true,
+                },
+                CharInput {
+                    expected: 'é',
+                    typed: 'é',
+                    timestamp: Duration::from_millis(250),
+                    is_correct: true,
+                },
+            ],
+            start_time: Some(Instant::now()),
+            end_time: Some(Instant::now()),
+        };
+
+        let analysis = SessionAnalyzer::new().analyze_session(&session);
+
+        assert_eq!(analysis.key_performance[&'é'].total_attempts, 1);
+        assert_eq!(analysis.key_performance[&'é'].correct_attempts, 1);
+        assert!(analysis.bigram_performance.contains_key("ré"));
+    }
+
+    #[test]
+    fn test_per_key_timings_are_intervals_not_absolute_timestamps() {
+        use std::time::Instant;
+
+        // Cumulative timestamps 100/250/400ms -> per-key intervals 100/150/150ms.
+        let session = TypingSession {
+            content: "abc".to_string(),
+            chars: "abc".chars().collect(),
+            current_index: 3,
+            duration_limit: Duration::from_secs(300),
+            content_buffer_size: 3,
+            inputs: vec![
+                CharInput {
+                    expected: 'a',
+                    typed: 'a',
+                    timestamp: Duration::from_millis(100),
+                    is_correct: true,
+                },
+                CharInput {
+                    expected: 'b',
+                    typed: 'b',
+                    timestamp: Duration::from_millis(250),
+                    is_correct: true,
+                },
+                CharInput {
+                    expected: 'c',
+                    typed: 'c',
+                    timestamp: Duration::from_millis(400),
+                    is_correct: true,
+                },
+            ],
+            start_time: Some(Instant::now()),
+            end_time: Some(Instant::now()),
+        };
+
+        let analysis = SessionAnalyzer::new().analyze_session(&session);
+
+        // First key: delta from session start. Later keys: delta from the previous key,
+        // NOT the absolute elapsed timestamp.
+        assert_eq!(
+            analysis.key_performance[&'a'].timings,
+            vec![Duration::from_millis(100)]
+        );
+        assert_eq!(
+            analysis.key_performance[&'b'].timings,
+            vec![Duration::from_millis(150)]
+        );
+        assert_eq!(
+            analysis.key_performance[&'c'].timings,
+            vec![Duration::from_millis(150)]
+        );
     }
 }

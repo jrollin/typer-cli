@@ -10,6 +10,7 @@ pub mod custom;
 pub mod finger_generator;
 pub mod generator;
 pub mod lesson;
+pub mod ngram_generator;
 pub mod trigram;
 pub mod trigram_generator;
 

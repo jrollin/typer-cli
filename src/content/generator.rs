@@ -183,11 +183,11 @@ mod tests {
         // Test Level 1 lesson
         let content = lessons[0].generate(50);
         assert!(!content.is_empty());
-        assert!(content.len() <= 50);
+        assert!(content.chars().count() <= 50);
 
         // Test Level 4 lesson
         let content_l4 = lessons[6].generate(100);
         assert!(!content_l4.is_empty());
-        assert!(content_l4.len() <= 100);
+        assert!(content_l4.chars().count() <= 100);
     }
 }
