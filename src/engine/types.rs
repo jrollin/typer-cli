@@ -69,6 +69,10 @@ impl CharInput {
 #[derive(Debug)]
 pub struct TypingSession {
     pub content: String,
+    /// Parallel char view of `content` for O(1) indexing on the per-keystroke and
+    /// per-frame hot paths (content can grow long via append_content). Kept in sync
+    /// with `content` by new() and append_content().
+    pub chars: Vec<char>,
     pub current_index: usize,
     pub inputs: Vec<CharInput>,
     pub start_time: Option<Instant>,
@@ -79,9 +83,11 @@ pub struct TypingSession {
 
 impl TypingSession {
     pub fn new(content: String, duration: Duration) -> Self {
-        let buffer_size = content.chars().count();
+        let chars: Vec<char> = content.chars().collect();
+        let buffer_size = chars.len();
         Self {
             content,
+            chars,
             current_index: 0,
             inputs: Vec::new(),
             start_time: None,
@@ -89,6 +95,11 @@ impl TypingSession {
             duration_limit: duration,
             content_buffer_size: buffer_size,
         }
+    }
+
+    /// Expected character at a content index, or None past the end. O(1).
+    pub fn char_at(&self, index: usize) -> Option<char> {
+        self.chars.get(index).copied()
     }
 
     /// Explicit session start method used in tests
@@ -109,7 +120,7 @@ impl TypingSession {
             return false;
         }
 
-        let expected = self.content.chars().nth(self.current_index).unwrap_or('\0');
+        let expected = self.char_at(self.current_index).unwrap_or('\0');
         let elapsed = self
             .start_time
             .map(|start| start.elapsed())
@@ -147,9 +158,9 @@ impl TypingSession {
             }
         }
 
-        // Fallback: content-based completion. content_buffer_size is the cached char count,
+        // Fallback: content-based completion. chars.len() is the cached char count,
         // kept in sync by new()/append_content(), so this avoids an O(n) rescan per keystroke.
-        self.current_index >= self.content_buffer_size
+        self.current_index >= self.chars.len()
     }
 
     pub fn duration(&self) -> Duration {
@@ -183,7 +194,9 @@ impl TypingSession {
     pub fn append_content(&mut self, new_content: String) {
         self.content.push(' ');
         self.content.push_str(&new_content);
-        self.content_buffer_size = self.content.chars().count();
+        self.chars.push(' ');
+        self.chars.extend(new_content.chars());
+        self.content_buffer_size = self.chars.len();
     }
 }
 

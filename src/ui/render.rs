@@ -176,9 +176,9 @@ fn create_styled_expected_text(
 
         // Add newline icon at the end of each line (except the very last line in content)
         let newline_index = line_start_index + line.chars().count();
-        if newline_index < session.content.chars().count() {
+        if newline_index < session.content_buffer_size {
             // Determine if this position represents a newline in the original content
-            if session.content.chars().nth(newline_index) == Some('\n') {
+            if session.char_at(newline_index) == Some('\n') {
                 let style = if newline_index < session.current_index {
                     // Already typed - check if correct or incorrect
                     if newline_index < session.inputs.len() {
@@ -298,7 +298,7 @@ pub fn render(
 
     // Keyboard (follows content with margin)
     if keyboard_visible {
-        let next_char = session.content.chars().nth(session.current_index);
+        let next_char = session.char_at(session.current_index);
 
         if terminal_height < 20 {
             render_keyboard_compact(f, chunks[chunk_idx], keyboard_layout, next_char);

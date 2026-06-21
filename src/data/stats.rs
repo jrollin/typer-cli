@@ -244,6 +244,7 @@ mod tests {
         // One correct 'a' then a mistyped 'b' (typed 'x').
         let build_session = || TypingSession {
             content: "ab".to_string(),
+            chars: "ab".chars().collect(),
             current_index: 2,
             duration_limit: Duration::from_secs(300),
             content_buffer_size: 2,

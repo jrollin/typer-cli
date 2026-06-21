@@ -338,6 +338,7 @@ mod tests {
 
         let session = TypingSession {
             content: "test".to_string(),
+            chars: "test".chars().collect(),
             current_index: 4,
             duration_limit: Duration::from_secs(300),
             content_buffer_size: 4,
@@ -389,6 +390,7 @@ mod tests {
         // "ré" -> per-key 'r' and 'é' plus the bigram "ré".
         let session = TypingSession {
             content: "ré".to_string(),
+            chars: "ré".chars().collect(),
             current_index: 2,
             duration_limit: Duration::from_secs(300),
             content_buffer_size: 2,
@@ -424,6 +426,7 @@ mod tests {
         // Cumulative timestamps 100/250/400ms -> per-key intervals 100/150/150ms.
         let session = TypingSession {
             content: "abc".to_string(),
+            chars: "abc".chars().collect(),
             current_index: 3,
             duration_limit: Duration::from_secs(300),
             content_buffer_size: 3,
