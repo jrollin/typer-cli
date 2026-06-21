@@ -25,7 +25,7 @@ Quick reference for AI assistants working on this project.
 
 ## Dead Code Annotations
 
-The codebase contains **29 intentional `#[allow(dead_code)]` annotations** marking Phase 3+ features that are:
+The codebase contains **22 intentional `#[allow(dead_code)]` annotations** marking Phase 3+ features that are:
 - Fully tested and ready for future implementation
 - Strategic placeholders for planned features (analytics, export, multi-layout support)
 - Preserved to avoid reimplementation work
@@ -38,10 +38,8 @@ These are NOT technical debt - they represent well-architected future functional
 - Frequency Data (4): Linguistic research data for weighted practice
 - Code Categorization (2): SymbolCategory for future UI filtering
 - Keyboard Abstraction (3): AzertyLayout for multi-layout support
-- UI Placeholders (3): CursorWindow fields for scrolling/pagination
 - Test Utilities (3): Reusable drill generation patterns
 - Adaptive Features (2): WeaknessDetector (fully tested, ready for UI)
-- Scoring Utilities (1): calculate_accuracy() reference implementation
 - Custom Lesson Validation (1): ParseError::InvalidFrontMatter for future strict YAML validation
 
 ## Project Overview
@@ -77,7 +75,7 @@ See [docs/README.md#features-overview](docs/README.md#features-overview) for det
 ```bash
 # Development
 cargo run              # Launch application
-cargo test             # Run test suite (145 tests)
+cargo test             # Run test suite (178 tests)
 cargo check            # Fast compilation check
 
 # Testing Adaptive Mode
@@ -99,7 +97,7 @@ git push origin main && git push origin v0.8.0       # Push to trigger automated
 ## CI/CD Workflows
 
 ### Continuous Integration
-Runs on every push to `main` and all PRs: formatting, linting, tests (145 passing), security audit.
+Runs on every push to `main` and all PRs: formatting, linting, tests (178 passing), security audit.
 
 ### Release Automation
 Triggers on git tag `v*.*.*`:
@@ -184,7 +182,7 @@ See [docs/features/session-storage/](docs/features/session-storage/) for complet
 
 **Phase**: 3.7 Complete (Custom Lessons)
 **Next**: Phase 3+ (Analytics visualization, data export, gamification)
-**Tests**: 145 passing
+**Tests**: 178 passing
 **Lessons**: 60 built-in + user custom lessons
 
 See [docs/README.md#project-status](docs/README.md#project-status) for complete roadmap.
