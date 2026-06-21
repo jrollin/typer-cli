@@ -65,7 +65,7 @@ This project uses feature-based documentation. See [docs/README.md](docs/README.
 | Visual Keyboard | `src/ui/keyboard.rs` | ✅ Phase 3.6 (with AltGr) |
 | Finger Training | `src/content/finger_generator.rs` | ✅ Phase 3.2 |
 | Two-Level Menu | `src/content/category.rs`, `app.rs` | ✅ Phase 3.3 |
-| Statistics Dashboard | `src/ui/render.rs` | ✅ Phase 3.5 |
+| Statistics Dashboard | `src/ui/render/statistics.rs` | ✅ Phase 3.5 |
 | Custom Lessons | `src/content/custom.rs` | ✅ Phase 3.7 |
 
 See [docs/README.md#features-overview](docs/README.md#features-overview) for detailed feature descriptions.
@@ -75,7 +75,7 @@ See [docs/README.md#features-overview](docs/README.md#features-overview) for det
 ```bash
 # Development
 cargo run              # Launch application
-cargo test             # Run test suite (178 tests)
+cargo test             # Run test suite (186 tests)
 cargo check            # Fast compilation check
 
 # Testing Adaptive Mode
@@ -97,7 +97,7 @@ git push origin main && git push origin v0.8.0       # Push to trigger automated
 ## CI/CD Workflows
 
 ### Continuous Integration
-Runs on every push to `main` and all PRs: formatting, linting, tests (178 passing), security audit.
+Runs on every push to `main` and all PRs: formatting, linting, tests (186 passing), security audit.
 
 ### Release Automation
 Triggers on git tag `v*.*.*`:
@@ -132,7 +132,8 @@ src/
 ├── main.rs          # Entry point
 ├── app.rs           # App state machine, two-level navigation, event loop
 ├── ui/              # TUI rendering
-│   ├── render.rs    # Category menu, lesson menu, layout rendering
+│   ├── render/      # Rendering split by screen (session, menu, results, statistics, analytics_screen)
+│   ├── analytics.rs # Pure chart/goal aggregation helpers
 │   └── keyboard.rs  # Visual keyboard display
 ├── engine/          # Session logic, scoring, analytics
 │   ├── analytics.rs # Per-key/bigram statistics tracking
@@ -147,6 +148,7 @@ src/
 │   ├── custom.rs              # User-provided markdown lessons
 │   ├── finger_generator.rs    # Finger-based drills
 │   ├── lesson.rs              # Lesson types, definitions
+│   ├── ngram_generator.rs     # Shared bigram/trigram drill logic (DrillItem trait)
 │   └── generator.rs           # Home row drills
 ├── data/            # Stats persistence (with adaptive analytics)
 └── keyboard/        # AZERTY layout and data model
@@ -182,7 +184,7 @@ See [docs/features/session-storage/](docs/features/session-storage/) for complet
 
 **Phase**: 3.7 Complete (Custom Lessons)
 **Next**: Phase 3+ (Analytics visualization, data export, gamification)
-**Tests**: 178 passing
+**Tests**: 186 passing
 **Lessons**: 60 built-in + user custom lessons
 
 See [docs/README.md#project-status](docs/README.md#project-status) for complete roadmap.
