@@ -222,8 +222,7 @@ impl App {
                     ui::render_analytics_export(f, &self.stats, self.export_message.as_deref());
                 }
                 AppState::LessonMenu => {
-                    let filtered_lessons: Vec<_> =
-                        self.filtered_lessons().into_iter().cloned().collect();
+                    let filtered_lessons = self.filtered_lessons();
 
                     let category_name = self.current_category.and_then(|ct| {
                         self.categories

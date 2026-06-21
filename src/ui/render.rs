@@ -491,7 +491,7 @@ fn render_lesson_item(index: usize, title: &str, selected: bool) -> ListItem<'st
 /// Rendu du menu de sélection de leçon
 pub fn render_menu(
     f: &mut Frame,
-    lessons: &[Lesson],
+    lessons: &[&Lesson],
     selected: usize,
     scroll_offset: usize,
     category_name: Option<&str>,
