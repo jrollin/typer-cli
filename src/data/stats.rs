@@ -236,6 +236,61 @@ mod tests {
     }
 
     #[test]
+    fn test_update_analytics_accumulates_across_sessions() {
+        use crate::engine::analytics::SessionAnalyzer;
+        use crate::engine::types::CharInput;
+        use std::time::Instant;
+
+        // One correct 'a' then a mistyped 'b' (typed 'x').
+        let build_session = || TypingSession {
+            content: "ab".to_string(),
+            current_index: 2,
+            duration_limit: Duration::from_secs(300),
+            content_buffer_size: 2,
+            inputs: vec![
+                CharInput {
+                    expected: 'a',
+                    typed: 'a',
+                    timestamp: Duration::from_millis(100),
+                    is_correct: true,
+                },
+                CharInput {
+                    expected: 'b',
+                    typed: 'x',
+                    timestamp: Duration::from_millis(250),
+                    is_correct: false,
+                },
+            ],
+            start_time: Some(Instant::now()),
+            end_time: Some(Instant::now()),
+        };
+
+        let analyzer = SessionAnalyzer::new();
+        let mut stats = Stats::new();
+
+        let s1 = build_session();
+        stats.update_analytics(&s1, analyzer.analyze_session(&s1));
+        let s2 = build_session();
+        stats.update_analytics(&s2, analyzer.analyze_session(&s2));
+
+        let analytics = stats.adaptive_analytics.as_ref().unwrap();
+
+        // Per-key totals must SUM across the two sessions, not overwrite.
+        let a = &analytics.key_stats[&'a'];
+        assert_eq!(a.total_attempts, 2);
+        assert_eq!(a.correct_attempts, 2);
+
+        let b = &analytics.key_stats[&'b'];
+        assert_eq!(b.total_attempts, 2);
+        assert_eq!(b.error_count, 2);
+        // mistype_map increments per occurrence.
+        assert_eq!(b.mistype_map[&'x'], 2);
+
+        assert_eq!(analytics.total_sessions, 2);
+        assert_eq!(analytics.total_keystrokes, 4);
+    }
+
+    #[test]
     fn test_session_record_serialization() {
         let record = SessionRecord::new(
             "HomeRow-1".to_string(),

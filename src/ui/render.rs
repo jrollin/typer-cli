@@ -17,15 +17,6 @@ use std::collections::HashMap;
 /// Structure for visible text window
 struct VisibleWindow {
     lines: Vec<String>,
-    /// Cursor line within visible window (always 0 for first line)
-    #[allow(dead_code)]
-    cursor_line: usize,
-    /// Cursor offset within the cursor line
-    #[allow(dead_code)]
-    cursor_offset: usize,
-    /// Which wrapped line number the window starts at in full content
-    #[allow(dead_code)]
-    window_start_line: usize,
     /// Cumulative character count at start of each visible line (for index translation)
     line_start_indices: Vec<usize>,
 }
@@ -42,7 +33,9 @@ fn wrap_text(content: &str, width: usize) -> Vec<String> {
         for word in raw_line.split_whitespace() {
             if current_line.is_empty() {
                 current_line = word.to_string();
-            } else if current_line.len() + 1 + word.len() <= width {
+            } else if current_line.chars().count() + 1 + word.chars().count() <= width {
+                // Count columns in chars, not bytes: accented French words (é, è...)
+                // are multibyte and would otherwise wrap too early.
                 current_line.push(' ');
                 current_line.push_str(word);
             } else {
@@ -95,7 +88,7 @@ fn extract_visible_window(session: &TypingSession, width: usize) -> VisibleWindo
     let lines = wrap_text(content, effective_width);
 
     // Find which line contains the cursor
-    let (cursor_line_idx, cursor_offset_in_line) = find_cursor_line(&lines, cursor_pos);
+    let (cursor_line_idx, _) = find_cursor_line(&lines, cursor_pos);
 
     // Extract 3 lines starting from cursor line
     let visible_lines: Vec<String> = lines
@@ -119,9 +112,6 @@ fn extract_visible_window(session: &TypingSession, width: usize) -> VisibleWindo
 
     VisibleWindow {
         lines: visible_lines,
-        cursor_line: 0, // Cursor is always on first visible line
-        cursor_offset: cursor_offset_in_line,
-        window_start_line: cursor_line_idx,
         line_start_indices,
     }
 }
@@ -484,6 +474,20 @@ fn render_instructions(f: &mut Frame, area: Rect) {
     f.render_widget(instructions_widget, area);
 }
 
+/// Build a styled menu list item for a lesson, highlighting the selected row.
+fn render_lesson_item(index: usize, title: &str, selected: bool) -> ListItem<'static> {
+    let style = if selected {
+        Style::default()
+            .fg(Color::Yellow)
+            .add_modifier(Modifier::BOLD)
+    } else {
+        Style::default().fg(Color::White)
+    };
+    let prefix = if selected { "▶ " } else { "  " };
+    let content = format!("{}{}. {}", prefix, index + 1, title);
+    ListItem::new(Line::from(Span::styled(content, style)))
+}
+
 /// Rendu du menu de sélection de leçon
 pub fn render_menu(
     f: &mut Frame,
@@ -572,19 +576,7 @@ pub fn render_menu(
                     ))));
                 }
 
-                // Add lesson item
-                let style = if i == selected {
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD)
-                } else {
-                    Style::default().fg(Color::White)
-                };
-
-                let prefix = if i == selected { "▶ " } else { "  " };
-                let content = format!("{}{}. {}", prefix, i + 1, lesson.title);
-
-                all_items.push(ListItem::new(Line::from(Span::styled(content, style))));
+                all_items.push(render_lesson_item(i, &lesson.title, i == selected));
             }
         }
         Some("Finger Training") => {
@@ -626,19 +618,7 @@ pub fn render_menu(
                     ))));
                 }
 
-                // Add lesson item
-                let style = if i == selected {
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD)
-                } else {
-                    Style::default().fg(Color::White)
-                };
-
-                let prefix = if i == selected { "▶ " } else { "  " };
-                let content = format!("{}{}. {}", prefix, i + 1, lesson.title);
-
-                all_items.push(ListItem::new(Line::from(Span::styled(content, style))));
+                all_items.push(render_lesson_item(i, &lesson.title, i == selected));
             }
         }
         Some("Code") => {
@@ -705,19 +685,7 @@ pub fn render_menu(
                     ))));
                 }
 
-                // Add lesson item
-                let style = if i == selected {
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD)
-                } else {
-                    Style::default().fg(Color::White)
-                };
-
-                let prefix = if i == selected { "▶ " } else { "  " };
-                let content = format!("{}{}. {}", prefix, i + 1, lesson.title);
-
-                all_items.push(ListItem::new(Line::from(Span::styled(content, style))));
+                all_items.push(render_lesson_item(i, &lesson.title, i == selected));
             }
         }
         Some("Custom") => {
@@ -782,36 +750,14 @@ pub fn render_menu(
             } else {
                 // Display custom lessons normally
                 for (i, lesson) in lessons.iter().enumerate() {
-                    let style = if i == selected {
-                        Style::default()
-                            .fg(Color::Yellow)
-                            .add_modifier(Modifier::BOLD)
-                    } else {
-                        Style::default().fg(Color::White)
-                    };
-
-                    let prefix = if i == selected { "▶ " } else { "  " };
-                    let content = format!("{}{}. {}", prefix, i + 1, lesson.title);
-
-                    all_items.push(ListItem::new(Line::from(Span::styled(content, style))));
+                    all_items.push(render_lesson_item(i, &lesson.title, i == selected));
                 }
             }
         }
         _ => {
             // Standard rendering for other categories (Key Training, Adaptive)
             for (i, lesson) in lessons.iter().enumerate() {
-                let style = if i == selected {
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD)
-                } else {
-                    Style::default().fg(Color::White)
-                };
-
-                let prefix = if i == selected { "▶ " } else { "  " };
-                let content = format!("{}{}. {}", prefix, i + 1, lesson.title);
-
-                all_items.push(ListItem::new(Line::from(Span::styled(content, style))));
+                all_items.push(render_lesson_item(i, &lesson.title, i == selected));
             }
         }
     }

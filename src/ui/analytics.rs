@@ -272,7 +272,8 @@ pub fn create_goal_progress_display(
 ) -> Vec<String> {
     // Create progress bar
     let bar_length = 20;
-    let filled = (progress_percent / 100.0 * bar_length as f64).round() as usize;
+    // Clamp so a >100% progress value can't overfill the bar or underflow the empty portion.
+    let filled = ((progress_percent / 100.0 * bar_length as f64).round() as usize).min(bar_length);
     let progress_bar = format!("{}{}", "█".repeat(filled), "░".repeat(bar_length - filled));
 
     let mut display = vec![
@@ -415,7 +416,7 @@ mod tests {
         assert_eq!(current_wpm, 45.0);
         assert_eq!(progress_percent, 90.0); // 45/50 * 100
         assert!(status.contains("Keep going"));
-        assert!(details.len() > 0);
+        assert!(!details.is_empty());
         assert!(details[0].contains("Today's Sessions: 1"));
     }
 
@@ -430,5 +431,12 @@ mod tests {
         assert!(display[2].contains("50 WPM"));
         assert!(display[3].contains("██████████████░░")); // 90% progress = 18 filled + 2 empty
         assert!(display[5].contains("Keep going!"));
+    }
+
+    #[test]
+    fn test_create_goal_progress_display_over_100_percent_does_not_panic() {
+        // Regression: progress > 100% must not overfill/underflow the progress bar.
+        let display = create_goal_progress_display(120.0, 50.0, 150.0, "Done!", &[]);
+        assert!(display[3].contains("████████████████████")); // fully filled, 20 blocks
     }
 }

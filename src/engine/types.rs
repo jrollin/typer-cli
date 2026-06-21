@@ -147,8 +147,9 @@ impl TypingSession {
             }
         }
 
-        // Fallback: content-based completion
-        self.current_index >= self.content.chars().count()
+        // Fallback: content-based completion. content_buffer_size is the cached char count,
+        // kept in sync by new()/append_content(), so this avoids an O(n) rescan per keystroke.
+        self.current_index >= self.content_buffer_size
     }
 
     pub fn duration(&self) -> Duration {

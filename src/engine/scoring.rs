@@ -5,11 +5,7 @@ use std::time::Duration;
 pub fn calculate_results(session: &TypingSession) -> SessionResult {
     let char_count = session.inputs.len();
     let error_count = session.inputs.iter().filter(|i| !i.is_correct).count();
-    let accuracy = if char_count > 0 {
-        ((char_count - error_count) as f64 / char_count as f64) * 100.0
-    } else {
-        0.0
-    };
+    let accuracy = calculate_accuracy(char_count - error_count, char_count);
 
     let duration = session.duration();
     let wpm = calculate_wpm(char_count, duration);
@@ -31,11 +27,7 @@ pub fn calculate_wpm(char_count: usize, duration: Duration) -> f64 {
     words / minutes
 }
 
-/// Calculer l'accuracy en pourcentage
-/// Public API: Canonical accuracy calculation utility tested in line 68-83
-/// Note: Main code uses inline calculation in calculate_results() but this function
-/// serves as the reference implementation and reusable utility
-#[allow(dead_code)]
+/// Calculer l'accuracy en pourcentage (correct / total * 100), 0 when total is 0.
 pub fn calculate_accuracy(correct: usize, total: usize) -> f64 {
     if total == 0 {
         return 0.0;

@@ -146,7 +146,14 @@ fn scan_directory(dir: &Path) -> Vec<Lesson> {
     // Read directory entries
     let entries = match fs::read_dir(dir) {
         Ok(entries) => entries,
-        Err(_) => return Vec::new(),
+        Err(e) => {
+            eprintln!(
+                "Warning: cannot read custom lesson directory {}: {}",
+                dir.display(),
+                e
+            );
+            return Vec::new();
+        }
     };
 
     for entry in entries.flatten() {
