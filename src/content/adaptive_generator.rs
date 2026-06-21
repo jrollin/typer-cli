@@ -53,7 +53,7 @@ impl<'a> AdaptiveLessonGenerator<'a> {
         let learning_threshold = beginner_threshold + MasteryLevel::Learning.practice_weight(); // 0.9
         let proficient_threshold = learning_threshold + MasteryLevel::Proficient.practice_weight(); // 1.0
 
-        while result.len() < length {
+        while result.chars().count() < length {
             if !result.is_empty() {
                 result.push(' ');
             }
@@ -200,7 +200,7 @@ mod tests {
         let content = generator.generate(100);
 
         assert!(!content.is_empty());
-        assert!(content.len() <= 100);
+        assert!(content.chars().count() <= 100);
     }
 
     #[test]
@@ -222,7 +222,7 @@ mod tests {
         let content = generator.generate(50);
 
         assert!(!content.is_empty());
-        assert!(content.len() <= 50);
+        assert!(content.chars().count() <= 50);
     }
 
     #[test]

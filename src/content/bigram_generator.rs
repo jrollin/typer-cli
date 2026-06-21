@@ -56,7 +56,7 @@ impl BigramGenerator {
         let mut rng = rand::thread_rng();
         let mut idx = 0;
 
-        while result.len() < length {
+        while result.chars().count() < length {
             if !result.is_empty() {
                 let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
                 result.push(separator);
@@ -82,7 +82,7 @@ impl BigramGenerator {
         let mut rng = rand::thread_rng();
         let mut bigram_idx = 0;
 
-        while result.len() < length {
+        while result.chars().count() < length {
             if !result.is_empty() {
                 let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
                 result.push(separator);
@@ -108,7 +108,7 @@ impl BigramGenerator {
         let mut rng = rand::thread_rng();
         let mut word_count = 0;
 
-        while result.len() < length {
+        while result.chars().count() < length {
             if word_count > 0 {
                 let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
                 result.push(separator);
@@ -139,7 +139,7 @@ mod tests {
         let content = gen.generate(1, 30);
 
         assert!(!content.is_empty());
-        assert!(content.len() <= 30);
+        assert!(content.chars().count() <= 30);
 
         // Should contain repeated bigrams
         assert!(content.contains("es es es") || content.contains("le le le"));
@@ -210,6 +210,23 @@ mod tests {
         // Level 2/3 should have real words
         assert!(level2.split_whitespace().any(|w| w.len() > 2));
         assert!(level3.split_whitespace().any(|w| w.len() > 2));
+    }
+
+    #[test]
+    fn test_accented_content_fills_requested_char_length() {
+        // Regression: French bigrams include multibyte chars (é, è, à...). A byte-based
+        // generation loop stops short of the requested CHAR length. Generated content must
+        // get close to the target measured in chars (within one trailing word).
+        let gen = BigramGenerator::new(BigramType::Natural, Some(Language::French));
+        let length = 80;
+        let content = gen.generate(2, length);
+
+        let char_count = content.chars().count();
+        assert!(char_count <= length);
+        assert!(
+            char_count >= length - 15,
+            "expected near {length} chars, got {char_count}: {content:?}"
+        );
     }
 
     #[test]

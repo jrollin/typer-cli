@@ -53,7 +53,7 @@ impl TrigramGenerator {
         let mut rng = rand::thread_rng();
         let mut idx = 0;
 
-        while result.len() < length {
+        while result.chars().count() < length {
             if !result.is_empty() {
                 let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
                 result.push(separator);
@@ -79,7 +79,7 @@ impl TrigramGenerator {
         let mut rng = rand::thread_rng();
         let mut trigram_idx = 0;
 
-        while result.len() < length {
+        while result.chars().count() < length {
             if !result.is_empty() {
                 let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
                 result.push(separator);
@@ -105,7 +105,7 @@ impl TrigramGenerator {
         let mut rng = rand::thread_rng();
         let mut word_count = 0;
 
-        while result.len() < length {
+        while result.chars().count() < length {
             if word_count > 0 {
                 let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
                 result.push(separator);
@@ -136,7 +136,7 @@ mod tests {
         let content = gen.generate(1, 30);
 
         assert!(!content.is_empty());
-        assert!(content.len() <= 30);
+        assert!(content.chars().count() <= 30);
 
         // Should contain repeated trigrams
         assert!(content.contains("les les les") || content.contains("des des des"));
@@ -148,7 +148,7 @@ mod tests {
         let content = gen.generate(2, 50);
 
         assert!(!content.is_empty());
-        assert!(content.len() <= 50);
+        assert!(content.chars().count() <= 50);
 
         // Should contain real words, not drill patterns
         assert!(
@@ -165,7 +165,7 @@ mod tests {
         let content = gen.generate(3, 60);
 
         assert!(!content.is_empty());
-        assert!(content.len() <= 60);
+        assert!(content.chars().count() <= 60);
 
         // Should contain multiple words
         let word_count = content.split_whitespace().count();

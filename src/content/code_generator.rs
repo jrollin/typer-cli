@@ -34,7 +34,7 @@ impl CodeSymbolGenerator {
         let mut result = String::new();
         let mut idx = 0;
 
-        while result.len() < length {
+        while result.chars().count() < length {
             if !result.is_empty() {
                 result.push('\n');
             }
@@ -58,7 +58,7 @@ mod tests {
         let content = gen.generate(1, 50);
 
         assert!(!content.is_empty());
-        assert!(content.len() <= 50);
+        assert!(content.chars().count() <= 50);
     }
 
     #[test]
@@ -67,7 +67,7 @@ mod tests {
         let content = gen.generate(1, 50);
 
         assert!(!content.is_empty());
-        assert!(content.len() <= 50);
+        assert!(content.chars().count() <= 50);
     }
 
     #[test]
@@ -76,7 +76,7 @@ mod tests {
         let content = gen.generate(1, 50);
 
         assert!(!content.is_empty());
-        assert!(content.len() <= 50);
+        assert!(content.chars().count() <= 50);
     }
 
     #[test]

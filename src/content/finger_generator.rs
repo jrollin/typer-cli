@@ -66,6 +66,32 @@ pub fn get_finger_pair_keys(
     keys
 }
 
+/// Assemble drill content by cycling through `patterns` up to `length` chars,
+/// joining with random space/newline separators. Char-based so multibyte (accented)
+/// patterns fill the requested character budget, not a byte budget.
+fn assemble_drill(patterns: &[String], length: usize, rng: &mut impl Rng) -> String {
+    let mut result = String::new();
+    let mut idx = 0;
+
+    while result.chars().count() < length {
+        if !result.is_empty() {
+            let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
+            result.push(separator);
+            if result.chars().count() >= length {
+                break;
+            }
+        }
+        let pattern = &patterns[idx % patterns.len()];
+        if result.chars().count() + pattern.chars().count() > length {
+            break;
+        }
+        result.push_str(pattern);
+        idx += 1;
+    }
+
+    result
+}
+
 /// Generate finger-pair drill content using 3-phase pattern
 /// If with_shift is true, uses weighted distribution (50% lower, 40% upper, 10% symbols)
 pub fn generate_finger_drills(keys: &[char], length: usize, with_shift: bool) -> String {
@@ -82,7 +108,6 @@ pub fn generate_finger_drills(keys: &[char], length: usize, with_shift: bool) ->
 
 /// Generate drills with only base characters (3-phase pattern)
 fn generate_base_drills(keys: &[char], length: usize) -> String {
-    let mut result = String::new();
     let mut rng = rand::thread_rng();
     let mut patterns = Vec::new();
 
@@ -115,27 +140,7 @@ fn generate_base_drills(keys: &[char], length: usize) -> String {
         }
     }
 
-    // Generate content by cycling through patterns
-    let mut idx = 0;
-    while result.len() < length {
-        if !result.is_empty() {
-            let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
-            result.push(separator);
-            // Check if adding separator would exceed length
-            if result.len() >= length {
-                break;
-            }
-        }
-        let pattern = &patterns[idx % patterns.len()];
-        // Check if adding pattern would exceed length
-        if result.len() + pattern.len() > length {
-            break;
-        }
-        result.push_str(pattern);
-        idx += 1;
-    }
-
-    result
+    assemble_drill(&patterns, length, &mut rng)
 }
 
 /// Generate drills with shift variants (50% lower, 40% upper, 10% symbols)
@@ -181,7 +186,6 @@ fn generate_shift_drills(keys: &[char], length: usize) -> String {
     }
 
     // Generate drill with 3-phase pattern using weighted pool
-    let mut result = String::new();
     let mut patterns = Vec::new();
 
     // Phase 1: Repetitions
@@ -205,27 +209,7 @@ fn generate_shift_drills(keys: &[char], length: usize) -> String {
         patterns.push(format!("{}{}{}", c1, c2, c3));
     }
 
-    // Generate content
-    let mut idx = 0;
-    while result.len() < length {
-        if !result.is_empty() {
-            let separator = if rng.gen_bool(0.25) { '\n' } else { ' ' };
-            result.push(separator);
-            // Check if adding separator would exceed length
-            if result.len() >= length {
-                break;
-            }
-        }
-        let pattern = &patterns[idx % patterns.len()];
-        // Check if adding pattern would exceed length
-        if result.len() + pattern.len() > length {
-            break;
-        }
-        result.push_str(pattern);
-        idx += 1;
-    }
-
-    result
+    assemble_drill(&patterns, length, &mut rng)
 }
 
 #[cfg(test)]
@@ -335,7 +319,7 @@ mod tests {
         let content = generate_finger_drills(&keys, 50, false);
 
         assert!(!content.is_empty());
-        assert!(content.len() <= 50);
+        assert!(content.chars().count() <= 50);
         assert!(content.contains('d') && content.contains('k'));
     }
 
@@ -345,7 +329,7 @@ mod tests {
         let content = generate_finger_drills(&keys, 100, true);
 
         assert!(!content.is_empty());
-        assert!(content.len() <= 100);
+        assert!(content.chars().count() <= 100);
         // Should contain both lowercase and uppercase
         assert!(content.contains('d') || content.contains('D'));
         assert!(content.contains('k') || content.contains('K'));
@@ -371,7 +355,7 @@ mod tests {
                         level,
                         with_shift
                     );
-                    assert!(content.len() <= 100);
+                    assert!(content.chars().count() <= 100);
                 }
             }
         }
